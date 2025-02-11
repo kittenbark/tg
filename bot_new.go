@@ -27,7 +27,7 @@ const (
 	defaultHandleTimeout = time.Hour
 
 	EnvTimeoutPolling     = envPrefix + "TIMEOUT_POLL"
-	defaultPollingTimeout = 100 * time.Millisecond
+	defaultPollingTimeout = 250 * time.Millisecond
 )
 
 type DownloadType int

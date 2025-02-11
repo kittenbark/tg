@@ -78,6 +78,19 @@ func TestIntegrationVideo(t *testing.T) {
 		_, err = tg.SendVideo(ctx, chat, tg.FromDisk(converted))
 		require.NoError(t, err)
 	})
+
+	t.Run("setMessageReaction", func(t *testing.T) {
+		t.Parallel()
+
+		ctx := bot.Context()
+
+		sent, err := tg.SendMessage(ctx, chat, "<3")
+		require.NoError(t, err)
+
+		ok, err := tg.SetMessageReaction(ctx, sent.Chat.Id, sent.MessageId, tg.CommonReaction("❤"))
+		require.NoError(t, err)
+		require.Equal(t, true, ok)
+	})
 }
 
 func ffmpegConvert(ctx context.Context, source, target string) ([]byte, error) {

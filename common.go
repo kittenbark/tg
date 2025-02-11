@@ -36,15 +36,29 @@ func CommonFilterCommand(command string) FilterFunc {
 
 func CommonTextReply(text string, asReply ...bool) HandlerFunc {
 	isReply := at(asReply, 0, false)
-	return func(ctx context.Context, update *Update) error {
+	return func(ctx context.Context, upd *Update) error {
 		opts := []*OptSendMessage{}
 		if isReply {
 			opts = append(opts, &OptSendMessage{ReplyParameters: &ReplyParameters{
-				MessageId:                update.Message.MessageId,
+				MessageId:                upd.Message.MessageId,
 				AllowSendingWithoutReply: true,
 			}})
 		}
-		_, err := SendMessage(ctx, update.Message.Chat.Id, text, opts...)
+		_, err := SendMessage(ctx, upd.Message.Chat.Id, text, opts...)
+		return err
+	}
+}
+
+func CommonReaction(emoji string, big ...bool) *OptSetMessageReaction {
+	return &OptSetMessageReaction{
+		Reaction: []ReactionType{&ReactionTypeEmoji{Type: "emoji", Emoji: emoji}},
+		IsBig:    at(big, 0, false),
+	}
+}
+
+func CommonReactionReply(emoji string, big ...bool) HandlerFunc {
+	return func(ctx context.Context, upd *Update) error {
+		_, err := SetMessageReaction(ctx, upd.Message.Chat.Id, upd.Message.MessageId, CommonReaction(emoji, big...))
 		return err
 	}
 }
@@ -99,7 +113,7 @@ func OnPublicMessage(ctx context.Context, update *Update) bool {
 		update.Message.Chat.Id != update.Message.From.Id
 }
 
-func Or(fn ...FilterFunc) FilterFunc {
+func Either(fn ...FilterFunc) FilterFunc {
 	return func(ctx context.Context, update *Update) bool {
 		for _, f := range fn {
 			if f(ctx, update) {
