@@ -32,7 +32,7 @@ type Bot struct {
 // Example:
 //
 //	bot.
-//		Filter(tg.IsPrivateMessage).
+//		Filter(tg.OnPrivateMessage).
 //		HandleCommand("/start", ...). // Private messages only.
 //		Branch(tg.OnText, ...) 		  // Private messages only.
 func (bot *Bot) Filter(pred FilterFunc) *Bot {
@@ -45,7 +45,7 @@ func (bot *Bot) Filter(pred FilterFunc) *Bot {
 // Example:
 //
 //	bot.
-//		Filter(tg.IsPrivateMessage).
+//		Filter(tg.OnPrivateMessage).
 //		Handle(tg.CommonTextReply("hii mom"))
 func (bot *Bot) Handle(handler HandlerFunc) *Bot {
 	bot.pipeline.Last().Next = &pipe{Handle: handler}

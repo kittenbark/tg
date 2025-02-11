@@ -89,12 +89,14 @@ func OnSticker(ctx context.Context, update *Update) bool {
 	return OnMessage(ctx, update) && update.Message.Sticker != nil
 }
 
-func IsPrivateMessage(ctx context.Context, update *Update) bool {
-	return OnMessage(ctx, update) && update.Message.Chat != nil && update.Message.SenderChat != nil && update.Message.Chat.Id == update.Message.SenderChat.Id
+func OnPrivateMessage(ctx context.Context, update *Update) bool {
+	return OnMessage(ctx, update) && update.Message.Chat != nil && update.Message.From != nil &&
+		update.Message.Chat.Id == update.Message.From.Id
 }
 
-func IsPublicMessage(ctx context.Context, update *Update) bool {
-	return OnMessage(ctx, update) && update.Message.Chat != nil && update.Message.SenderChat != nil && update.Message.Chat.Id != update.Message.SenderChat.Id
+func OnPublicMessage(ctx context.Context, update *Update) bool {
+	return OnMessage(ctx, update) && update.Message.Chat != nil && update.Message.From != nil &&
+		update.Message.Chat.Id != update.Message.From.Id
 }
 
 func Or(fn ...FilterFunc) FilterFunc {

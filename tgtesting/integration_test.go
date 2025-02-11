@@ -80,20 +80,6 @@ func TestIntegrationVideo(t *testing.T) {
 	})
 }
 
-func _() {
-	tg.NewFromEnv().
-		Filter(tg.IsPrivateMessage).
-		HandleCommand("/start", tg.CommonTextReply("hello this echo bot is made with @kittenbark_tg")).
-		HandleCommand("/help", tg.CommonTextReply("just send a message")).
-		Branch(tg.OnMessage, func(ctx context.Context, upd *tg.Update) error {
-			msg := upd.Message
-			_, err := tg.CopyMessage(ctx, msg.Chat.Id, msg.Chat.Id, msg.MessageId)
-			return err
-		}).
-		Default(tg.CommonTextReply("unsupported message type, /help?")).
-		Start()
-}
-
 func ffmpegConvert(ctx context.Context, source, target string) ([]byte, error) {
 	return exec.CommandContext(ctx, "ffmpeg",
 		"-i", source, "-vf", "format=gray", "-c:v", "libx264", "-preset", "ultrafast", "-crf", "23", "-c:a", "copy", target).
