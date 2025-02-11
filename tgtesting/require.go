@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"path"
 	"reflect"
 	"testing"
 )
@@ -42,6 +43,11 @@ func (cycle *bicycle) NotNil(t *testing.T, actual any, msg ...string) {
 }
 
 func OutsideFile(local string, url string) string {
+	if _, err := os.Stat(path.Dir(local)); os.IsNotExist(err) {
+		if err := os.MkdirAll(path.Dir(local), 0755); err != nil {
+			return ""
+		}
+	}
 	if _, err := os.Stat(local); err == nil {
 		return local
 	}

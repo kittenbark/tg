@@ -109,7 +109,7 @@ func (bot *Bot) ContextWithCancel() (ctx context.Context, cancel context.CancelF
 	if bot.contextTimeout == 0 {
 		return bot.context, nil
 	}
-	return context.WithTimeout(ctx, bot.contextTimeout)
+	return context.WithTimeout(bot.context, bot.contextTimeout)
 }
 
 // Context is simplified version of ContextWithCancel, might temporarily leak resources if used with timeouts.
