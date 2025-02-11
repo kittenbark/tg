@@ -1,0 +1,7 @@
+.idea
+.vscode
+.DS_Store
+
+*.jpg
+*.mp4
+*.env
