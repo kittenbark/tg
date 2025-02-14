@@ -366,7 +366,6 @@ func (fac *Factory2) withDefaultByDiscriminators(typ string, field *Field, tag s
 			}
 			fieldDiscr = discrValue
 		}
-
 	}
 	if fieldDiscr == "" {
 		return tag

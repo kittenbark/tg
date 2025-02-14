@@ -16,13 +16,13 @@ const (
 	EnvToken        = envPrefix + "TG_TOKEN"
 	EnvTokenTesting = envPrefix + "TG_TEST_TOKEN"
 	EnvTestingChat  = envPrefix + "TG_TEST_CHAT"
-	EnvSyncedHandle = envPrefix + "SYNCED_HANDLE"
 	EnvApiURL       = envPrefix + "API_URL"
 	EnvDownloadType = envPrefix + "DOWNLOAD_TYPE"
 	// EnvOnError is either ignore/log/exit.
 	EnvOnError = envPrefix + "ON_ERROR"
 	envPrefix  = "KITTENBARK_"
 
+	EnvSyncedHandle      = envPrefix + "SYNCED_HANDLE"
 	EnvTimeoutHandle     = envPrefix + "TIMEOUT_HANDLE"
 	defaultHandleTimeout = time.Hour
 

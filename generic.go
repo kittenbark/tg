@@ -20,7 +20,7 @@ func GenericRequest[Request any, Result any](ctx context.Context, method string,
 		return
 	}
 	var body bytes.Buffer
-	if err = json.NewEncoder(&body).Encode(request); err != nil {
+	if err = json.NewEncoder(&body).Encode(defaults(request)); err != nil {
 		return
 	}
 	url := fmt.Sprintf("%s/bot%s/%s", getOrDefault(ctx, ContextApiUrl, DefaultTelegramApiUrl), token, method)

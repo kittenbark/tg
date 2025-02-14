@@ -88,7 +88,7 @@ func GenericRequestMultipart[Request any, Result any](ctx context.Context, metho
 	}
 	url := fmt.Sprintf("%s/bot%s/%s", getOrDefault(ctx, ContextApiUrl, DefaultTelegramApiUrl), token, method)
 
-	body, contentType := requestMultipartPreparePipes[Request](request)
+	body, contentType := requestMultipartPreparePipes[Request](defaults(request))
 	httpRequest, err := http.NewRequestWithContext(ctx, http.MethodPost, url, body)
 	if err != nil {
 		_ = body.CloseWithError(err)
@@ -128,21 +128,14 @@ func multipartWritePipesInputMedia(media InputMedia, multipart *multipart.Writer
 	requestValue := reflect.Indirect(reflect.ValueOf(media))
 	requestType := requestValue.Type()
 	for i := range requestValue.NumField() {
-		fieldTags := requestType.Field(i).Tag
-		fieldTag := fieldTags.Get("json")
+		fieldTag := requestType.Field(i).Tag.Get("json")
 		if fieldTag == "-" {
 			continue
 		}
 		fieldName, fieldJsonTagOptions, _ := strings.Cut(fieldTag, ",")
 
 		fieldValue := requestValue.Field(i)
-		empty := isEmptyValue(fieldValue)
-		// todo: mv this logic to codegen.
-		fieldTagDefault := fieldTags.Get("default")
-		if empty && fieldTagDefault != "" {
-			fieldValue = reflect.ValueOf(fieldTagDefault)
-		}
-		if empty && strings.Contains(fieldJsonTagOptions, "omitempty") {
+		if isEmptyValue(fieldValue) && strings.Contains(fieldJsonTagOptions, "omitempty") {
 			continue
 		}
 
@@ -175,20 +168,14 @@ func multipartWritePipes[Request any](request *Request, pipe *io.PipeWriter, mul
 	requestType := reflect.TypeFor[Request]()
 	requestValue := reflect.Indirect(reflect.ValueOf(request))
 	for i := range requestValue.NumField() {
-		fieldTags := requestType.Field(i).Tag
-		fieldTag := fieldTags.Get("json")
+		fieldTag := requestType.Field(i).Tag.Get("json")
 		if fieldTag == "-" {
 			continue
 		}
 		fieldName, fieldJsonTagOptions, _ := strings.Cut(fieldTag, ",")
 
 		fieldValue := requestValue.Field(i)
-		empty := isEmptyValue(fieldValue)
-		fieldTagDefault := fieldTags.Get("default")
-		if empty && fieldTagDefault != "" {
-			fieldValue = reflect.ValueOf(fieldTagDefault)
-		}
-		if empty && strings.Contains(fieldJsonTagOptions, "omitempty") {
+		if isEmptyValue(fieldValue) && strings.Contains(fieldJsonTagOptions, "omitempty") {
 			continue
 		}
 

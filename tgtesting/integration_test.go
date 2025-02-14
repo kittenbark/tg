@@ -18,7 +18,40 @@ var (
 	dir     = "./testdata"
 )
 
-func TestIntegrationVideo(t *testing.T) {
+// If this test flaps, create an issue.
+func TestIntegrationShort(t *testing.T) {
+	t.Setenv(tg.EnvTimeoutHandle, "1")
+	if chat == 0 {
+		t.Skip("no test chat found")
+	}
+	bot := tg.NewFromEnv()
+
+	t.Run("setMessageReaction", func(t *testing.T) {
+		t.Parallel()
+
+		sent, err := tg.SendMessage(bot.Context(), chat, ":heart: common")
+		require.NoError(t, err)
+
+		ok, err := tg.SetMessageReaction(bot.Context(), sent.Chat.Id, sent.MessageId, tg.CommonReaction("❤"))
+		require.NoError(t, err)
+		require.Equal(t, true, ok)
+	})
+
+	t.Run("setMessageReaction#default", func(t *testing.T) {
+		t.Parallel()
+
+		sent, err := tg.SendMessage(bot.Context(), chat, ":fire: default")
+		require.NoError(t, err)
+
+		ok, err := tg.SetMessageReaction(bot.Context(), sent.Chat.Id, sent.MessageId, &tg.OptSetMessageReaction{
+			Reaction: []tg.ReactionType{&tg.ReactionTypeEmoji{Emoji: "🔥"}},
+		})
+		require.NoError(t, err)
+		require.Equal(t, true, ok)
+	})
+}
+
+func TestIntegrationLong(t *testing.T) {
 	if photo == "" || video == "" {
 		t.Skip("no test photo/video found")
 	}
@@ -77,19 +110,6 @@ func TestIntegrationVideo(t *testing.T) {
 
 		_, err = tg.SendVideo(ctx, chat, tg.FromDisk(converted))
 		require.NoError(t, err)
-	})
-
-	t.Run("setMessageReaction", func(t *testing.T) {
-		t.Parallel()
-
-		ctx := bot.Context()
-
-		sent, err := tg.SendMessage(ctx, chat, "<3")
-		require.NoError(t, err)
-
-		ok, err := tg.SetMessageReaction(ctx, sent.Chat.Id, sent.MessageId, tg.CommonReaction("❤"))
-		require.NoError(t, err)
-		require.Equal(t, true, ok)
 	})
 }
 

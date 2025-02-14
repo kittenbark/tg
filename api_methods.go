@@ -2814,72 +2814,6 @@ type OptSendMessage struct {
 	ReplyMarkup          VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
 }
 
-type VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply interface {
-	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup
-	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup
-	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove
-	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply
-}
-
-var (
-	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &InlineKeyboardMarkup{}
-	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ReplyKeyboardMarkup{}
-	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ReplyKeyboardRemove{}
-	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ForceReply{}
-)
-
-func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
-	return impl
-}
-func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
-	return nil
-}
-func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
-	return nil
-}
-func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
-	return nil
-}
-
-func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
-	return nil
-}
-func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
-	return impl
-}
-func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
-	return nil
-}
-func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
-	return nil
-}
-
-func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
-	return nil
-}
-func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
-	return nil
-}
-func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
-	return impl
-}
-func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
-	return nil
-}
-
-func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
-	return nil
-}
-func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
-	return nil
-}
-func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
-	return nil
-}
-func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
-	return impl
-}
-
 // SendPaidMedia Use this method to send paid media. On success, the sent Message is returned.
 func SendPaidMedia(ctx context.Context, chatId int64, starCount int64, media []InputPaidMedia, opts ...*OptSendPaidMedia) (*Message, error) {
 	type Request struct {
@@ -3569,6 +3503,72 @@ type OptSendVoice struct {
 	MessageEffectId      string
 	ReplyParameters      *ReplyParameters
 	ReplyMarkup          VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
+}
+
+type VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply interface {
+	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup
+	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup
+	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove
+	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply
+}
+
+var (
+	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &InlineKeyboardMarkup{}
+	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ReplyKeyboardMarkup{}
+	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ReplyKeyboardRemove{}
+	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ForceReply{}
+)
+
+func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
+	return impl
+}
+func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
+	return nil
+}
+func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
+	return nil
+}
+func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
+	return nil
+}
+
+func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
+	return nil
+}
+func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
+	return impl
+}
+func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
+	return nil
+}
+func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
+	return nil
+}
+
+func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
+	return nil
+}
+func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
+	return nil
+}
+func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
+	return impl
+}
+func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
+	return nil
+}
+
+func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
+	return nil
+}
+func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
+	return nil
+}
+func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
+	return nil
+}
+func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
+	return impl
 }
 
 // SetChatAdministratorCustomTitle Use this method to set a custom title for an administrator in a supergroup promoted by the bot.
