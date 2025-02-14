@@ -2,6 +2,7 @@ package tgtesting
 
 import (
 	"context"
+	"fmt"
 	"github.com/kittenbark/tg"
 	"log/slog"
 	"os"
@@ -48,6 +49,48 @@ func TestIntegrationShort(t *testing.T) {
 		})
 		require.NoError(t, err)
 		require.Equal(t, true, ok)
+	})
+
+	t.Run("ParseMode", func(t *testing.T) {
+		t.Parallel()
+
+		_, err := tg.SendMessage(
+			bot.Context(),
+			chat,
+			fmt.Sprintf("```python\n%s\n```", tg.EscapeParseMode(tg.ParseModeMarkdownV2, "print('hello world')")),
+			&tg.OptSendMessage{ParseMode: tg.ParseModeMarkdownV2},
+		)
+		require.NoError(t, err)
+
+		html := "<b>bold</b>, <strong>bold</strong>\n<i>italic</i>, <em>italic</em>\n<u>underline</u>, <ins>underline</ins>\n<s>strikethrough</s>, <strike>strikethrough</strike>, <del>strikethrough</del>\n<span class=\"tg-spoiler\">spoiler</span>, <tg-spoiler>spoiler</tg-spoiler>\n<b>bold <i>italic bold <s>italic bold strikethrough <span class=\"tg-spoiler\">italic bold strikethrough spoiler</span></s> <u>underline italic bold</u></i> bold</b>\n<a href=\"http://www.example.com/\">inline URL</a>\n<a href=\"tg://user?id=123456789\">inline mention of a user</a>\n<tg-emoji emoji-id=\"5368324170671202286\">👍</tg-emoji>\n<code>inline fixed-width code</code>\n<pre>pre-formatted fixed-width code block</pre>\n<pre><code class=\"language-python\">pre-formatted fixed-width code block written in the Python programming language</code></pre>\n<blockquote>Block quotation started\\nBlock quotation continued\\nThe last line of the block quotation</blockquote>\n<blockquote expandable>Expandable block quotation started\\nExpandable block quotation continued\\nExpandable block quotation continued\\nHidden by default part of the block quotation started\\nExpandable block quotation continued\\nThe last line of the block quotation</blockquote>"
+		_, err = tg.SendMessage(bot.Context(), chat, html, &tg.OptSendMessage{
+			ParseMode: tg.ParseModeHTML,
+		})
+		require.NoError(t, err)
+		_, err = tg.SendMessage(bot.Context(), chat, tg.EscapeParseMode(tg.ParseModeHTML, html), &tg.OptSendMessage{
+			ParseMode: tg.ParseModeHTML,
+		})
+		require.NoError(t, err)
+
+		markdown := "*bold text*\n_italic text_\n[inline URL](http://www.example.com/)\n[inline mention of a user](tg://user?id=123456789)\n`inline fixed-width code`\n```\npre-formatted fixed-width code block\n```\n```python\npre-formatted fixed-width code block written in the Python programming language\n```"
+		_, err = tg.SendMessage(bot.Context(), chat, markdown, &tg.OptSendMessage{
+			ParseMode: tg.ParseModeMarkdown,
+		})
+		require.NoError(t, err)
+		_, err = tg.SendMessage(bot.Context(), chat, tg.EscapeParseMode(tg.ParseModeMarkdown, markdown), &tg.OptSendMessage{
+			ParseMode: tg.ParseModeMarkdown,
+		})
+		require.NoError(t, err)
+
+		markdownV2 := "*bold \\*text*\n_italic \\*text_\n__underline__\n~strikethrough~\n||spoiler||\n*bold _italic bold ~italic bold strikethrough ||italic bold strikethrough spoiler||~ __underline italic bold___ bold*\n[inline URL](http://www.example.com/)\n[inline mention of a user](tg://user?id=123456789)\n![👍](tg://emoji?id=5368324170671202286)\n`inline fixed-width code`\n```\npre-formatted fixed-width code block\n```\n```python\npre-formatted fixed-width code block written in the Python programming language\n```\n>Block quotation started\n>Block quotation continued\n>Block quotation continued\n>Block quotation continued\n>The last line of the block quotation\n**>The expandable block quotation started right after the previous block quotation\n>It is separated from the previous block quotation by an empty bold entity\n>Expandable block quotation continued\n>Hidden by default part of the expandable block quotation started\n>Expandable block quotation continued\n>The last line of the expandable block quotation with the expandability mark||"
+		_, err = tg.SendMessage(bot.Context(), chat, markdownV2, &tg.OptSendMessage{
+			ParseMode: tg.ParseModeMarkdownV2,
+		})
+		require.NoError(t, err)
+		_, err = tg.SendMessage(bot.Context(), chat, tg.EscapeParseMode(tg.ParseModeMarkdownV2, markdownV2), &tg.OptSendMessage{
+			ParseMode: tg.ParseModeMarkdownV2,
+		})
+		require.NoError(t, err)
 	})
 }
 
