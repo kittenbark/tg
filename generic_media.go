@@ -115,7 +115,7 @@ func GenericRequestMultipart[Request any, Result any](ctx context.Context, metho
 		return
 	}
 	if !httpResult.Ok {
-		err = errorFrom(httpResult.ErrorCode, httpResult.Description, httpResult.Parameters)
+		err = newTelegramError(httpResult.ErrorCode, httpResult.Description, httpResult.Parameters)
 		return
 	}
 

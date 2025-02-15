@@ -24,7 +24,7 @@ import (
 
 func main() {
     tg.NewFromEnv().
-        Filter(tg.IsPrivateMessage).
+        Filter(tg.OnPrivateMessage).
         HandleCommand("/start", tg.CommonTextReply("hello this echo bot is made with @kittenbark_tg")).
         HandleCommand("/help", tg.CommonTextReply("just send a message")).
         Branch(tg.OnMessage, func(ctx context.Context, upd *tg.Update) error {
@@ -39,7 +39,7 @@ func main() {
 
 ## TODO
 
-- [ ] handle album
+- [x] handle album
 - [ ] generic sugar with bot.send & bot.edit (?)
 - [ ] support generic pollers & webhooks
 - [ ] write more examples and docs

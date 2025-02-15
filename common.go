@@ -4,7 +4,40 @@ import (
 	"context"
 	"slices"
 	"strings"
+	"sync"
 )
+
+// Synced wraps handler making it, ugh, synced.
+func Synced(handlerFunc HandlerFunc) HandlerFunc {
+	mutex := &sync.Mutex{}
+	return func(ctx context.Context, upd *Update) error {
+		mutex.Lock()
+		defer mutex.Unlock()
+		return handlerFunc(ctx, upd)
+	}
+}
+
+func Either(fn ...FilterFunc) FilterFunc {
+	return func(ctx context.Context, upd *Update) bool {
+		for _, f := range fn {
+			if f(ctx, upd) {
+				return true
+			}
+		}
+		return false
+	}
+}
+
+func All(fn ...FilterFunc) FilterFunc {
+	return func(ctx context.Context, upd *Update) bool {
+		for _, f := range fn {
+			if !f(ctx, upd) {
+				return false
+			}
+		}
+		return true
+	}
+}
 
 func CommonFilterCommand(command string) FilterFunc {
 	const botCommandEntity = "bot_command"
@@ -12,17 +45,17 @@ func CommonFilterCommand(command string) FilterFunc {
 		command = "/" + command
 	}
 
-	return func(ctx context.Context, update *Update) bool {
-		if update.Message == nil || len(update.Message.Entities) == 0 && len(update.Message.CaptionEntities) == 0 {
+	return func(ctx context.Context, upd *Update) bool {
+		if upd.Message == nil || len(upd.Message.Entities) == 0 && len(upd.Message.CaptionEntities) == 0 {
 			return false
 		}
 
 		var commandEntity *MessageEntity
 		pred := func(entity *MessageEntity) bool { return entity != nil && entity.Type == botCommandEntity }
-		if pos := slices.IndexFunc(update.Message.Entities, pred); pos != -1 {
-			commandEntity = update.Message.Entities[pos]
-		} else if pos = slices.IndexFunc(update.Message.Entities, pred); pos != -1 {
-			commandEntity = update.Message.Entities[pos]
+		if pos := slices.IndexFunc(upd.Message.Entities, pred); pos != -1 {
+			commandEntity = upd.Message.Entities[pos]
+		} else if pos = slices.IndexFunc(upd.Message.Entities, pred); pos != -1 {
+			commandEntity = upd.Message.Entities[pos]
 		}
 
 		if commandEntity == nil {
@@ -30,7 +63,7 @@ func CommonFilterCommand(command string) FilterFunc {
 		}
 		offset := commandEntity.Offset
 		length := commandEntity.Length
-		return update.Message.Text[offset:offset+length] == command
+		return upd.Message.Text[offset:offset+length] == command
 	}
 }
 
@@ -63,74 +96,57 @@ func CommonReactionReply(emoji string, big ...bool) HandlerFunc {
 	}
 }
 
-func OnMessage(ctx context.Context, update *Update) bool {
-	return update != nil && update.Message != nil
+func OnMessage(ctx context.Context, upd *Update) bool {
+	return upd != nil && upd.Message != nil
 }
 
-func OnText(ctx context.Context, update *Update) bool {
-	return OnMessage(ctx, update) && update.Message.Text != ""
+func OnText(ctx context.Context, upd *Update) bool {
+	return OnMessage(ctx, upd) && upd.Message.Text != ""
 }
 
-func OnPhoto(ctx context.Context, update *Update) bool {
-	return OnMessage(ctx, update) && len(update.Message.Photo) != 0
+func OnPhoto(ctx context.Context, upd *Update) bool {
+	return OnMessage(ctx, upd) && len(upd.Message.Photo) != 0
 }
 
-func OnVideo(ctx context.Context, update *Update) bool {
-	return OnMessage(ctx, update) && update.Message.Video != nil
+func OnVideo(ctx context.Context, upd *Update) bool {
+	return OnMessage(ctx, upd) && upd.Message.Video != nil
 }
 
-func OnAnimation(ctx context.Context, update *Update) bool {
-	return OnMessage(ctx, update) && update.Message.Animation != nil
+func OnAnimation(ctx context.Context, upd *Update) bool {
+	return OnMessage(ctx, upd) && upd.Message.Animation != nil
 }
 
-func OnDocument(ctx context.Context, update *Update) bool {
-	return OnMessage(ctx, update) && update.Message.Document != nil
+func OnDocument(ctx context.Context, upd *Update) bool {
+	return OnMessage(ctx, upd) && upd.Message.Document != nil
 }
 
-func OnVideoNote(ctx context.Context, update *Update) bool {
-	return OnMessage(ctx, update) && update.Message.VideoNote != nil
+func OnVideoNote(ctx context.Context, upd *Update) bool {
+	return OnMessage(ctx, upd) && upd.Message.VideoNote != nil
 }
 
-func OnVoice(ctx context.Context, update *Update) bool {
-	return OnMessage(ctx, update) && update.Message.Voice != nil
+func OnVoice(ctx context.Context, upd *Update) bool {
+	return OnMessage(ctx, upd) && upd.Message.Voice != nil
 }
 
-func OnAudio(ctx context.Context, update *Update) bool {
-	return OnMessage(ctx, update) && update.Message.Audio != nil
+func OnAudio(ctx context.Context, upd *Update) bool {
+	return OnMessage(ctx, upd) && upd.Message.Audio != nil
 }
 
-func OnSticker(ctx context.Context, update *Update) bool {
-	return OnMessage(ctx, update) && update.Message.Sticker != nil
+func OnMedia(ctx context.Context, upd *Update) bool {
+	return OnAnimation(ctx, upd) || OnAudio(ctx, upd) || OnDocument(ctx, upd) ||
+		OnPhoto(ctx, upd) || OnVideoNote(ctx, upd) || OnVideo(ctx, upd) || OnVoice(ctx, upd)
 }
 
-func OnPrivateMessage(ctx context.Context, update *Update) bool {
-	return OnMessage(ctx, update) && update.Message.Chat != nil && update.Message.From != nil &&
-		update.Message.Chat.Id == update.Message.From.Id
+func OnSticker(ctx context.Context, upd *Update) bool {
+	return OnMessage(ctx, upd) && upd.Message.Sticker != nil
 }
 
-func OnPublicMessage(ctx context.Context, update *Update) bool {
-	return OnMessage(ctx, update) && update.Message.Chat != nil && update.Message.From != nil &&
-		update.Message.Chat.Id != update.Message.From.Id
+func OnPrivateMessage(ctx context.Context, upd *Update) bool {
+	return OnMessage(ctx, upd) && upd.Message.Chat != nil && upd.Message.From != nil &&
+		upd.Message.Chat.Id == upd.Message.From.Id
 }
 
-func Either(fn ...FilterFunc) FilterFunc {
-	return func(ctx context.Context, update *Update) bool {
-		for _, f := range fn {
-			if f(ctx, update) {
-				return true
-			}
-		}
-		return false
-	}
-}
-
-func All(fn ...FilterFunc) FilterFunc {
-	return func(ctx context.Context, update *Update) bool {
-		for _, f := range fn {
-			if !f(ctx, update) {
-				return false
-			}
-		}
-		return true
-	}
+func OnPublicMessage(ctx context.Context, upd *Update) bool {
+	return OnMessage(ctx, upd) && upd.Message.Chat != nil && upd.Message.From != nil &&
+		upd.Message.Chat.Id != upd.Message.From.Id
 }

@@ -49,7 +49,7 @@ func GenericRequest[Request any, Result any](ctx context.Context, method string,
 		return
 	}
 	if !httpResult.Ok {
-		err = errorFrom(httpResult.ErrorCode, httpResult.Description, httpResult.Parameters)
+		err = newTelegramError(httpResult.ErrorCode, httpResult.Description, httpResult.Parameters)
 		return
 	}
 
@@ -57,7 +57,7 @@ func GenericRequest[Request any, Result any](ctx context.Context, method string,
 	return
 }
 
-func errorFrom(code int, description string, parameters map[string]interface{}) error {
+func newTelegramError(code int, description string, parameters map[string]interface{}) error {
 	switch code {
 	case http.StatusTooManyRequests:
 		var retryAfter time.Duration

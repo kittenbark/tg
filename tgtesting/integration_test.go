@@ -156,6 +156,28 @@ func TestIntegrationLong(t *testing.T) {
 	})
 }
 
+func TestIntegrationHandleAlbum(t *testing.T) {
+	t.Skip() // todo: support saved updates and uncomment this.
+
+	t.Setenv(tg.EnvTimeoutHandle, "5")
+	t.Setenv(tg.EnvTimeoutPolling, "5")
+
+	tg.NewFromEnv().
+		OnError(tg.OnErrorLog).
+		Filter(tg.OnPrivateMessage).
+		Branch(tg.OnMedia, tg.HandleAlbum(func(ctx context.Context, album []*tg.Update) error {
+			messages := []int64{}
+			for _, el := range album {
+				messages = append(messages, el.Message.MessageId)
+			}
+			chatId := album[0].Message.Chat.Id
+
+			_, err := tg.CopyMessages(ctx, chatId, chatId, messages)
+			return err
+		})).
+		Start()
+}
+
 func ffmpegConvert(ctx context.Context, source, target string) ([]byte, error) {
 	return exec.CommandContext(ctx, "ffmpeg",
 		"-i", source, "-vf", "format=gray", "-c:v", "libx264", "-preset", "ultrafast", "-crf", "23", "-c:a", "copy", target).

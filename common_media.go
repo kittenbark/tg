@@ -1,12 +1,60 @@
 package tg
 
-import "context"
+import (
+	"cmp"
+	"context"
+	"slices"
+	"sync"
+	"time"
+)
 
 type Album = []InputMedia
 
 var (
 	_ InputMedia = &Photo{}
 )
+
+// HandleAlbum groups updates corresponding to the same MediaGroupId.
+// Note: handling is happening after a delay, which could be adjusted with ConfigHandleAlbum (500ms by default).
+// TODO: support synced updates handling for HandleAlbum.
+func HandleAlbum(fn func(ctx context.Context, album []*Update) error, cfg ...*ConfigHandleAlbum) HandlerFunc {
+	config := at(cfg, 0, &ConfigHandleAlbum{
+		HandlingTimeout: 500 * time.Millisecond,
+	})
+	cacheMutex := &sync.Mutex{}
+	cache := map[string][]*Update{}
+	return func(ctx context.Context, upd *Update) error {
+		if upd == nil || upd.Message == nil || upd.Message.MediaGroupId == "" {
+			return fn(ctx, []*Update{upd})
+		}
+
+		cacheMutex.Lock()
+		if _, ok := cache[upd.Message.MediaGroupId]; ok {
+			cache[upd.Message.MediaGroupId] = append(cache[upd.Message.MediaGroupId], upd)
+			cacheMutex.Unlock()
+			return nil
+		}
+
+		cache[upd.Message.MediaGroupId] = []*Update{upd}
+		cacheMutex.Unlock()
+		defer func() {
+			cacheMutex.Lock()
+			defer cacheMutex.Unlock()
+			delete(cache, upd.Message.MediaGroupId)
+		}()
+
+		time.Sleep(config.HandlingTimeout)
+		cacheMutex.Lock()
+		album := cache[upd.Message.MediaGroupId]
+		slices.SortFunc(album, func(a, b *Update) int { return cmp.Compare(a.Message.MessageId, b.Message.MessageId) })
+		cacheMutex.Unlock()
+		return fn(ctx, album)
+	}
+}
+
+type ConfigHandleAlbum struct {
+	HandlingTimeout time.Duration
+}
 
 // TelegramPhoto is wrapper around list of PhotoSize, the last in the list is the biggest picture.
 type TelegramPhoto []*PhotoSize

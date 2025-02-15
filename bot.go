@@ -13,9 +13,9 @@ type HandlerFunc func(ctx context.Context, upd *Update) error
 type OnErrorFunc func(ctx context.Context, err error)
 
 type Bot struct {
-	context        context.Context
-	contextTimeout time.Duration
-	contextCancel  context.CancelFunc
+	context           context.Context
+	contextTimeout    time.Duration
+	contextCancelFunc context.CancelFunc
 
 	pipeline       *pipe
 	plugins        map[PluginHookType][]Plugin
@@ -107,7 +107,7 @@ func (bot *Bot) Plugin(plugin ...Plugin) *Bot {
 // ContextWithCancel build new Context with a fresh timeout.
 func (bot *Bot) ContextWithCancel() (ctx context.Context, cancel context.CancelFunc) {
 	if bot.contextTimeout == 0 {
-		return bot.context, nil
+		return bot.context, func() {}
 	}
 	return context.WithTimeout(bot.context, bot.contextTimeout)
 }
@@ -141,45 +141,46 @@ func (bot *Bot) Start() {
 			pollStart := time.Now()
 			updates, err := GetUpdates(ctx, &OptGetUpdates{Offset: bot.updatesOffset})
 			if err != nil {
-				if ctxCancel != nil {
-					ctxCancel()
-				}
+				// todo: why?
 				bot.pluginsHook(PluginHookOnError, context.WithValue(ctx, ContextPluginHooksError, err))
+				ctxCancel()
+				time.Sleep(bot.pollTimeout - time.Since(pollStart))
+				continue
+			}
+			if len(updates) == 0 {
+				ctxCancel()
+				time.Sleep(bot.pollTimeout - time.Since(pollStart))
 				continue
 			}
 
-			cancelWg := &sync.WaitGroup{}
-			cancelWg.Add(len(updates))
+			ctxCancelWg := &sync.WaitGroup{}
+			ctxCancelWg.Add(len(updates))
 			go func() {
-				cancelWg.Wait()
-				if ctxCancel != nil {
-					ctxCancel()
-				}
+				ctxCancelWg.Wait()
+				ctxCancel()
 			}()
 
 			for _, update := range slices.Backward(updates) {
 				bot.pluginsHook(PluginHookOnUpdate, context.WithValue(ctx, ContextPluginHooksUpdate, update))
 				if bot.syncHandling {
-					bot.handle(cancelWg, ctx, update)
+					bot.handle(ctxCancelWg, ctx, update)
 				} else {
-					go bot.handle(cancelWg, ctx, update)
+					go bot.handle(ctxCancelWg, ctx, update)
 				}
 				bot.updatesOffset = max(bot.updatesOffset, update.UpdateId+1)
 			}
 
-			if sincePollStart := time.Since(pollStart); sincePollStart < bot.pollTimeout {
-				time.Sleep(bot.pollTimeout - sincePollStart)
-			}
+			time.Sleep(bot.pollTimeout - time.Since(pollStart))
 		}
 	}
 }
 
 func (bot *Bot) Stop() {
-	bot.contextCancel()
+	bot.contextCancelFunc()
 }
 
-func (bot *Bot) handle(updatesCancelWg *sync.WaitGroup, ctx context.Context, update *Update) {
-	defer updatesCancelWg.Done()
+func (bot *Bot) handle(updatesCancelContextWg *sync.WaitGroup, ctx context.Context, update *Update) {
+	defer updatesCancelContextWg.Done()
 	defer func() {
 		if rec := recover(); rec != nil {
 			bot.pluginsHook(PluginHookOnError, context.WithValue(ctx, ContextPluginHooksError, fmt.Errorf("panic: %v", rec)))
