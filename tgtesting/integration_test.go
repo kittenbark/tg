@@ -159,9 +159,6 @@ func TestIntegrationLong(t *testing.T) {
 func TestIntegrationHandleAlbum(t *testing.T) {
 	t.Skip() // todo: support saved updates and uncomment this.
 
-	t.Setenv(tg.EnvTimeoutHandle, "5")
-	t.Setenv(tg.EnvTimeoutPolling, "5")
-
 	tg.NewFromEnv().
 		OnError(tg.OnErrorLog).
 		Filter(tg.OnPrivateMessage).
@@ -180,6 +177,6 @@ func TestIntegrationHandleAlbum(t *testing.T) {
 
 func ffmpegConvert(ctx context.Context, source, target string) ([]byte, error) {
 	return exec.CommandContext(ctx, "ffmpeg",
-		"-i", source, "-vf", "format=gray", "-c:v", "libx264", "-preset", "ultrafast", "-crf", "23", "-c:a", "copy", target).
+		"-y", "-i", source, "-vf", "format=gray", "-c:v", "libx264", "-preset", "ultrafast", "-crf", "23", "-c:a", "copy", target).
 		CombinedOutput()
 }

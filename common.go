@@ -7,6 +7,28 @@ import (
 	"sync"
 )
 
+// Chain allows convenient chaining of handlers.
+// Example:
+//
+//	tg.NewFromEnv().
+//		OnError(tg.OnErrorLog).
+//		Branch(tg.OnVideo, tg.Chain(
+//			tg.CommonReactionReply("👀"),
+//			tg.Synced(SomeHeavyVideoConverterHandler),
+//			tg.CommonReactionReply("👌")),
+//		).
+//		Start()
+func Chain(handlerFunc ...HandlerFunc) HandlerFunc {
+	return func(ctx context.Context, upd *Update) error {
+		for _, handler := range handlerFunc {
+			if err := handler(ctx, upd); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+}
+
 // Synced wraps handler making it, ugh, synced.
 func Synced(handlerFunc HandlerFunc) HandlerFunc {
 	mutex := &sync.Mutex{}
