@@ -175,6 +175,14 @@ func TestIntegrationHandleAlbum(t *testing.T) {
 		Start()
 }
 
+func TestContext(t *testing.T) {
+	localUrl := "http://localhost:8080"
+	t.Setenv(tg.EnvApiURL, localUrl)
+
+	bot := tg.NewFromEnv()
+	require.Equal(t, localUrl, bot.Context().Value(tg.ContextApiUrl).(string))
+}
+
 func ffmpegConvert(ctx context.Context, source, target string) ([]byte, error) {
 	return exec.CommandContext(ctx, "ffmpeg",
 		"-y", "-i", source, "-vf", "format=gray", "-c:v", "libx264", "-preset", "ultrafast", "-crf", "23", "-c:a", "copy", target).

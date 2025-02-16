@@ -13,14 +13,14 @@ import (
 )
 
 const (
-	EnvToken        = envPrefix + "TG_TOKEN"
-	EnvTokenTesting = envPrefix + "TG_TEST_TOKEN"
-	EnvTestingChat  = envPrefix + "TG_TEST_CHAT"
+	EnvToken        = envPrefix + "TOKEN"
+	EnvTokenTesting = envPrefix + "TEST_TOKEN"
+	EnvTestingChat  = envPrefix + "TEST_CHAT"
 	EnvApiURL       = envPrefix + "API_URL"
 	EnvDownloadType = envPrefix + "DOWNLOAD_TYPE"
 	// EnvOnError is either ignore/log/exit.
 	EnvOnError = envPrefix + "ON_ERROR"
-	envPrefix  = "KITTENBARK_"
+	envPrefix  = "KITTENBARK_TG_"
 
 	EnvSyncedHandle      = envPrefix + "SYNCED_HANDLE"
 	EnvTimeoutHandle     = envPrefix + "TIMEOUT_HANDLE"
@@ -36,7 +36,7 @@ const (
 	DownloadTypeUnspecified DownloadType = iota // calls default strategy (classic)
 	DownloadTypeClassic                         // calls fileDownloadClassic
 	DownloadTypeLocalMove                       // calls fileDownloadLocalMove
-	DownloadTypeLocalCopy                       // calls fileDownloadLocalMove
+	DownloadTypeLocalCopy                       // calls fileDownloadLocalCopy
 )
 
 type Config struct {
