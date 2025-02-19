@@ -174,6 +174,8 @@ func OnPublicMessage(ctx context.Context, upd *Update) bool {
 		upd.Message.Chat.Id != upd.Message.From.Id
 }
 
-func OnChance(chance float64) bool {
-	return rand.Float64() < chance
+func OnChance(chance float64) FilterFunc {
+	return func(ctx context.Context, upd *Update) bool {
+		return rand.Float64() < chance
+	}
 }
