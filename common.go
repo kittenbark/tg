@@ -2,6 +2,7 @@ package tg
 
 import (
 	"context"
+	"math/rand/v2"
 	"slices"
 	"strings"
 	"sync"
@@ -171,4 +172,8 @@ func OnPrivateMessage(ctx context.Context, upd *Update) bool {
 func OnPublicMessage(ctx context.Context, upd *Update) bool {
 	return OnMessage(ctx, upd) && upd.Message.Chat != nil && upd.Message.From != nil &&
 		upd.Message.Chat.Id != upd.Message.From.Id
+}
+
+func OnChance(chance float64) bool {
+	return rand.Float64() < chance
 }
