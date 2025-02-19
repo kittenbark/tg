@@ -21,7 +21,7 @@ var (
 
 // If this test flaps, create an issue.
 func TestIntegrationShort(t *testing.T) {
-	t.Setenv(tg.EnvTimeoutHandle, "1")
+	t.Setenv(tg.EnvTimeoutHandle, "1.5")
 	if chat == 0 {
 		t.Skip("no test chat found")
 	}

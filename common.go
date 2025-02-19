@@ -61,34 +61,6 @@ func All(fn ...FilterFunc) FilterFunc {
 	}
 }
 
-func CommonFilterCommand(command string) FilterFunc {
-	const botCommandEntity = "bot_command"
-	if !strings.HasPrefix(command, "/") {
-		command = "/" + command
-	}
-
-	return func(ctx context.Context, upd *Update) bool {
-		if upd.Message == nil || len(upd.Message.Entities) == 0 && len(upd.Message.CaptionEntities) == 0 {
-			return false
-		}
-
-		var commandEntity *MessageEntity
-		pred := func(entity *MessageEntity) bool { return entity != nil && entity.Type == botCommandEntity }
-		if pos := slices.IndexFunc(upd.Message.Entities, pred); pos != -1 {
-			commandEntity = upd.Message.Entities[pos]
-		} else if pos = slices.IndexFunc(upd.Message.Entities, pred); pos != -1 {
-			commandEntity = upd.Message.Entities[pos]
-		}
-
-		if commandEntity == nil {
-			return false
-		}
-		offset := commandEntity.Offset
-		length := commandEntity.Length
-		return upd.Message.Text[offset:offset+length] == command
-	}
-}
-
 func CommonTextReply(text string, asReply ...bool) HandlerFunc {
 	isReply := at(asReply, 0, false)
 	return func(ctx context.Context, upd *Update) error {
@@ -115,6 +87,34 @@ func CommonReactionReply(emoji string, big ...bool) HandlerFunc {
 	return func(ctx context.Context, upd *Update) error {
 		_, err := SetMessageReaction(ctx, upd.Message.Chat.Id, upd.Message.MessageId, CommonReaction(emoji, big...))
 		return err
+	}
+}
+
+func OnCommand(command string) FilterFunc {
+	const botCommandEntity = "bot_command"
+	if !strings.HasPrefix(command, "/") {
+		command = "/" + command
+	}
+
+	return func(ctx context.Context, upd *Update) bool {
+		if !OnMessage(ctx, upd) {
+			return false
+		}
+
+		var commandEntity *MessageEntity
+		pred := func(entity *MessageEntity) bool { return entity != nil && entity.Type == botCommandEntity }
+		if pos := slices.IndexFunc(upd.Message.Entities, pred); pos != -1 {
+			commandEntity = upd.Message.Entities[pos]
+		} else if pos = slices.IndexFunc(upd.Message.Entities, pred); pos != -1 {
+			commandEntity = upd.Message.Entities[pos]
+		}
+
+		if commandEntity == nil {
+			return false
+		}
+		offset := commandEntity.Offset
+		length := commandEntity.Length
+		return upd.Message.Text[offset:offset+length] == command
 	}
 }
 

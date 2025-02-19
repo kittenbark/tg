@@ -67,7 +67,7 @@ func (bot *Bot) Default(handler HandlerFunc) *Bot {
 //		HandleCommand("/start", ...).			// Handles only /start.
 //		Handle(tg.CommonTextReply("hii mom")) 	// Handles everything but /start.
 func (bot *Bot) HandleCommand(command string, handlerFunc HandlerFunc) *Bot {
-	return bot.Branch(CommonFilterCommand(command), handlerFunc)
+	return bot.Branch(OnCommand(command), handlerFunc)
 }
 
 // Branch helps to separate and handle updates by predicates.
