@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log/slog"
 	"math/rand/v2"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 )
@@ -139,6 +141,36 @@ func OnChance(chance float64) FilterFunc {
 	return func(ctx context.Context, upd *Update) bool {
 		return rand.Float64() < chance
 	}
+}
+
+func OnAddedToGroup(ctx context.Context, upd *Update) bool {
+	if upd == nil {
+		return false
+	}
+
+	msg := upd.Message
+	if msg.GroupChatCreated || msg.SupergroupChatCreated {
+		return true
+	}
+	newMembers := msg.NewChatMembers
+	if len(newMembers) == 0 {
+		return false
+	}
+
+	token, err := tryGetTokenFromContext(ctx)
+	if err != nil {
+		slog.Warn("tg.OnAddedToGroup#no_token_in_context", "err", err)
+		return false
+	}
+	identifier, _, _ := strings.Cut(token, ":")
+	id, _ := strconv.ParseInt(identifier, 10, 64)
+
+	for _, newMember := range newMembers {
+		if newMember != nil && newMember.Id == id {
+			return true
+		}
+	}
+	return false
 }
 
 func OnText(ctx context.Context, upd *Update) bool {

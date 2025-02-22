@@ -221,6 +221,23 @@ func TestIntegrationHandleCallback(t *testing.T) {
 		Start()
 }
 
+func TestIntegrationOnNewGroup(t *testing.T) {
+	t.Skip()
+
+	tg.NewFromEnv().
+		OnError(tg.OnErrorLog).
+		Plugin(tg.PluginLogger(slog.LevelDebug)).
+		Branch(tg.OnAddedToGroup, func(ctx context.Context, upd *tg.Update) error {
+			msg := upd.Message
+
+			_, _ = tg.SendMessage(ctx, chat, "new chat")
+			_, err := tg.SendMessage(ctx, msg.Chat.Id, "hello chat")
+			return err
+		}).
+		HandleCommand("/start", tg.CommonTextReply("+++")).
+		Start()
+}
+
 func TestContext(t *testing.T) {
 	localUrl := "http://localhost:8080"
 	t.Setenv(tg.EnvApiURL, localUrl)
