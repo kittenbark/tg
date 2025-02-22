@@ -191,16 +191,6 @@ func buildError[T any](buildType int, config T, env T) T {
 }
 
 func configFromEnv() (config *Config, err error) {
-	var syncHandling bool
-	if env, ok := os.LookupEnv(EnvSyncedHandle); ok {
-		sync, err := strconv.ParseBool(env)
-		if err != nil {
-			return nil, fmt.Errorf("env: invalid '%s' (at %s), err '%s'",
-				env, EnvSyncedHandle, err.Error())
-		}
-		syncHandling = sync
-	}
-
 	var downloadType DownloadType
 	if env, ok := os.LookupEnv(EnvDownloadType); ok {
 		switch strings.ToLower(strings.TrimSpace(env)) {
@@ -219,44 +209,60 @@ func configFromEnv() (config *Config, err error) {
 		Token:         os.Getenv(EnvToken),
 		TokenTesting:  os.Getenv(EnvTokenTesting),
 		ApiURL:        os.Getenv(EnvApiURL),
-		SyncHandling:  syncHandling,
 		DownloadType:  downloadType,
 		OnError:       nil,
 		OnErrorByType: strings.ToLower(os.Getenv(EnvOnError)),
 		buildType:     buildTypeEnv,
 	}
-	if config.TimeoutHandle, err = durationFromEnv(EnvTimeoutHandle, -1); err != nil {
+	if config.SyncHandling, err = parseFromEnvBool(EnvSyncedHandle, false); err != nil {
 		return nil, err
 	}
-	if config.TimeoutPoll, err = durationFromEnv(EnvTimeoutPolling, -1); err != nil {
+	if config.TimeoutHandle, err = parseFromEnvDuration(EnvTimeoutHandle, -1); err != nil {
+		return nil, err
+	}
+	if config.TimeoutPoll, err = parseFromEnvDuration(EnvTimeoutPolling, -1); err != nil {
 		return nil, err
 	}
 
 	return config, nil
 }
 
-func mustDurationFromEnv(env string, otherwise time.Duration) time.Duration {
-	result, err := durationFromEnv(env, otherwise)
+func parseFromEnvDurationMust(env string, otherwise time.Duration) time.Duration {
+	result, err := parseFromEnvDuration(env, otherwise)
 	if err != nil {
 		panic(err)
 	}
 	return result
 }
 
-func durationFromEnv(env string, otherwise time.Duration) (time.Duration, error) {
-	env, ok := os.LookupEnv(EnvSyncedHandle)
+func parseFromEnvDuration(env string, otherwise time.Duration) (time.Duration, error) {
+	value, ok := os.LookupEnv(EnvSyncedHandle)
 	if !ok {
 		return otherwise, nil
 	}
 
-	seconds, err := strconv.ParseFloat(env, 64)
+	seconds, err := strconv.ParseFloat(value, 64)
 	if err != nil {
 		return otherwise, fmt.Errorf("env: invalid '%s' (at %s), err '%s'",
-			env, EnvTimeoutHandle, err.Error(),
+			value, env, err.Error(),
 		)
 	}
-
 	return time.Duration(seconds * float64(time.Second)), nil
+}
+
+func parseFromEnvBool(env string, otherwise bool) (bool, error) {
+	value, ok := os.LookupEnv(env)
+	if !ok {
+		return otherwise, nil
+	}
+
+	result, err := strconv.ParseBool(value)
+	if err != nil {
+		return otherwise, fmt.Errorf("env: invalid '%s' (at %s), err '%s'",
+			value, env, err.Error(),
+		)
+	}
+	return result, nil
 }
 
 func withDefault[T ~float64 | ~int64](value T, onZero T, onNegative T) T {
