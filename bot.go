@@ -3,6 +3,7 @@ package tg
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"slices"
 	"sync"
 	"time"
@@ -132,51 +133,51 @@ func (bot *Bot) Ping() bool {
 // todo: implement webhooks.
 func (bot *Bot) Start() {
 	for {
+		pollStart := time.Now()
 		select {
 		case <-bot.context.Done():
 			return
 		default:
-			// Cancels either by timeout, either by bot.stop(), either after handling every update in the batch.
-			ctx, ctxCancel := bot.ContextWithCancel()
-			pollStart := time.Now()
-			updates, err := GetUpdates(ctx, &OptGetUpdates{Offset: bot.updatesOffset})
-			if err != nil {
-				// todo: why?
-				bot.pluginsHook(PluginHookOnError, context.WithValue(ctx, ContextPluginHooksError, err))
-				ctxCancel()
-				time.Sleep(bot.pollTimeout - time.Since(pollStart))
-				continue
-			}
-			if len(updates) == 0 {
-				ctxCancel()
-				time.Sleep(bot.pollTimeout - time.Since(pollStart))
-				continue
-			}
-
-			ctxCancelWg := &sync.WaitGroup{}
-			ctxCancelWg.Add(len(updates))
-			go func() {
-				ctxCancelWg.Wait()
-				ctxCancel()
-			}()
-
-			for _, update := range slices.Backward(updates) {
-				bot.pluginsHook(PluginHookOnUpdate, context.WithValue(ctx, ContextPluginHooksUpdate, update))
-				if bot.syncHandling {
-					bot.handle(ctxCancelWg, ctx, update)
-				} else {
-					go bot.handle(ctxCancelWg, ctx, update)
-				}
-				bot.updatesOffset = max(bot.updatesOffset, update.UpdateId+1)
-			}
-
-			time.Sleep(bot.pollTimeout - time.Since(pollStart))
+			bot.longPollIteration()
 		}
+		time.Sleep(bot.pollTimeout - time.Since(pollStart))
 	}
 }
 
 func (bot *Bot) Stop() {
 	bot.contextCancelFunc()
+}
+
+func (bot *Bot) longPollIteration() {
+	// Note: Telegram gives you 3s timeout if you have empty list if updates and poll for updates too often.
+	updatesCtx, updatesCtxCancel := context.WithTimeout(bot.context, time.Second*4)
+	updates, err := GetUpdates(updatesCtx, &OptGetUpdates{Offset: bot.updatesOffset})
+	updatesCtxCancel()
+	if err != nil {
+		bot.pluginsHook(PluginHookOnError, context.WithValue(updatesCtx, ContextPluginHooksError, err))
+		return
+	}
+	if len(updates) == 0 {
+		return
+	}
+
+	ctx, ctxCancel := bot.ContextWithCancel()
+	ctxCancelWg := &sync.WaitGroup{}
+	ctxCancelWg.Add(len(updates))
+	go func() {
+		ctxCancelWg.Wait()
+		ctxCancel()
+	}()
+
+	for _, update := range slices.Backward(updates) {
+		bot.pluginsHook(PluginHookOnUpdate, context.WithValue(ctx, ContextPluginHooksUpdate, update))
+		if bot.syncHandling {
+			bot.handle(ctxCancelWg, ctx, update)
+		} else {
+			go bot.handle(ctxCancelWg, ctx, update)
+		}
+		bot.updatesOffset = max(bot.updatesOffset, update.UpdateId+1)
+	}
 }
 
 func (bot *Bot) handle(updatesCancelContextWg *sync.WaitGroup, ctx context.Context, update *Update) {
@@ -222,7 +223,13 @@ func (bot *Bot) pluginsHook(hook PluginHookType, ctx context.Context) {
 	wg.Add(len(plugins))
 	for _, plugin := range plugins {
 		go func() {
-			defer wg.Done()
+			defer func() {
+				wg.Done()
+				if r := recover(); r != nil {
+					slog.Error("pluginsHook%panic", "err", r)
+				}
+			}()
+
 			plugin.Apply(hook, ctx)
 		}()
 	}

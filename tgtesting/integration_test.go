@@ -158,6 +158,7 @@ func TestIntegrationLong(t *testing.T) {
 
 func TestIntegrationHandleAlbum(t *testing.T) {
 	t.Skip() // todo: support saved updates and uncomment this.
+	//t.Setenv(tg.EnvTimeoutHandle, "0.5")
 
 	tg.NewFromEnv().
 		OnError(tg.OnErrorLog).
