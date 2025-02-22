@@ -2,6 +2,7 @@ package tgtesting
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/kittenbark/tg"
 	"log/slog"
@@ -173,6 +174,50 @@ func TestIntegrationHandleAlbum(t *testing.T) {
 			_, err := tg.CopyMessages(ctx, chatId, chatId, messages)
 			return err
 		})).
+		Start()
+}
+
+func TestIntegrationHandleCallback(t *testing.T) {
+	t.Skip()
+
+	type Info struct {
+		Id     int64  `json:"i"`
+		ChatId int64  `json:"c"`
+		Str    string `json:"s"`
+	}
+
+	tg.NewFromEnv().
+		OnError(tg.OnErrorLog).
+		Plugin(tg.PluginLogger(slog.LevelDebug)).
+		Branch(tg.OnCallbackWithData[Info](), func(ctx context.Context, upd *tg.Update) error {
+			value, err := tg.CallbackData[Info](upd)
+			if err != nil {
+				return err
+			}
+			callback := upd.CallbackQuery
+			_, err = tg.SendMessage(ctx, callback.From.Id, fmt.Sprintf("%#v", value))
+			_, err = tg.AnswerCallbackQuery(ctx, callback.Id, &tg.OptAnswerCallbackQuery{Text: "love you"})
+			return err
+		}).
+		Branch(tg.OnCallback, func(ctx context.Context, upd *tg.Update) error {
+			println(upd.CallbackQuery.Data)
+			return nil
+		}).
+		Filter(tg.OnPrivateMessage).
+		Branch(tg.OnText, func(ctx context.Context, upd *tg.Update) error {
+			msg := upd.Message
+			data, _ := json.Marshal(&Info{Id: msg.MessageId, ChatId: msg.Chat.Id, Str: msg.Text})
+			println(string(data))
+			_, err := tg.SendMessage(ctx, msg.Chat.Id, msg.Text, &tg.OptSendMessage{
+				ReplyMarkup: &tg.InlineKeyboardMarkup{
+					InlineKeyboard: [][]*tg.InlineKeyboardButton{{{
+						Text:         "button",
+						CallbackData: string(data),
+					}}},
+				},
+			})
+			return err
+		}).
 		Start()
 }
 

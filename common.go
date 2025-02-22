@@ -2,6 +2,8 @@ package tg
 
 import (
 	"context"
+	"encoding/json"
+	"errors"
 	"math/rand/v2"
 	"slices"
 	"strings"
@@ -123,6 +125,22 @@ func OnMessage(ctx context.Context, upd *Update) bool {
 	return upd != nil && upd.Message != nil
 }
 
+func OnPrivateMessage(ctx context.Context, upd *Update) bool {
+	return OnMessage(ctx, upd) && upd.Message.Chat != nil && upd.Message.From != nil &&
+		upd.Message.Chat.Id == upd.Message.From.Id
+}
+
+func OnPublicMessage(ctx context.Context, upd *Update) bool {
+	return OnMessage(ctx, upd) && upd.Message.Chat != nil && upd.Message.From != nil &&
+		upd.Message.Chat.Id != upd.Message.From.Id
+}
+
+func OnChance(chance float64) FilterFunc {
+	return func(ctx context.Context, upd *Update) bool {
+		return rand.Float64() < chance
+	}
+}
+
 func OnText(ctx context.Context, upd *Update) bool {
 	return OnMessage(ctx, upd) && upd.Message.Text != ""
 }
@@ -164,18 +182,33 @@ func OnSticker(ctx context.Context, upd *Update) bool {
 	return OnMessage(ctx, upd) && upd.Message.Sticker != nil
 }
 
-func OnPrivateMessage(ctx context.Context, upd *Update) bool {
-	return OnMessage(ctx, upd) && upd.Message.Chat != nil && upd.Message.From != nil &&
-		upd.Message.Chat.Id == upd.Message.From.Id
+func CallbackData[T any](upd *Update) (*T, error) {
+	if upd == nil || upd.CallbackQuery == nil {
+		return nil, errors.New("tg: callback query is nil")
+	}
+
+	var value T
+	if err := json.Unmarshal([]byte(upd.CallbackQuery.Data), &value); err != nil {
+		return nil, err
+	}
+	return &value, nil
 }
 
-func OnPublicMessage(ctx context.Context, upd *Update) bool {
-	return OnMessage(ctx, upd) && upd.Message.Chat != nil && upd.Message.From != nil &&
-		upd.Message.Chat.Id != upd.Message.From.Id
+func OnCallback(ctx context.Context, upd *Update) bool {
+	return upd != nil && upd.CallbackQuery != nil
 }
 
-func OnChance(chance float64) FilterFunc {
+func OnCallbackWithData[T any](pred ...func(value *T) bool) FilterFunc {
+	predicate := at(pred, 0, func(value *T) bool { return true })
 	return func(ctx context.Context, upd *Update) bool {
-		return rand.Float64() < chance
+		if upd == nil || upd.CallbackQuery == nil {
+			return false
+		}
+
+		value, err := CallbackData[T](upd)
+		if err != nil {
+			return false
+		}
+		return predicate(value)
 	}
 }
