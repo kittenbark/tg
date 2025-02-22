@@ -144,7 +144,7 @@ func OnChance(chance float64) FilterFunc {
 }
 
 func OnAddedToGroup(ctx context.Context, upd *Update) bool {
-	if upd == nil {
+	if upd == nil || upd.Message == nil {
 		return false
 	}
 
