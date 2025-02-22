@@ -40,15 +40,15 @@ const (
 )
 
 type Config struct {
-	Token         string  `json:"token"`
-	TokenTesting  string  `json:"token_testing"`
-	ApiURL        string  `json:"api_url,omitempty"`
-	HandleTimeout float64 `json:"timeout,omitempty"`
-	PollTimeout   float64 `json:"poll_timeout,omitempty"`
-	SyncHandling  bool    `json:"sync,omitempty"`
-	DownloadType  DownloadType
-	OnError       OnErrorFunc `json:"-"`
-	OnErrorByType string      `json:"on_error,omitempty"`
+	Token         string        `json:"token"`
+	TokenTesting  string        `json:"token_testing"`
+	ApiURL        string        `json:"api_url,omitempty"`
+	TimeoutHandle time.Duration `json:"timeout,omitempty"`
+	TimeoutPoll   time.Duration `json:"timeout_poll,omitempty"`
+	SyncHandling  bool          `json:"sync,omitempty"`
+	DownloadType  DownloadType  `json:"download_type,omitempty"`
+	OnError       OnErrorFunc   `json:"-"`
+	OnErrorByType string        `json:"on_error,omitempty"`
 
 	buildType int
 }
@@ -96,24 +96,6 @@ func TryNew(cfg *Config) (*Bot, error) {
 		ctx = context.WithValue(ctx, ContextApiUrl, cfg.ApiURL)
 	}
 
-	var pollTimeout time.Duration
-	if cfg.PollTimeout < 0 {
-		pollTimeout = 0
-	} else if cfg.PollTimeout == 0 {
-		pollTimeout = defaultPollingTimeout
-	} else {
-		pollTimeout = time.Duration(float64(time.Second) * cfg.PollTimeout)
-	}
-
-	var responseTimeout time.Duration
-	if cfg.HandleTimeout < 0 {
-		responseTimeout = 0
-	} else if cfg.HandleTimeout == 0 {
-		responseTimeout = defaultHandleTimeout
-	} else {
-		responseTimeout = time.Duration(float64(time.Second) * cfg.HandleTimeout)
-	}
-
 	switch cfg.DownloadType {
 	case DownloadTypeUnspecified:
 	case DownloadTypeClassic:
@@ -149,7 +131,7 @@ func TryNew(cfg *Config) (*Bot, error) {
 	return &Bot{
 		context:           ctx,
 		contextCancelFunc: ctxCancel,
-		contextTimeout:    responseTimeout,
+		contextTimeout:    withDefault(cfg.TimeoutHandle, defaultHandleTimeout, 0),
 		plugins: map[PluginHookType][]Plugin{
 			PluginHookOnUpdate: {},
 			PluginHookOnFilter: {},
@@ -159,71 +141,16 @@ func TryNew(cfg *Config) (*Bot, error) {
 		pipeline:       &pipe{},
 		defaultHandler: nil,
 		syncHandling:   cfg.SyncHandling,
-		pollTimeout:    pollTimeout,
+		pollTimeout:    withDefault(cfg.TimeoutPoll, defaultPollingTimeout, 0),
 		updatesOffset:  0,
 	}, nil
 }
 
 func TryNewFromEnv() (*Bot, error) {
-	var timeoutHandle float64
-	if env, ok := os.LookupEnv(EnvTimeoutHandle); ok {
-		timeout, err := strconv.ParseFloat(env, 64)
-		if err != nil {
-			return nil, fmt.Errorf("env: invalid '%s' (at %s), err '%s'",
-				env, EnvTimeoutHandle, err.Error(),
-			)
-		}
-		timeoutHandle = timeout
+	config, err := configFromEnv()
+	if err != nil {
+		return nil, err
 	}
-
-	var timeoutPoll float64
-	if env, ok := os.LookupEnv(EnvTimeoutPolling); ok {
-		timeout, err := strconv.ParseFloat(env, 64)
-		if err != nil {
-			return nil, fmt.Errorf("env: invalid '%s' (at %s), err '%s'",
-				env, EnvTimeoutPolling, err.Error(),
-			)
-		}
-		timeoutPoll = timeout
-	}
-
-	var syncHandling bool
-	if env, ok := os.LookupEnv(EnvSyncedHandle); ok {
-		sync, err := strconv.ParseBool(env)
-		if err != nil {
-			return nil, fmt.Errorf("env: invalid '%s' (at %s), err '%s'",
-				env, EnvSyncedHandle, err.Error())
-		}
-		syncHandling = sync
-	}
-
-	var downloadType DownloadType
-	if env, ok := os.LookupEnv(EnvDownloadType); ok {
-		switch strings.ToLower(strings.TrimSpace(env)) {
-		case "classic":
-			downloadType = DownloadTypeClassic
-		case "local_move":
-			downloadType = DownloadTypeLocalMove
-		case "local_copy":
-			downloadType = DownloadTypeLocalCopy
-		default:
-			return nil, fmt.Errorf("env: unknown '%s' (at %s)", env, EnvDownloadType)
-		}
-	}
-
-	config := &Config{
-		Token:         os.Getenv(EnvToken),
-		TokenTesting:  os.Getenv(EnvTokenTesting),
-		ApiURL:        os.Getenv(EnvApiURL),
-		HandleTimeout: timeoutHandle,
-		PollTimeout:   timeoutPoll,
-		SyncHandling:  syncHandling,
-		DownloadType:  downloadType,
-		OnError:       nil,
-		OnErrorByType: strings.ToLower(os.Getenv(EnvOnError)),
-		buildType:     buildTypeEnv,
-	}
-
 	return TryNew(config)
 }
 
@@ -260,5 +187,85 @@ func buildError[T any](buildType int, config T, env T) T {
 		return env
 	default:
 		panic("unknown build type")
+	}
+}
+
+func configFromEnv() (config *Config, err error) {
+	var syncHandling bool
+	if env, ok := os.LookupEnv(EnvSyncedHandle); ok {
+		sync, err := strconv.ParseBool(env)
+		if err != nil {
+			return nil, fmt.Errorf("env: invalid '%s' (at %s), err '%s'",
+				env, EnvSyncedHandle, err.Error())
+		}
+		syncHandling = sync
+	}
+
+	var downloadType DownloadType
+	if env, ok := os.LookupEnv(EnvDownloadType); ok {
+		switch strings.ToLower(strings.TrimSpace(env)) {
+		case "classic":
+			downloadType = DownloadTypeClassic
+		case "local_move":
+			downloadType = DownloadTypeLocalMove
+		case "local_copy":
+			downloadType = DownloadTypeLocalCopy
+		default:
+			return nil, fmt.Errorf("env: unknown '%s' (at %s)", env, EnvDownloadType)
+		}
+	}
+
+	config = &Config{
+		Token:         os.Getenv(EnvToken),
+		TokenTesting:  os.Getenv(EnvTokenTesting),
+		ApiURL:        os.Getenv(EnvApiURL),
+		SyncHandling:  syncHandling,
+		DownloadType:  downloadType,
+		OnError:       nil,
+		OnErrorByType: strings.ToLower(os.Getenv(EnvOnError)),
+		buildType:     buildTypeEnv,
+	}
+	if config.TimeoutHandle, err = durationFromEnv(EnvTimeoutHandle, -1); err != nil {
+		return nil, err
+	}
+	if config.TimeoutPoll, err = durationFromEnv(EnvTimeoutPolling, -1); err != nil {
+		return nil, err
+	}
+
+	return config, nil
+}
+
+func mustDurationFromEnv(env string, otherwise time.Duration) time.Duration {
+	result, err := durationFromEnv(env, otherwise)
+	if err != nil {
+		panic(err)
+	}
+	return result
+}
+
+func durationFromEnv(env string, otherwise time.Duration) (time.Duration, error) {
+	env, ok := os.LookupEnv(EnvSyncedHandle)
+	if !ok {
+		return otherwise, nil
+	}
+
+	seconds, err := strconv.ParseFloat(env, 64)
+	if err != nil {
+		return otherwise, fmt.Errorf("env: invalid '%s' (at %s), err '%s'",
+			env, EnvTimeoutHandle, err.Error(),
+		)
+	}
+
+	return time.Duration(seconds * float64(time.Second)), nil
+}
+
+func withDefault[T ~float64 | ~int64](value T, onZero T, onNegative T) T {
+	switch {
+	case value < 0:
+		return onNegative
+	case value == 0:
+		return onZero
+	default:
+		return value
 	}
 }

@@ -19,7 +19,7 @@ var (
 // TODO: support synced updates handling for HandleAlbum.
 func HandleAlbum(fn func(ctx context.Context, album []*Update) error, cfg ...*ConfigHandleAlbum) HandlerFunc {
 	config := at(cfg, 0, &ConfigHandleAlbum{
-		HandlingTimeout: 500 * time.Millisecond,
+		HandlingTimeout: mustDurationFromEnv(EnvTimeoutPolling, defaultPollingTimeout*2+time.Millisecond*50),
 	})
 	cacheMutex := &sync.Mutex{}
 	cache := map[string][]*Update{}
