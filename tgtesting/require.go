@@ -36,6 +36,14 @@ func (cycle *bicycle) Equal(t *testing.T, expected any, actual any, msg ...strin
 	}
 }
 
+func (cycle *bicycle) True(t *testing.T, actual any, msg ...string) {
+	cycle.Equal(t, true, actual, msg...)
+}
+
+func (cycle *bicycle) False(t *testing.T, actual any, msg ...string) {
+	cycle.Equal(t, false, actual, msg...)
+}
+
 func (cycle *bicycle) NotNil(t *testing.T, actual any, msg ...string) {
 	if actual == nil || reflect.ValueOf(actual).IsNil() {
 		t.Fatalf("require.NotNil failed: expected nil, got '%#v' %#v", actual, msg)

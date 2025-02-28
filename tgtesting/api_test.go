@@ -158,6 +158,21 @@ func TestError(t *testing.T) {
 	)
 }
 
+func TestRegexes(t *testing.T) {
+	t.Parallel()
+
+	onText := tg.OnTextRegexp("kitten")
+	require.True(t, onText(nil, &tg.Update{Message: &tg.Message{Text: "kitten"}}))
+	require.True(t, onText(nil, &tg.Update{Message: &tg.Message{Text: "kittenbark"}}))
+	require.False(t, onText(nil, &tg.Update{Message: &tg.Message{Text: "kit"}}))
+
+	onUrl := tg.OnUrl()
+	require.True(t, onUrl(nil, &tg.Update{Message: &tg.Message{Text: "http://google.com"}}))
+	require.False(t, onUrl(nil, &tg.Update{Message: &tg.Message{Text: "google.com"}}))
+	require.True(t, onUrl(nil, &tg.Update{Message: &tg.Message{Text: "https://google.com?url=me"}}))
+	require.False(t, onUrl(nil, &tg.Update{Message: &tg.Message{Text: "kittenbark"}}))
+}
+
 func MakeTestOK[Expected any, Request any](expected *Expected, request func(ctx context.Context) (*Request, error), stubs ...Stub) func(t *testing.T) {
 	return func(t *testing.T) {
 		ctx := NewTestingEnv(t, &Config{
