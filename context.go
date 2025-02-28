@@ -11,11 +11,6 @@ const (
 	ContextApiUrl           = contextPrefix + "api_url"
 	ContextFileDownloadType = contextPrefix + "file_downloader"
 
-	ContextPluginHooksUpdate = contextPrefix + "plugin_on_update"
-	ContextPluginHooksFilter = contextPrefix + "plugin_on_filter"
-	ContextPluginHooksHandle = contextPrefix + "plugin_on_handle"
-	ContextPluginHooksError  = contextPrefix + "plugin_on_error"
-
 	contextPrefix = "kittenbark_"
 )
 

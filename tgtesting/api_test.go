@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/kittenbark/tg"
 	"net/http"
+	"sync"
 	"testing"
 	"time"
 )
@@ -51,7 +52,7 @@ func TestOK(t *testing.T) {
 func TestGetUpdatesCallbackQuery(t *testing.T) {
 	t.Parallel()
 
-	ctx := NewTestingEnv(t, &Config{
+	ctx := NewTestingContext(t, &Config{
 		Stubs: []Stub{
 			{Url: "/getUpdates", Result: StubResultOK(200, []*tg.Update{
 				{
@@ -158,9 +159,87 @@ func TestError(t *testing.T) {
 	)
 }
 
+type CounterPlugin struct {
+	Calls map[string]int
+	lock  *sync.Mutex
+}
+
+func (plugin *CounterPlugin) Hooks() []tg.PluginHookType {
+	return []tg.PluginHookType{
+		tg.PluginHookOnHandleStart,
+		tg.PluginHookOnHandleFinish,
+		tg.PluginHookOnFilter,
+		tg.PluginHookOnUpdate,
+		tg.PluginHookOnError,
+	}
+}
+
+func (plugin *CounterPlugin) Apply(ctx tg.PluginHookContext) {
+	plugin.lock.Lock()
+	defer plugin.lock.Unlock()
+
+	switch ctx.(type) {
+	case *tg.PluginHookContextOnUpdate:
+		plugin.Calls["update"]++
+	case *tg.PluginHookContextOnFilter:
+		plugin.Calls["filter"]++
+	case *tg.PluginHookContextOnHandleStart:
+		plugin.Calls["handle_start"]++
+	case *tg.PluginHookContextOnHandleFinish:
+		plugin.Calls["handle_finish"]++
+	case *tg.PluginHookContextOnError:
+		plugin.Calls["error"]++
+	}
+}
+
+func TestPlugins(t *testing.T) {
+	t.Parallel()
+
+	SetTestingEnv(t, &Config{
+		Stubs: []Stub{
+			{
+				Url: "/getUpdates",
+				Result: StubResultOK(200, []*tg.Update{
+					{
+						UpdateId: 1,
+						Message:  &tg.Message{MessageId: 1, Chat: &tg.Chat{Id: 1}, Text: "testtext"},
+					},
+					{
+						UpdateId: 2, CallbackQuery: &tg.CallbackQuery{Id: "callback_query", Data: `{"id": 1, "value": "other"}`},
+					},
+				}),
+			},
+			{
+				Url:    "/sendMessage",
+				Result: StubResultOK(200, &tg.Message{MessageId: 2, Chat: &tg.Chat{Id: 1}, Text: "testtext"}),
+			},
+		},
+	})
+
+	counter := &CounterPlugin{
+		Calls: map[string]int{
+			"update":        0,
+			"filter":        0,
+			"handle_start":  0,
+			"handle_finish": 0,
+			"error":         0,
+		},
+		lock: &sync.Mutex{},
+	}
+
+	tg.NewFromEnv().
+		Plugin(counter).
+		Filter(tg.OnMessage).
+		Handle(func(ctx context.Context, upd *tg.Update) error {
+			
+		}).
+		Start()
+
+}
+
 func MakeTestOK[Expected any, Request any](expected *Expected, request func(ctx context.Context) (*Request, error), stubs ...Stub) func(t *testing.T) {
 	return func(t *testing.T) {
-		ctx := NewTestingEnv(t, &Config{
+		ctx := NewTestingContext(t, &Config{
 			Stubs: stubs,
 		})
 		result, err := request(ctx)
@@ -171,7 +250,7 @@ func MakeTestOK[Expected any, Request any](expected *Expected, request func(ctx 
 
 func MakeTestError[Request any](request func(ctx context.Context) (*Request, error), stubs ...Stub) func(t *testing.T) {
 	return func(t *testing.T) {
-		ctx := NewTestingEnv(t, &Config{
+		ctx := NewTestingContext(t, &Config{
 			Stubs: stubs,
 		})
 		_, err := request(ctx)

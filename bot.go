@@ -154,7 +154,7 @@ func (bot *Bot) longPollIteration() {
 	updates, err := GetUpdates(updatesCtx, &OptGetUpdates{Offset: bot.updatesOffset})
 	updatesCtxCancel()
 	if err != nil {
-		bot.pluginsHook(PluginHookOnError, context.WithValue(updatesCtx, ContextPluginHooksError, err))
+		bot.pluginsHook(PluginHookOnError, &PluginHookContextOnError{updatesCtx, bot, err})
 		return
 	}
 	if len(updates) == 0 {
@@ -170,7 +170,7 @@ func (bot *Bot) longPollIteration() {
 	}()
 
 	for _, update := range slices.Backward(updates) {
-		bot.pluginsHook(PluginHookOnUpdate, context.WithValue(ctx, ContextPluginHooksUpdate, update))
+		bot.pluginsHook(PluginHookOnUpdate, &PluginHookContextOnUpdate{ctx, bot, update})
 		if bot.syncHandling {
 			bot.handle(ctxCancelWg, ctx, update)
 		} else {
@@ -184,13 +184,13 @@ func (bot *Bot) handle(updatesCancelContextWg *sync.WaitGroup, ctx context.Conte
 	defer updatesCancelContextWg.Done()
 	defer func() {
 		if rec := recover(); rec != nil {
-			bot.pluginsHook(PluginHookOnError, context.WithValue(ctx, ContextPluginHooksError, fmt.Errorf("panic: %v", rec)))
+			bot.pluginsHook(PluginHookOnError, &PluginHookContextOnError{ctx, bot, fmt.Errorf("panic: %v", rec)})
 		}
 	}()
 
 	if !bot.handlePipe(bot.pipeline, ctx, update) && bot.defaultHandler != nil {
 		if err := bot.defaultHandler(ctx, update); err != nil {
-			bot.pluginsHook(PluginHookOnError, context.WithValue(ctx, ContextPluginHooksError, err))
+			bot.pluginsHook(PluginHookOnError, &PluginHookContextOnError{ctx, bot, err})
 		}
 	}
 }
@@ -200,12 +200,12 @@ func (bot *Bot) handlePipe(pipe *pipe, ctx context.Context, update *Update) bool
 	case pipe == nil:
 		return false
 	case pipe.Filter != nil && !pipe.Filter(ctx, update):
-		bot.pluginsHook(PluginHookOnFilter, context.WithValue(ctx, ContextPluginHooksFilter, pipe.Filter))
+		bot.pluginsHook(PluginHookOnFilter, &PluginHookContextOnFilter{ctx, bot, pipe.Filter})
 		return false
 	case pipe.Handle != nil:
-		bot.pluginsHook(PluginHookOnHandle, context.WithValue(ctx, ContextPluginHooksHandle, pipe.Handle))
+		bot.pluginsHook(PluginHookOnHandleStart, &PluginHookContextOnHandleStart{ctx, bot, update, pipe.Handle})
 		if err := pipe.Handle(ctx, update); err != nil {
-			bot.pluginsHook(PluginHookOnError, context.WithValue(ctx, ContextPluginHooksError, err))
+			bot.pluginsHook(PluginHookOnError, &PluginHookContextOnError{ctx, bot, err})
 		}
 		return true
 	default:
@@ -213,7 +213,7 @@ func (bot *Bot) handlePipe(pipe *pipe, ctx context.Context, update *Update) bool
 	}
 }
 
-func (bot *Bot) pluginsHook(hook PluginHookType, ctx context.Context) {
+func (bot *Bot) pluginsHook(hook PluginHookType, ctx PluginHookContext) {
 	plugins := bot.plugins[hook]
 	if len(plugins) == 0 {
 		return
@@ -230,7 +230,7 @@ func (bot *Bot) pluginsHook(hook PluginHookType, ctx context.Context) {
 				}
 			}()
 
-			plugin.Apply(hook, ctx)
+			plugin.Apply(ctx)
 		}()
 	}
 	wg.Wait()

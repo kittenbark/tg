@@ -21,6 +21,8 @@ func OnErrorExit(ctx context.Context, err error) {
 	os.Exit(1)
 }
 
+func OnErrorPanic(ctx context.Context, err error) { panic(err) }
+
 type Error struct {
 	Code        int    `json:"error_code"`
 	Description string `json:"description"`

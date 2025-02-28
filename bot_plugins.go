@@ -11,13 +11,47 @@ type PluginHookType int
 const (
 	PluginHookOnUpdate PluginHookType = iota
 	PluginHookOnFilter
-	PluginHookOnHandle
+	PluginHookOnHandleStart
+	PluginHookOnHandleFinish
 	PluginHookOnError
 )
 
+type (
+	PluginHookContext = interface{}
+
+	PluginHookContextOnUpdate struct {
+		Context context.Context
+		Bot     *Bot
+		Update  *Update
+	}
+	PluginHookContextOnFilter struct {
+		Context context.Context
+		Bot     *Bot
+		Filter  FilterFunc
+	}
+	PluginHookContextOnHandleStart struct {
+		Context context.Context
+		Bot     *Bot
+		Update  *Update
+		Handler HandlerFunc
+	}
+	PluginHookContextOnHandleFinish struct {
+		Context context.Context
+		Bot     *Bot
+		Update  *Update
+		Handler HandlerFunc
+	}
+	PluginHookContextOnError struct {
+		Context context.Context
+		Bot     *Bot
+		Error   error
+	}
+)
+
+// Plugin allows minor modifications in Bot flow, i.e. logging requests, handling errors or even orchestrating bulk requests.
 type Plugin interface {
 	Hooks() []PluginHookType
-	Apply(hook PluginHookType, ctx context.Context)
+	Apply(ctx PluginHookContext)
 }
 
 var (
@@ -31,13 +65,11 @@ func (plugin pluginOnError) Hooks() []PluginHookType {
 	return []PluginHookType{PluginHookOnError}
 }
 
-func (plugin pluginOnError) Apply(hook PluginHookType, ctx context.Context) {
-	if hook != PluginHookOnError {
-		return
+func (plugin pluginOnError) Apply(ctx PluginHookContext) {
+	switch errorContext := ctx.(type) {
+	case *PluginHookContextOnError:
+		plugin(errorContext.Context, errorContext.Error)
 	}
-
-	// Note: this could panic, but only of context.Context is ill-formed.
-	plugin(ctx, ctx.Value(ContextPluginHooksError).(error))
 }
 
 func PluginOnError(fn OnErrorFunc) Plugin {
@@ -49,27 +81,21 @@ type pluginLogger struct {
 }
 
 func (plugin *pluginLogger) Hooks() []PluginHookType {
-	return []PluginHookType{PluginHookOnUpdate, PluginHookOnFilter, PluginHookOnHandle}
+	return []PluginHookType{PluginHookOnUpdate, PluginHookOnFilter, PluginHookOnHandleStart, PluginHookOnHandleFinish}
 }
 
-func (plugin *pluginLogger) Apply(hook PluginHookType, ctx context.Context) {
-	switch hook {
-	case PluginHookOnUpdate:
-		if plugin.logger.Enabled(ctx, slog.LevelInfo) {
-			plugin.logger.InfoContext(ctx, "bot#update", "update", ctx.Value(ContextPluginHooksUpdate))
-		}
-	case PluginHookOnFilter:
-		if plugin.logger.Enabled(ctx, slog.LevelDebug) {
-			plugin.logger.DebugContext(ctx, "bot#filter", "func", getFuncName(ctx.Value(ContextPluginHooksFilter)))
-		}
-	case PluginHookOnHandle:
-		if plugin.logger.Enabled(ctx, slog.LevelDebug) {
-			plugin.logger.DebugContext(ctx, "bot#handle", "func", getFuncName(ctx.Value(ContextPluginHooksHandle)))
-		}
-	case PluginHookOnError:
-		if plugin.logger.Enabled(ctx, slog.LevelWarn) {
-			plugin.logger.WarnContext(ctx, "bot#error", "error", ctx.Value(ContextPluginHooksError))
-		}
+func (plugin *pluginLogger) Apply(ctx PluginHookContext) {
+	switch ctx := ctx.(type) {
+	case *PluginHookContextOnUpdate:
+		plugin.logger.InfoContext(ctx.Context, "bot#update", "update", ctx.Update)
+	case *PluginHookContextOnFilter:
+		plugin.logger.DebugContext(ctx.Context, "bot#filter_out", "func", getFuncName(ctx.Filter))
+	case *PluginHookContextOnHandleStart:
+		plugin.logger.DebugContext(ctx.Context, "bot#handle_start", "update_id", ctx.Update.UpdateId, "func", getFuncName(ctx.Handler))
+	case *PluginHookContextOnHandleFinish:
+		plugin.logger.DebugContext(ctx.Context, "bot#handle_finish", "update_id", ctx.Update.UpdateId, "func", getFuncName(ctx.Handler))
+	case *PluginHookContextOnError:
+		plugin.logger.ErrorContext(ctx.Context, "bot#error", "err", ctx.Error)
 	}
 }
 
