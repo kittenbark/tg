@@ -234,7 +234,7 @@ func TestIntegrationOnNewGroup(t *testing.T) {
 			_, err := tg.SendMessage(ctx, msg.Chat.Id, "hello chat")
 			return err
 		}).
-		HandleCommand("/start", tg.CommonTextReply("+++")).
+		Command("/start", tg.CommonTextReply("+++")).
 		Start()
 }
 
