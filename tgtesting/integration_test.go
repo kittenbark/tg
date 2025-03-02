@@ -238,6 +238,18 @@ func TestIntegrationOnNewGroup(t *testing.T) {
 		Start()
 }
 
+func TestOnPrivate(t *testing.T) {
+	t.Skip()
+
+	tg.NewFromEnv().
+		Plugin(tg.PluginLogger(slog.LevelDebug)).
+		Filter(tg.OnPrivate).
+		Handle(func(ctx context.Context, upd *tg.Update) error {
+			return nil
+		}).
+		Start()
+}
+
 func TestContext(t *testing.T) {
 	localUrl := "http://localhost:8080"
 	t.Setenv(tg.EnvApiURL, localUrl)

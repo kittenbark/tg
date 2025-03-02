@@ -124,13 +124,20 @@ func OnCommand(command string) FilterFunc {
 	}
 }
 
+func OnPrivate(ctx context.Context, upd *Update) bool {
+	return OnPrivateMessage(ctx, upd) ||
+		upd.EditedMessage != nil && isMessagePrivate(upd.EditedMessage) ||
+		upd.MessageReaction != nil && upd.MessageReaction.Chat != nil && upd.MessageReaction.User != nil && upd.MessageReaction.Chat.Id == upd.MessageReaction.User.Id ||
+		upd.MessageReactionCount != nil && upd.MessageReactionCount.Chat != nil && upd.MessageReaction.User != nil && upd.MessageReaction.Chat.Id == upd.MessageReaction.User.Id ||
+		upd.InlineQuery == nil && upd.InlineQuery.ChatType == "private"
+}
+
 func OnMessage(ctx context.Context, upd *Update) bool {
 	return upd != nil && upd.Message != nil
 }
 
 func OnPrivateMessage(ctx context.Context, upd *Update) bool {
-	return OnMessage(ctx, upd) && upd.Message.Chat != nil && upd.Message.From != nil &&
-		upd.Message.Chat.Id == upd.Message.From.Id
+	return OnMessage(ctx, upd) && isMessagePrivate(upd.Message)
 }
 
 func OnPublicMessage(ctx context.Context, upd *Update) bool {
@@ -261,4 +268,8 @@ func OnCallbackWithData[T any](pred ...func(value *T) bool) FilterFunc {
 		}
 		return predicate(value)
 	}
+}
+
+func isMessagePrivate(msg *Message) bool {
+	return msg.Chat != nil && msg.From != nil && msg.Chat.Id == msg.From.Id
 }
