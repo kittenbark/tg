@@ -16,7 +16,7 @@ const ContextTestingMuxServer = "kittenbark_testing_mux_server"
 
 var port = &atomic.Int32{}
 
-func NewTestingEnv(t *testing.T, cfg *Config) context.Context {
+func NewTestingContext(t *testing.T, cfg *Config) context.Context {
 	cfg = cfg.WithDefaults()
 
 	mux := http.NewServeMux()
@@ -34,7 +34,27 @@ func NewTestingEnv(t *testing.T, cfg *Config) context.Context {
 	ctx := context.WithValue(cfg.Context, tg.ContextToken, cfg.Token)
 	ctx = context.WithValue(ctx, tg.ContextApiUrl, cfg.UrlWithPort())
 	ctx = context.WithValue(ctx, ContextTestingMuxServer, mux)
+
 	return ctx
+}
+
+func SetTestingEnv(t *testing.T, cfg *Config) {
+	cfg = cfg.WithDefaults()
+
+	mux := http.NewServeMux()
+	for _, stub := range cfg.Stubs {
+		stub.RegisterTesting(t, cfg, mux)
+	}
+	go func() {
+		server := &http.Server{Addr: fmt.Sprintf(":%d", cfg.Port), Handler: mux}
+		if err := server.ListenAndServe(); err != nil {
+			panic(err)
+		}
+	}()
+	time.Sleep(time.Millisecond * 10)
+
+	t.Setenv(tg.EnvToken, cfg.Token)
+	t.Setenv(tg.EnvApiURL, cfg.UrlWithPort())
 }
 
 func NewTestingEnvLessStrict(cfg *Config) context.Context {
