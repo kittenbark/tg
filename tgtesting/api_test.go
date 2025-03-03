@@ -2,7 +2,9 @@ package tgtesting
 
 import (
 	"context"
+	"errors"
 	"github.com/kittenbark/tg"
+	"math/rand/v2"
 	"net/http"
 	"sync"
 	"testing"
@@ -193,8 +195,6 @@ func (plugin *CounterPlugin) Apply(ctx tg.PluginHookContext) {
 }
 
 func TestPlugins(t *testing.T) {
-	t.Parallel()
-
 	SetTestingEnv(t, &Config{
 		Stubs: []Stub{
 			{
@@ -227,14 +227,25 @@ func TestPlugins(t *testing.T) {
 		lock: &sync.Mutex{},
 	}
 
-	tg.NewFromEnv().
+	bot := tg.NewFromEnv()
+	start := time.Now()
+	bot.
 		Plugin(counter).
 		Filter(tg.OnMessage).
 		Handle(func(ctx context.Context, upd *tg.Update) error {
-			
+			if time.Since(start).Seconds() > 1 {
+				bot.Stop()
+			}
+			if rand.Float32() > 0.5 {
+				return errors.New("random error")
+			}
+			return nil
 		}).
 		Start()
 
+	for hook := range counter.Calls {
+		require.Equal(t, true, counter.Calls[hook] > 0)
+	}
 }
 
 func MakeTestOK[Expected any, Request any](expected *Expected, request func(ctx context.Context) (*Request, error), stubs ...Stub) func(t *testing.T) {

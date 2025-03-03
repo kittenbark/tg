@@ -199,15 +199,19 @@ func (bot *Bot) handlePipe(pipe *pipe, ctx context.Context, update *Update) bool
 	switch {
 	case pipe == nil:
 		return false
+
 	case pipe.Filter != nil && !pipe.Filter(ctx, update):
 		bot.pluginsHook(PluginHookOnFilter, &PluginHookContextOnFilter{ctx, bot, pipe.Filter})
 		return false
+
 	case pipe.Handle != nil:
 		bot.pluginsHook(PluginHookOnHandleStart, &PluginHookContextOnHandleStart{ctx, bot, update, pipe.Handle})
 		if err := pipe.Handle(ctx, update); err != nil {
 			bot.pluginsHook(PluginHookOnError, &PluginHookContextOnError{ctx, bot, err})
 		}
+		bot.pluginsHook(PluginHookOnHandleFinish, &PluginHookContextOnHandleFinish{ctx, bot, update, pipe.Handle})
 		return true
+
 	default:
 		return bot.handlePipe(pipe.Branch, ctx, update) || bot.handlePipe(pipe.Next, ctx, update)
 	}
