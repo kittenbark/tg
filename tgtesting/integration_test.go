@@ -234,7 +234,19 @@ func TestIntegrationOnNewGroup(t *testing.T) {
 			_, err := tg.SendMessage(ctx, msg.Chat.Id, "hello chat")
 			return err
 		}).
-		HandleCommand("/start", tg.CommonTextReply("+++")).
+		Command("/start", tg.CommonTextReply("+++")).
+		Start()
+}
+
+func TestOnPrivate(t *testing.T) {
+	t.Skip()
+
+	tg.NewFromEnv().
+		Plugin(tg.PluginLogger(slog.LevelDebug)).
+		Filter(tg.OnPrivate).
+		Handle(func(ctx context.Context, upd *tg.Update) error {
+			return nil
+		}).
 		Start()
 }
 

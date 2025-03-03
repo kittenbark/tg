@@ -34,7 +34,7 @@ type Bot struct {
 //
 //	bot.
 //		Filter(tg.OnPrivateMessage).
-//		HandleCommand("/start", ...). // Private messages only.
+//		Command("/start", ...). // Private messages only.
 //		Branch(tg.OnText, ...) 		  // Private messages only.
 func (bot *Bot) Filter(pred FilterFunc) *Bot {
 	bot.pipeline.Last().Next = &pipe{Filter: pred}
@@ -59,15 +59,15 @@ func (bot *Bot) Default(handler HandlerFunc) *Bot {
 	return bot
 }
 
-// HandleCommand and only that command, if message do not start with "/" and the command's name,
+// Command and only that command, if message do not start with "/" and the command's name,
 // the update will be passed below the tree.
 //
 // Example:
 //
 //	bot.
-//		HandleCommand("/start", ...).			// Handles only /start.
+//		Command("/start", ...).			// Handles only /start.
 //		Handle(tg.CommonTextReply("hii mom")) 	// Handles everything but /start.
-func (bot *Bot) HandleCommand(command string, handlerFunc HandlerFunc) *Bot {
+func (bot *Bot) Command(command string, handlerFunc HandlerFunc) *Bot {
 	return bot.Branch(OnCommand(command), handlerFunc)
 }
 
