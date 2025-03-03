@@ -17,7 +17,9 @@ const (
 )
 
 type (
-	PluginHookContext = interface{}
+	PluginHookContext = interface {
+		OnHook() PluginHookType
+	}
 
 	PluginHookContextOnUpdate struct {
 		Context context.Context
@@ -46,6 +48,20 @@ type (
 		Bot     *Bot
 		Error   error
 	}
+)
+
+func (p *PluginHookContextOnUpdate) OnHook() PluginHookType       { return PluginHookOnUpdate }
+func (p *PluginHookContextOnFilter) OnHook() PluginHookType       { return PluginHookOnFilter }
+func (p *PluginHookContextOnHandleStart) OnHook() PluginHookType  { return PluginHookOnHandleStart }
+func (p *PluginHookContextOnHandleFinish) OnHook() PluginHookType { return PluginHookOnHandleFinish }
+func (p *PluginHookContextOnError) OnHook() PluginHookType        { return PluginHookOnError }
+
+var (
+	_ PluginHookContext = (*PluginHookContextOnUpdate)(nil)
+	_ PluginHookContext = (*PluginHookContextOnFilter)(nil)
+	_ PluginHookContext = (*PluginHookContextOnHandleStart)(nil)
+	_ PluginHookContext = (*PluginHookContextOnHandleFinish)(nil)
+	_ PluginHookContext = (*PluginHookContextOnError)(nil)
 )
 
 // Plugin allows minor modifications in Bot flow, i.e. logging requests, handling errors or even orchestrating bulk requests.

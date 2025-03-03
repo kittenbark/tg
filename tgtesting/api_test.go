@@ -233,7 +233,7 @@ func TestPlugins(t *testing.T) {
 		Plugin(counter).
 		Filter(tg.OnMessage).
 		Handle(func(ctx context.Context, upd *tg.Update) error {
-			if time.Since(start).Seconds() > 1 {
+			if time.Since(start).Seconds() > 0.05 {
 				bot.Stop()
 			}
 			if rand.Float32() > 0.5 {
@@ -243,8 +243,8 @@ func TestPlugins(t *testing.T) {
 		}).
 		Start()
 
-	for hook := range counter.Calls {
-		require.Equal(t, true, counter.Calls[hook] > 0)
+	for _, count := range counter.Calls {
+		require.Equal(t, true, count > 0)
 	}
 }
 
