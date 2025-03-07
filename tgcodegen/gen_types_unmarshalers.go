@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"slices"
+	"sort"
 	"strings"
 )
 
@@ -22,7 +23,9 @@ func (fac *Factory2) buildUnmarshalers() []string {
 			result = append(result, fac.buildStructUnmarshaler(strct, fieldVariants).build())
 		}
 	}
-	return stringsUnique(result)
+	funcs := stringsUnique(result)
+	sort.Strings(funcs)
+	return funcs
 }
 
 type structUnmarshalerVariant struct {

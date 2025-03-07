@@ -7,6 +7,7 @@ import (
 	"math/rand/v2"
 	"net/http"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -246,6 +247,120 @@ func TestPlugins(t *testing.T) {
 	for _, count := range counter.Calls {
 		require.Equal(t, true, count > 0)
 	}
+}
+
+func TestScheduler(t *testing.T) {
+	SetTestingEnv(t, &Config{
+		Stubs: []Stub{
+			{
+				Url:    "/sendMessage",
+				Result: StubResultOK(200, &tg.Message{MessageId: 2, Chat: &tg.Chat{Id: 1}, Text: "testtext"}),
+			},
+			{
+				Url: "/sendMediaGroup",
+				Result: StubResultOK(200, []*tg.Message{
+					{MessageId: 2, Chat: &tg.Chat{Id: 1}, Photo: tg.TelegramPhoto{}},
+					{MessageId: 3, Chat: &tg.Chat{Id: 1}, Video: &tg.TelegramVideo{}},
+				}),
+			},
+			{
+				Url:    "/getMe",
+				Result: StubResultOK(200, &tg.User{Id: 123}),
+			},
+		},
+	})
+
+	Pressure := 10 * time.Microsecond
+	GlobalQuota := 30
+	GlobalTimeout := time.Millisecond
+	PerChatQuota := 20
+	PerChatTimeout := 60 * time.Millisecond
+	testTime := time.Millisecond * 180
+
+	t.Run("global", func(t *testing.T) {
+		bot := tg.NewFromEnv().Scheduler(tg.NewSchedulerVerbose(
+			Pressure,
+			tg.SchedulerClauseGlobal(GlobalQuota, GlobalTimeout),
+			tg.SchedulerClauseChat(PerChatQuota, PerChatTimeout),
+		))
+		sent := atomic.Int64{}
+		for i := 0; i < 256; i++ {
+			go func() {
+				_, err := tg.GetMe(bot.Context())
+				require.NoError(t, err)
+				sent.Add(1)
+			}()
+			time.Sleep(time.Microsecond)
+		}
+		time.Sleep(testTime)
+
+		require.LessOrEqualInt(t, int64(GlobalQuota)*(1+int64(testTime/GlobalTimeout)), sent.Load())
+	})
+
+	t.Run("per_chat", func(t *testing.T) {
+		bot := tg.NewFromEnv().Scheduler(tg.NewSchedulerVerbose(
+			Pressure,
+			tg.SchedulerClauseGlobal(GlobalQuota, GlobalTimeout),
+			tg.SchedulerClauseChat(PerChatQuota, PerChatTimeout),
+		))
+		sent := atomic.Int64{}
+		for i := 0; i < 256; i++ {
+			go func() {
+				_, err := tg.SendMessage(bot.Context(), -100, "testtext")
+				require.NoError(t, err)
+				sent.Add(1)
+			}()
+			time.Sleep(time.Microsecond)
+		}
+		time.Sleep(testTime)
+
+		require.LessOrEqualInt(t, int64(PerChatQuota)*(1+int64(testTime/PerChatTimeout)), sent.Load())
+	})
+
+	t.Run("per_user", func(t *testing.T) {
+		bot := tg.NewFromEnv().Scheduler(tg.NewSchedulerVerbose(
+			Pressure,
+			tg.SchedulerClauseGlobal(GlobalQuota, GlobalTimeout),
+			tg.SchedulerClauseUser(PerChatQuota, PerChatTimeout),
+		))
+		sent := atomic.Int64{}
+		for i := 0; i < 256; i++ {
+			go func() {
+				_, err := tg.SendMessage(bot.Context(), 100, "testtext")
+				require.NoError(t, err)
+				sent.Add(1)
+			}()
+			time.Sleep(time.Microsecond)
+		}
+		time.Sleep(testTime)
+
+		require.LessOrEqualInt(t, int64(PerChatQuota)*(1+int64(testTime/PerChatTimeout)), sent.Load())
+	})
+
+	t.Run("per_chat_album", func(t *testing.T) {
+		bot := tg.NewFromEnv().Scheduler(tg.NewSchedulerVerbose(
+			Pressure,
+			tg.SchedulerClauseGlobal(GlobalQuota, GlobalTimeout),
+			tg.SchedulerClauseChat(PerChatQuota, PerChatTimeout),
+		))
+		sent := atomic.Int64{}
+		for i := 0; i < 256; i++ {
+			go func() {
+				_, err := tg.SendMediaGroup(bot.Context(), -100, tg.Album{
+					&tg.Photo{},
+					&tg.Video{},
+					&tg.Photo{},
+					&tg.Video{},
+				})
+				require.NoError(t, err)
+				sent.Add(1)
+			}()
+			time.Sleep(time.Microsecond)
+		}
+		time.Sleep(testTime)
+
+		require.LessOrEqualInt(t, int64(PerChatQuota)*(1+int64(testTime/PerChatTimeout))/4, sent.Load())
+	})
 }
 
 func TestRegexes(t *testing.T) {

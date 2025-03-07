@@ -10,6 +10,7 @@ const (
 	ContextHttpClient       = contextPrefix + "http_client"
 	ContextApiUrl           = contextPrefix + "api_url"
 	ContextFileDownloadType = contextPrefix + "file_downloader"
+	ContextScheduler        = contextPrefix + "scheduler"
 
 	contextPrefix = "kittenbark_"
 )

@@ -13,11 +13,12 @@ import (
 )
 
 const (
-	EnvToken        = envPrefix + "TOKEN"
-	EnvTokenTesting = envPrefix + "TEST_TOKEN"
-	EnvTestingChat  = envPrefix + "TEST_CHAT"
-	EnvApiURL       = envPrefix + "API_URL"
-	EnvDownloadType = envPrefix + "DOWNLOAD_TYPE"
+	EnvToken            = envPrefix + "TOKEN"
+	EnvTokenTesting     = envPrefix + "TEST_TOKEN"
+	EnvTestingChat      = envPrefix + "TEST_CHAT"
+	EnvTestingGroupChat = envPrefix + "TEST_GROUP_CHAT"
+	EnvApiURL           = envPrefix + "API_URL"
+	EnvDownloadType     = envPrefix + "DOWNLOAD_TYPE"
 	// EnvOnError is either ignore/log/exit.
 	EnvOnError = envPrefix + "ON_ERROR"
 	envPrefix  = "KITTENBARK_TG_"
