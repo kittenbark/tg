@@ -139,9 +139,17 @@ func (fn *goFunc) build() string {
 
 	arguments := []string{"ctx context.Context"}
 	reqArgumentsFill := []string{}
+	schedulerChatId := "0"
+	schedulerWeight := "1"
+	if fn.name == "SendMediaGroup" || fn.name == "SendPaidMedia" {
+		schedulerWeight = "len(media)"
+	}
 	for _, arg := range fn.argsReq {
 		arguments = append(arguments, fmt.Sprintf("%s %s", arg.Name, arg.Type))
 		reqArgumentsFill = append(reqArgumentsFill, fmt.Sprintf("%s: %s,", firstUpper(arg.Name), arg.Name))
+		if arg.Name == "chatId" && arg.Type == "int64" {
+			schedulerChatId = "chatId"
+		}
 	}
 	if fn.argsOpt != nil {
 		arguments = append(arguments, fmt.Sprintf("opts ...*%s", fn.argsOpt.Name))
@@ -154,6 +162,8 @@ func (fn *goFunc) build() string {
 
 	result = append(result,
 		fmt.Sprintf("func %s(%s) %s {", fn.name, strings.Join(arguments, ", "), funcReturns),
+		fmt.Sprintf("schedule(ctx, %s, %s)", schedulerChatId, schedulerWeight),
+		fmt.Sprintf("defer scheduleDone(ctx, %s, %s)", schedulerChatId, schedulerWeight),
 		strings.TrimSpace(fn.requestStruct.build()),
 		fmt.Sprintf("request := &Request{\n%s\n}", strings.Join(reqArgumentsFill, "\n")),
 	)

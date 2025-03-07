@@ -36,11 +36,17 @@ func (cycle *bicycle) Equal(t *testing.T, expected any, actual any, msg ...strin
 	}
 }
 
-func (cycle *bicycle) True(t *testing.T, actual any, msg ...string) {
+func (cycle *bicycle) LessOrEqualInt(t *testing.T, expected int64, actual int64, msg ...string) {
+	if actual > expected {
+		t.Fatalf("require.Equal failed: expected less, but not (%v < %v) %v", actual, expected, msg)
+	}
+}
+
+func (cycle *bicycle) True(t *testing.T, actual bool, msg ...string) {
 	cycle.Equal(t, true, actual, msg...)
 }
 
-func (cycle *bicycle) False(t *testing.T, actual any, msg ...string) {
+func (cycle *bicycle) False(t *testing.T, actual bool, msg ...string) {
 	cycle.Equal(t, false, actual, msg...)
 }
 

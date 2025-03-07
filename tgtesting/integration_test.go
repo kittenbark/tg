@@ -10,14 +10,17 @@ import (
 	"os/exec"
 	"path"
 	"strconv"
+	"sync/atomic"
 	"testing"
+	"time"
 )
 
 var (
-	chat, _ = strconv.ParseInt(os.Getenv(tg.EnvTestingChat), 10, 64)
-	photo   = OutsideFile("./testdata/photo.jpg", "https://github.com/kittenbark/testdata/raw/dafdaa3ec6f42ecacd5d04e8c0ccd39ba9e70f28/photo.jpg")
-	video   = OutsideFile("./testdata/video.mp4", "https://github.com/kittenbark/testdata/raw/dafdaa3ec6f42ecacd5d04e8c0ccd39ba9e70f28/video.mp4")
-	dir     = "./testdata"
+	chat, _  = strconv.ParseInt(os.Getenv(tg.EnvTestingChat), 10, 64)
+	group, _ = strconv.ParseInt(os.Getenv(tg.EnvTestingGroupChat), 10, 64)
+	photo    = OutsideFile("./testdata/photo.jpg", "https://github.com/kittenbark/testdata/raw/dafdaa3ec6f42ecacd5d04e8c0ccd39ba9e70f28/photo.jpg")
+	video    = OutsideFile("./testdata/video.mp4", "https://github.com/kittenbark/testdata/raw/dafdaa3ec6f42ecacd5d04e8c0ccd39ba9e70f28/video.mp4")
+	dir      = "./testdata"
 )
 
 // If this test flaps, create an issue.
@@ -155,6 +158,31 @@ func TestIntegrationLong(t *testing.T) {
 		_, err = tg.SendVideo(ctx, chat, tg.FromDisk(converted))
 		require.NoError(t, err)
 	})
+}
+
+func TestDDOS(t *testing.T) {
+	t.Skip()
+
+	bot := tg.NewFromEnv().Scheduler()
+
+	start := time.Now()
+	i := atomic.Int64{}
+	for {
+		go func() {
+			i.Add(1)
+			_, err := tg.SendMessage(bot.Context(), group, strconv.Itoa(int(i.Load())))
+			require.NoError(t, err)
+		}()
+		go func() {
+			i.Add(1)
+			_, err := tg.SendMessage(bot.Context(), chat, strconv.Itoa(int(i.Load())))
+			require.NoError(t, err)
+		}()
+		if time.Since(start).Seconds() > 60 {
+			break
+		}
+		time.Sleep(time.Millisecond)
+	}
 }
 
 func TestIntegrationHandleAlbum(t *testing.T) {

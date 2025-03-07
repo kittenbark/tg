@@ -7,6 +7,8 @@ import (
 // AddStickerToSet Use this method to add a new sticker to a set created by the bot. Emoji sticker sets can have up to 200 stickers.
 // Other sticker sets can have up to 120 stickers. Returns True on success.
 func AddStickerToSet(ctx context.Context, userId int64, name string, sticker *InputSticker) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		UserId  int64         `json:"user_id"`
 		Name    string        `json:"name"`
@@ -23,6 +25,8 @@ func AddStickerToSet(ctx context.Context, userId int64, name string, sticker *In
 // AnswerCallbackQuery Use this method to send answers to callback queries sent from inline keyboards. On success, True is returned.
 // The answer will be displayed to the user as a notification at the top of the chat screen or as an alert.
 func AnswerCallbackQuery(ctx context.Context, callbackQueryId string, opts ...*OptAnswerCallbackQuery) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		CallbackQueryId string `json:"callback_query_id"`
 		Text            string `json:"text,omitempty"`
@@ -60,6 +64,8 @@ type OptAnswerCallbackQuery struct {
 // AnswerInlineQuery Use this method to send answers to an inline query. On success, True is returned.
 // No more than 50 results per query are allowed.
 func AnswerInlineQuery(ctx context.Context, inlineQueryId string, results []InlineQueryResult, opts ...*OptAnswerInlineQuery) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		InlineQueryId string                    `json:"inline_query_id"`
 		Results       []InlineQueryResult       `json:"results"`
@@ -100,6 +106,8 @@ type OptAnswerInlineQuery struct {
 // Use this method to respond to such pre-checkout queries. On success, True is returned.
 // Note: The Bot API must receive an answer within 10 seconds after the pre-checkout query was sent.
 func AnswerPreCheckoutQuery(ctx context.Context, preCheckoutQueryId string, ok bool, opts ...*OptAnswerPreCheckoutQuery) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		PreCheckoutQueryId string `json:"pre_checkout_query_id"`
 		Ok                 bool   `json:"ok"`
@@ -124,6 +132,8 @@ type OptAnswerPreCheckoutQuery struct {
 // AnswerShippingQuery If you sent an invoice requesting a shipping address and the parameter is_flexible was specified, the Bot API will send an Update with a shipping_query field to the bot.
 // Use this method to reply to shipping queries. On success, True is returned.
 func AnswerShippingQuery(ctx context.Context, shippingQueryId string, ok bool, opts ...*OptAnswerShippingQuery) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		ShippingQueryId string            `json:"shipping_query_id"`
 		Ok              bool              `json:"ok"`
@@ -153,6 +163,8 @@ type OptAnswerShippingQuery struct {
 // AnswerWebAppQuery Use this method to set the result of an interaction with a Web App and send a corresponding message on behalf of the user to the chat from which the query originated.
 // On success, a SentWebAppMessage object is returned.
 func AnswerWebAppQuery(ctx context.Context, webAppQueryId string, result InlineQueryResult) (*SentWebAppMessage, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		WebAppQueryId string            `json:"web_app_query_id"`
 		Result        InlineQueryResult `json:"result"`
@@ -167,6 +179,8 @@ func AnswerWebAppQuery(ctx context.Context, webAppQueryId string, result InlineQ
 // ApproveChatJoinRequest Use this method to approve a chat join request. Returns True on success.
 // The bot must be an administrator in the chat for this to work and must have the can_invite_users administrator right.
 func ApproveChatJoinRequest(ctx context.Context, chatId int64, userId int64) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId int64 `json:"chat_id"`
 		UserId int64 `json:"user_id"`
@@ -182,6 +196,8 @@ func ApproveChatJoinRequest(ctx context.Context, chatId int64, userId int64) (bo
 // In the case of supergroups and channels, the user will not be able to return to the chat on their own using invite links, etc., unless unbanned first.
 // The bot must be an administrator in the chat for this to work and must have the appropriate administrator rights.
 func BanChatMember(ctx context.Context, chatId int64, userId int64, opts ...*OptBanChatMember) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId         int64 `json:"chat_id"`
 		UserId         int64 `json:"user_id"`
@@ -212,6 +228,8 @@ type OptBanChatMember struct {
 // Until the chat is unbanned, the owner of the banned chat won't be able to send messages on behalf of any of their channels.
 // The bot must be an administrator in the supergroup or channel for this to work and must have the appropriate administrator rights.
 func BanChatSenderChat(ctx context.Context, chatId int64, senderChatId int64) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId       int64 `json:"chat_id"`
 		SenderChatId int64 `json:"sender_chat_id"`
@@ -228,6 +246,8 @@ func BanChatSenderChat(ctx context.Context, chatId int64, senderChatId int64) (b
 // The method will return error 429 in the first 10 minutes after the bot is launched.
 // Returns True on success. Requires no parameters.
 func Close(ctx context.Context) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 	}
 	request := &Request{}
@@ -237,6 +257,8 @@ func Close(ctx context.Context) (bool, error) {
 // CloseForumTopic Use this method to close an open topic in a forum supergroup chat. Returns True on success.
 // The bot must be an administrator in the chat for this to work and must have the can_manage_topics administrator rights, unless it is the creator of the topic.
 func CloseForumTopic(ctx context.Context, chatId int64, messageThreadId int64) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId          int64 `json:"chat_id"`
 		MessageThreadId int64 `json:"message_thread_id"`
@@ -251,6 +273,8 @@ func CloseForumTopic(ctx context.Context, chatId int64, messageThreadId int64) (
 // CloseGeneralForumTopic Use this method to close an open 'General' topic in a forum supergroup chat. Returns True on success.
 // The bot must be an administrator in the chat for this to work and must have the can_manage_topics administrator rights.
 func CloseGeneralForumTopic(ctx context.Context, chatId int64) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId int64 `json:"chat_id"`
 	}
@@ -265,6 +289,8 @@ func CloseGeneralForumTopic(ctx context.Context, chatId int64) (bool, error) {
 // A quiz poll can be copied only if the value of the field correct_option_id is known to the bot.
 // The method is analogous to the method forwardMessage, but the copied message doesn't have a link to the original message.
 func CopyMessage(ctx context.Context, chatId int64, fromChatId int64, messageId int64, opts ...*OptCopyMessage) (*MessageId, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId                int64                                                                       `json:"chat_id"`
 		MessageThreadId       int64                                                                       `json:"message_thread_id,omitempty"`
@@ -340,6 +366,8 @@ type OptCopyMessage struct {
 // The method is analogous to the method forwardMessages, but the copied messages don't have a link to the original message.
 // On success, an array of MessageId of the sent messages is returned.
 func CopyMessages(ctx context.Context, chatId int64, fromChatId int64, messageIds []int64, opts ...*OptCopyMessages) ([]*MessageId, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId              int64   `json:"chat_id"`
 		MessageThreadId     int64   `json:"message_thread_id,omitempty"`
@@ -382,6 +410,8 @@ type OptCopyMessages struct {
 // The bot must be an administrator in the chat for this to work and must have the appropriate administrator rights.
 // The link can be revoked using the method revokeChatInviteLink.
 func CreateChatInviteLink(ctx context.Context, chatId int64, opts ...*OptCreateChatInviteLink) (*ChatInviteLink, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId             int64  `json:"chat_id"`
 		Name               string `json:"name,omitempty"`
@@ -421,6 +451,8 @@ type OptCreateChatInviteLink struct {
 // The link can be edited using the method editChatSubscriptionInviteLink or revoked using the method revokeChatInviteLink.
 // Returns the new invite link as a ChatInviteLink object.
 func CreateChatSubscriptionInviteLink(ctx context.Context, chatId int64, subscriptionPeriod int64, subscriptionPrice int64, opts ...*OptCreateChatSubscriptionInviteLink) (*ChatInviteLink, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId             int64  `json:"chat_id"`
 		Name               string `json:"name,omitempty"`
@@ -448,6 +480,8 @@ type OptCreateChatSubscriptionInviteLink struct {
 // The bot must be an administrator in the chat for this to work and must have the can_manage_topics administrator rights.
 // Returns information about the created topic as a ForumTopic object.
 func CreateForumTopic(ctx context.Context, chatId int64, name string, opts ...*OptCreateForumTopic) (*ForumTopic, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId            int64  `json:"chat_id"`
 		Name              string `json:"name"`
@@ -476,6 +510,8 @@ type OptCreateForumTopic struct {
 
 // CreateInvoiceLink Use this method to create a link for an invoice. Returns the created invoice link as String on success.
 func CreateInvoiceLink(ctx context.Context, title string, description string, payload string, currency string, prices []*LabeledPrice, opts ...*OptCreateInvoiceLink) (string, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		BusinessConnectionId      string          `json:"business_connection_id,omitempty"`
 		Title                     string          `json:"title"`
@@ -586,6 +622,8 @@ type OptCreateInvoiceLink struct {
 // CreateNewStickerSet Use this method to create a new sticker set owned by a user. Returns True on success.
 // The bot will be able to edit the sticker set thus created.
 func CreateNewStickerSet(ctx context.Context, userId int64, name string, title string, stickers []*InputSticker, opts ...*OptCreateNewStickerSet) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		UserId          int64           `json:"user_id"`
 		Name            string          `json:"name"`
@@ -619,6 +657,8 @@ type OptCreateNewStickerSet struct {
 // DeclineChatJoinRequest Use this method to decline a chat join request. Returns True on success.
 // The bot must be an administrator in the chat for this to work and must have the can_invite_users administrator right.
 func DeclineChatJoinRequest(ctx context.Context, chatId int64, userId int64) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId int64 `json:"chat_id"`
 		UserId int64 `json:"user_id"`
@@ -634,6 +674,8 @@ func DeclineChatJoinRequest(ctx context.Context, chatId int64, userId int64) (bo
 // The bot must be an administrator in the chat for this to work and must have the appropriate administrator rights.
 // Returns True on success.
 func DeleteChatPhoto(ctx context.Context, chatId int64) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId int64 `json:"chat_id"`
 	}
@@ -647,6 +689,8 @@ func DeleteChatPhoto(ctx context.Context, chatId int64) (bool, error) {
 // The bot must be an administrator in the chat for this to work and must have the appropriate administrator rights.
 // Use the field can_set_sticker_set optionally returned in getChat requests to check if the bot can use this method.
 func DeleteChatStickerSet(ctx context.Context, chatId int64) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId int64 `json:"chat_id"`
 	}
@@ -660,6 +704,8 @@ func DeleteChatStickerSet(ctx context.Context, chatId int64) (bool, error) {
 // The bot must be an administrator in the chat for this to work and must have the can_delete_messages administrator rights.
 // Returns True on success.
 func DeleteForumTopic(ctx context.Context, chatId int64, messageThreadId int64) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId          int64 `json:"chat_id"`
 		MessageThreadId int64 `json:"message_thread_id"`
@@ -682,6 +728,8 @@ func DeleteForumTopic(ctx context.Context, chatId int64, messageThreadId int64) 
 // - If the bot has can_delete_messages permission in a supergroup or a channel, it can delete any message there.
 // Returns True on success.
 func DeleteMessage(ctx context.Context, chatId int64, messageId int64) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId    int64 `json:"chat_id"`
 		MessageId int64 `json:"message_id"`
@@ -696,6 +744,8 @@ func DeleteMessage(ctx context.Context, chatId int64, messageId int64) (bool, er
 // DeleteMessages Use this method to delete multiple messages simultaneously. Returns True on success.
 // If some of the specified messages can't be found, they are skipped.
 func DeleteMessages(ctx context.Context, chatId int64, messageIds []int64) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId     int64   `json:"chat_id"`
 		MessageIds []int64 `json:"message_ids"`
@@ -710,6 +760,8 @@ func DeleteMessages(ctx context.Context, chatId int64, messageIds []int64) (bool
 // DeleteMyCommands Use this method to delete the list of the bot's commands for the given scope and user language.
 // After deletion, higher level commands will be shown to affected users. Returns True on success.
 func DeleteMyCommands(ctx context.Context, opts ...*OptDeleteMyCommands) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		Scope        BotCommandScope `json:"scope,omitempty"`
 		LanguageCode string          `json:"language_code,omitempty"`
@@ -733,6 +785,8 @@ type OptDeleteMyCommands struct {
 
 // DeleteStickerFromSet Use this method to delete a sticker from a set created by the bot. Returns True on success.
 func DeleteStickerFromSet(ctx context.Context, sticker string) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		Sticker string `json:"sticker"`
 	}
@@ -744,6 +798,8 @@ func DeleteStickerFromSet(ctx context.Context, sticker string) (bool, error) {
 
 // DeleteStickerSet Use this method to delete a sticker set that was created by the bot. Returns True on success.
 func DeleteStickerSet(ctx context.Context, name string) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		Name string `json:"name"`
 	}
@@ -756,6 +812,8 @@ func DeleteStickerSet(ctx context.Context, name string) (bool, error) {
 // DeleteWebhook Use this method to remove webhook integration if you decide to switch back to getUpdates.
 // Returns True on success.
 func DeleteWebhook(ctx context.Context, opts ...*OptDeleteWebhook) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		DropPendingUpdates bool `json:"drop_pending_updates,omitempty"`
 	}
@@ -776,6 +834,8 @@ type OptDeleteWebhook struct {
 // The bot must be an administrator in the chat for this to work and must have the appropriate administrator rights.
 // Returns the edited invite link as a ChatInviteLink object.
 func EditChatInviteLink(ctx context.Context, chatId int64, inviteLink string, opts ...*OptEditChatInviteLink) (*ChatInviteLink, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId             int64  `json:"chat_id"`
 		InviteLink         string `json:"invite_link"`
@@ -816,6 +876,8 @@ type OptEditChatInviteLink struct {
 // The bot must have the can_invite_users administrator rights.
 // Returns the edited invite link as a ChatInviteLink object.
 func EditChatSubscriptionInviteLink(ctx context.Context, chatId int64, inviteLink string, opts ...*OptEditChatSubscriptionInviteLink) (*ChatInviteLink, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId     int64  `json:"chat_id"`
 		InviteLink string `json:"invite_link"`
@@ -840,6 +902,8 @@ type OptEditChatSubscriptionInviteLink struct {
 // EditForumTopic Use this method to edit name and icon of a topic in a forum supergroup chat. Returns True on success.
 // The bot must be an administrator in the chat for this to work and must have the can_manage_topics administrator rights, unless it is the creator of the topic.
 func EditForumTopic(ctx context.Context, chatId int64, messageThreadId int64, opts ...*OptEditForumTopic) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId            int64  `json:"chat_id"`
 		MessageThreadId   int64  `json:"message_thread_id"`
@@ -870,6 +934,8 @@ type OptEditForumTopic struct {
 // The bot must be an administrator in the chat for this to work and must have the can_manage_topics administrator rights.
 // Returns True on success.
 func EditGeneralForumTopic(ctx context.Context, chatId int64, name string) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId int64  `json:"chat_id"`
 		Name   string `json:"name"`
@@ -885,6 +951,8 @@ func EditGeneralForumTopic(ctx context.Context, chatId int64, name string) (bool
 // On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned.
 // Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
 func EditMessageCaption(ctx context.Context, opts ...*OptEditMessageCaption) (*Message, error) /* >> either: [bool] */ {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		BusinessConnectionId  string                `json:"business_connection_id,omitempty"`
 		ChatId                int64                 `json:"chat_id,omitempty"`
@@ -945,6 +1013,8 @@ type OptEditMessageCaption struct {
 // A location can be edited until its live_period expires or editing is explicitly disabled by a call to stopMessageLiveLocation.
 // On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned.
 func EditMessageLiveLocation(ctx context.Context, latitude float64, longitude float64, opts ...*OptEditMessageLiveLocation) (*Message, error) /* >> either: [bool] */ {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		BusinessConnectionId string                `json:"business_connection_id,omitempty"`
 		ChatId               int64                 `json:"chat_id,omitempty"`
@@ -1012,6 +1082,8 @@ type OptEditMessageLiveLocation struct {
 // On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned.
 // Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
 func EditMessageMedia(ctx context.Context, media InputMedia, opts ...*OptEditMessageMedia) (*Message, error) /* >> either: [bool] */ {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		BusinessConnectionId string                `json:"business_connection_id,omitempty"`
 		ChatId               int64                 `json:"chat_id,omitempty"`
@@ -1055,6 +1127,8 @@ type OptEditMessageMedia struct {
 // On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned.
 // Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
 func EditMessageReplyMarkup(ctx context.Context, opts ...*OptEditMessageReplyMarkup) (*Message, error) /* >> either: [bool] */ {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		BusinessConnectionId string                `json:"business_connection_id,omitempty"`
 		ChatId               int64                 `json:"chat_id,omitempty"`
@@ -1095,6 +1169,8 @@ type OptEditMessageReplyMarkup struct {
 // On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned.
 // Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
 func EditMessageText(ctx context.Context, text string, opts ...*OptEditMessageText) (*Message, error) /* >> either: [bool] */ {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		BusinessConnectionId string                `json:"business_connection_id,omitempty"`
 		ChatId               int64                 `json:"chat_id,omitempty"`
@@ -1152,6 +1228,8 @@ type OptEditMessageText struct {
 // EditUserStarSubscription Allows the bot to cancel or re-enable extension of a subscription paid in Telegram Stars.
 // Returns True on success.
 func EditUserStarSubscription(ctx context.Context, userId int64, telegramPaymentChargeId string, isCanceled bool) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		UserId                  int64  `json:"user_id"`
 		TelegramPaymentChargeId string `json:"telegram_payment_charge_id"`
@@ -1169,6 +1247,8 @@ func EditUserStarSubscription(ctx context.Context, userId int64, telegramPayment
 // The bot must be an administrator in the chat for this to work and must have the appropriate administrator rights.
 // Returns the new invite link as String on success.
 func ExportChatInviteLink(ctx context.Context, chatId int64) (string, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId int64 `json:"chat_id"`
 	}
@@ -1181,6 +1261,8 @@ func ExportChatInviteLink(ctx context.Context, chatId int64) (string, error) {
 // ForwardMessage Use this method to forward messages of any kind. On success, the sent Message is returned.
 // Service messages and messages with protected content can't be forwarded.
 func ForwardMessage(ctx context.Context, chatId int64, fromChatId int64, messageId int64, opts ...*OptForwardMessage) (*Message, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId              int64 `json:"chat_id"`
 		MessageThreadId     int64 `json:"message_thread_id,omitempty"`
@@ -1219,6 +1301,8 @@ type OptForwardMessage struct {
 // Service messages and messages with protected content can't be forwarded.
 // On success, an array of MessageId of the sent messages is returned.
 func ForwardMessages(ctx context.Context, chatId int64, fromChatId int64, messageIds []int64, opts ...*OptForwardMessages) ([]*MessageId, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId              int64   `json:"chat_id"`
 		MessageThreadId     int64   `json:"message_thread_id,omitempty"`
@@ -1255,6 +1339,8 @@ type OptForwardMessages struct {
 // GetAvailableGifts Returns the list of gifts that can be sent by the bot to users. Requires no parameters.
 // Returns a Gifts object.
 func GetAvailableGifts(ctx context.Context) (*Gifts, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 	}
 	request := &Request{}
@@ -1264,6 +1350,8 @@ func GetAvailableGifts(ctx context.Context) (*Gifts, error) {
 // GetBusinessConnection Use this method to get information about the connection of the bot with a business account.
 // Returns a BusinessConnection object on success.
 func GetBusinessConnection(ctx context.Context, businessConnectionId string) (*BusinessConnection, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		BusinessConnectionId string `json:"business_connection_id"`
 	}
@@ -1275,6 +1363,8 @@ func GetBusinessConnection(ctx context.Context, businessConnectionId string) (*B
 
 // GetChat Use this method to get up-to-date information about the chat. Returns a ChatFullInfo object on success.
 func GetChat(ctx context.Context, chatId int64) (*ChatFullInfo, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId int64 `json:"chat_id"`
 	}
@@ -1286,6 +1376,8 @@ func GetChat(ctx context.Context, chatId int64) (*ChatFullInfo, error) {
 
 // GetChatAdministrators Use this method to get a list of administrators in a chat, which aren't bots. Returns an Array of ChatMember objects.
 func GetChatAdministrators(ctx context.Context, chatId int64) ([]ChatMember, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId int64 `json:"chat_id"`
 	}
@@ -1298,6 +1390,8 @@ func GetChatAdministrators(ctx context.Context, chatId int64) ([]ChatMember, err
 // GetChatMember Use this method to get information about a member of a chat. Returns a ChatMember object on success.
 // The method is only guaranteed to work for other users if the bot is an administrator in the chat.
 func GetChatMember(ctx context.Context, chatId int64, userId int64) (ChatMember, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId int64 `json:"chat_id"`
 		UserId int64 `json:"user_id"`
@@ -1311,6 +1405,8 @@ func GetChatMember(ctx context.Context, chatId int64, userId int64) (ChatMember,
 
 // GetChatMemberCount Use this method to get the number of members in a chat. Returns Int on success.
 func GetChatMemberCount(ctx context.Context, chatId int64) (int64, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId int64 `json:"chat_id"`
 	}
@@ -1323,6 +1419,8 @@ func GetChatMemberCount(ctx context.Context, chatId int64) (int64, error) {
 // GetChatMenuButton Use this method to get the current value of the bot's menu button in a private chat, or the default menu button.
 // Returns MenuButton on success.
 func GetChatMenuButton(ctx context.Context, opts ...*OptGetChatMenuButton) (MenuButton, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		ChatId int64 `json:"chat_id,omitempty"`
 	}
@@ -1342,6 +1440,8 @@ type OptGetChatMenuButton struct {
 // GetCustomEmojiStickers Use this method to get information about custom emoji stickers by their identifiers.
 // Returns an Array of Sticker objects.
 func GetCustomEmojiStickers(ctx context.Context, customEmojiIds []string) ([]*Sticker, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		CustomEmojiIds []string `json:"custom_emoji_ids"`
 	}
@@ -1354,6 +1454,8 @@ func GetCustomEmojiStickers(ctx context.Context, customEmojiIds []string) ([]*St
 // GetFile Use this method to get basic information about a file and prepare it for downloading. For the moment, bots can download files of up to 20MB in size. On success, a File object is returned. The file can then be downloaded via the link https://api.telegram.org/file/bot<token>/<file_path>, where <file_path> is taken from the response. It is guaranteed that the link will be valid for at least 1 hour. When the link expires, a new one can be requested by calling getFile again.
 // Note: This function may not preserve the original file name and MIME type. You should save the file's MIME type and name (if available) when the File object is received.
 func GetFile(ctx context.Context, fileId string) (*File, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		FileId string `json:"file_id"`
 	}
@@ -1366,6 +1468,8 @@ func GetFile(ctx context.Context, fileId string) (*File, error) {
 // GetForumTopicIconStickers Use this method to get custom emoji stickers, which can be used as a forum topic icon by any user.
 // Requires no parameters. Returns an Array of Sticker objects.
 func GetForumTopicIconStickers(ctx context.Context) ([]*Sticker, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 	}
 	request := &Request{}
@@ -1375,6 +1479,8 @@ func GetForumTopicIconStickers(ctx context.Context) ([]*Sticker, error) {
 // GetGameHighScores Use this method to get data for high score tables. Returns an Array of GameHighScore objects.
 // Will return the score of the specified user and several of their neighbors in a game.
 func GetGameHighScores(ctx context.Context, userId int64, opts ...*OptGetGameHighScores) ([]*GameHighScore, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		UserId          int64  `json:"user_id"`
 		ChatId          int64  `json:"chat_id,omitempty"`
@@ -1407,6 +1513,8 @@ type OptGetGameHighScores struct {
 // GetMe A simple method for testing your bot's authentication token. Requires no parameters.
 // Returns basic information about the bot in form of a User object.
 func GetMe(ctx context.Context) (*User, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 	}
 	request := &Request{}
@@ -1416,6 +1524,8 @@ func GetMe(ctx context.Context) (*User, error) {
 // GetMyCommands Use this method to get the current list of the bot's commands for the given scope and user language.
 // Returns an Array of BotCommand objects. If commands aren't set, an empty list is returned.
 func GetMyCommands(ctx context.Context, opts ...*OptGetMyCommands) ([]*BotCommand, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		Scope        BotCommandScope `json:"scope,omitempty"`
 		LanguageCode string          `json:"language_code,omitempty"`
@@ -1440,6 +1550,8 @@ type OptGetMyCommands struct {
 // GetMyDefaultAdministratorRights Use this method to get the current default administrator rights of the bot.
 // Returns ChatAdministratorRights on success.
 func GetMyDefaultAdministratorRights(ctx context.Context, opts ...*OptGetMyDefaultAdministratorRights) (*ChatAdministratorRights, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		ForChannels bool `json:"for_channels,omitempty"`
 	}
@@ -1458,6 +1570,8 @@ type OptGetMyDefaultAdministratorRights struct {
 
 // GetMyDescription Use this method to get the current bot description for the given user language. Returns BotDescription on success.
 func GetMyDescription(ctx context.Context, opts ...*OptGetMyDescription) (*BotDescription, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		LanguageCode string `json:"language_code,omitempty"`
 	}
@@ -1476,6 +1590,8 @@ type OptGetMyDescription struct {
 
 // GetMyName Use this method to get the current bot name for the given user language. Returns BotName on success.
 func GetMyName(ctx context.Context, opts ...*OptGetMyName) (*BotName, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		LanguageCode string `json:"language_code,omitempty"`
 	}
@@ -1495,6 +1611,8 @@ type OptGetMyName struct {
 // GetMyShortDescription Use this method to get the current bot short description for the given user language.
 // Returns BotShortDescription on success.
 func GetMyShortDescription(ctx context.Context, opts ...*OptGetMyShortDescription) (*BotShortDescription, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		LanguageCode string `json:"language_code,omitempty"`
 	}
@@ -1513,6 +1631,8 @@ type OptGetMyShortDescription struct {
 
 // GetStarTransactions Returns the bot's Telegram Star transactions in chronological order. On success, returns a StarTransactions object.
 func GetStarTransactions(ctx context.Context, opts ...*OptGetStarTransactions) (*StarTransactions, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		Offset int64 `json:"offset,omitempty"`
 		Limit  int64 `json:"limit,omitempty"`
@@ -1536,6 +1656,8 @@ type OptGetStarTransactions struct {
 
 // GetStickerSet Use this method to get a sticker set. On success, a StickerSet object is returned.
 func GetStickerSet(ctx context.Context, name string) (*StickerSet, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		Name string `json:"name"`
 	}
@@ -1547,6 +1669,8 @@ func GetStickerSet(ctx context.Context, name string) (*StickerSet, error) {
 
 // GetUpdates Use this method to receive incoming updates using long polling (wiki). Returns an Array of Update objects.
 func GetUpdates(ctx context.Context, opts ...*OptGetUpdates) ([]*Update, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		Offset         int64    `json:"offset,omitempty"`
 		Limit          int64    `json:"limit,omitempty"`
@@ -1581,6 +1705,8 @@ type OptGetUpdates struct {
 // GetUserChatBoosts Use this method to get the list of boosts added to a chat by a user. Requires administrator rights in the chat.
 // Returns a UserChatBoosts object.
 func GetUserChatBoosts(ctx context.Context, chatId int64, userId int64) (*UserChatBoosts, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId int64 `json:"chat_id"`
 		UserId int64 `json:"user_id"`
@@ -1594,6 +1720,8 @@ func GetUserChatBoosts(ctx context.Context, chatId int64, userId int64) (*UserCh
 
 // GetUserProfilePhotos Use this method to get a list of profile pictures for a user. Returns a UserProfilePhotos object.
 func GetUserProfilePhotos(ctx context.Context, userId int64, opts ...*OptGetUserProfilePhotos) (*UserProfilePhotos, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		UserId int64 `json:"user_id"`
 		Offset int64 `json:"offset,omitempty"`
@@ -1621,6 +1749,8 @@ type OptGetUserProfilePhotos struct {
 // GetWebhookInfo Use this method to get current webhook status. Requires no parameters. On success, returns a WebhookInfo object.
 // If the bot is using getUpdates, will return an object with the url field empty.
 func GetWebhookInfo(ctx context.Context) (*WebhookInfo, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 	}
 	request := &Request{}
@@ -1631,6 +1761,8 @@ func GetWebhookInfo(ctx context.Context) (*WebhookInfo, error) {
 // The bot must be an administrator in the chat for this to work and must have the can_manage_topics administrator rights.
 // The topic will be automatically closed if it was open.
 func HideGeneralForumTopic(ctx context.Context, chatId int64) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId int64 `json:"chat_id"`
 	}
@@ -1642,6 +1774,8 @@ func HideGeneralForumTopic(ctx context.Context, chatId int64) (bool, error) {
 
 // LeaveChat Use this method for your bot to leave a group, supergroup or channel. Returns True on success.
 func LeaveChat(ctx context.Context, chatId int64) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId int64 `json:"chat_id"`
 	}
@@ -1656,6 +1790,8 @@ func LeaveChat(ctx context.Context, chatId int64) (bool, error) {
 // After a successful call, you can immediately log in on a local server, but will not be able to log in back to the cloud Bot API server for 10 minutes.
 // Returns True on success. Requires no parameters.
 func LogOut(ctx context.Context) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 	}
 	request := &Request{}
@@ -1665,6 +1801,8 @@ func LogOut(ctx context.Context) (bool, error) {
 // PinChatMessage Use this method to add a message to the list of pinned messages in a chat. Returns True on success.
 // If the chat is not a private chat, the bot must be an administrator in the chat for this to work and must have the 'can_pin_messages' administrator right in a supergroup or 'can_edit_messages' administrator right in a channel.
 func PinChatMessage(ctx context.Context, chatId int64, messageId int64, opts ...*OptPinChatMessage) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		BusinessConnectionId string `json:"business_connection_id,omitempty"`
 		ChatId               int64  `json:"chat_id"`
@@ -1695,6 +1833,8 @@ type OptPinChatMessage struct {
 // The bot must be an administrator in the chat for this to work and must have the appropriate administrator rights.
 // Pass False for all boolean parameters to demote a user.
 func PromoteChatMember(ctx context.Context, chatId int64, userId int64, opts ...*OptPromoteChatMember) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId              int64 `json:"chat_id"`
 		UserId              int64 `json:"user_id"`
@@ -1788,6 +1928,8 @@ type OptPromoteChatMember struct {
 
 // RefundStarPayment Refunds a successful payment in Telegram Stars. Returns True on success.
 func RefundStarPayment(ctx context.Context, userId int64, telegramPaymentChargeId string) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		UserId                  int64  `json:"user_id"`
 		TelegramPaymentChargeId string `json:"telegram_payment_charge_id"`
@@ -1802,6 +1944,8 @@ func RefundStarPayment(ctx context.Context, userId int64, telegramPaymentChargeI
 // ReopenForumTopic Use this method to reopen a closed topic in a forum supergroup chat. Returns True on success.
 // The bot must be an administrator in the chat for this to work and must have the can_manage_topics administrator rights, unless it is the creator of the topic.
 func ReopenForumTopic(ctx context.Context, chatId int64, messageThreadId int64) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId          int64 `json:"chat_id"`
 		MessageThreadId int64 `json:"message_thread_id"`
@@ -1817,6 +1961,8 @@ func ReopenForumTopic(ctx context.Context, chatId int64, messageThreadId int64) 
 // The bot must be an administrator in the chat for this to work and must have the can_manage_topics administrator rights.
 // The topic will be automatically unhidden if it was hidden.
 func ReopenGeneralForumTopic(ctx context.Context, chatId int64) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId int64 `json:"chat_id"`
 	}
@@ -1829,6 +1975,8 @@ func ReopenGeneralForumTopic(ctx context.Context, chatId int64) (bool, error) {
 // ReplaceStickerInSet Use this method to replace an existing sticker in a sticker set with a new one. Returns True on success.
 // The method is equivalent to calling deleteStickerFromSet, then addStickerToSet, then setStickerPositionInSet.
 func ReplaceStickerInSet(ctx context.Context, userId int64, name string, oldSticker string, sticker *InputSticker) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		UserId     int64         `json:"user_id"`
 		Name       string        `json:"name"`
@@ -1848,6 +1996,8 @@ func ReplaceStickerInSet(ctx context.Context, userId int64, name string, oldStic
 // The bot must be an administrator in the supergroup for this to work and must have the appropriate administrator rights.
 // Returns True on success.
 func RestrictChatMember(ctx context.Context, chatId int64, userId int64, permissions *ChatPermissions, opts ...*OptRestrictChatMember) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId                        int64            `json:"chat_id"`
 		UserId                        int64            `json:"user_id"`
@@ -1881,6 +2031,8 @@ type OptRestrictChatMember struct {
 // The bot must be an administrator in the chat for this to work and must have the appropriate administrator rights.
 // Returns the revoked invite link as ChatInviteLink object.
 func RevokeChatInviteLink(ctx context.Context, chatId int64, inviteLink string) (*ChatInviteLink, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId     int64  `json:"chat_id"`
 		InviteLink string `json:"invite_link"`
@@ -1894,6 +2046,8 @@ func RevokeChatInviteLink(ctx context.Context, chatId int64, inviteLink string) 
 
 // SavePreparedInlineMessage Stores a message that can be sent by a user of a Mini App. Returns a PreparedInlineMessage object.
 func SavePreparedInlineMessage(ctx context.Context, userId int64, result InlineQueryResult, opts ...*OptSavePreparedInlineMessage) (*PreparedInlineMessage, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		UserId            int64             `json:"user_id"`
 		Result            InlineQueryResult `json:"result"`
@@ -1934,6 +2088,8 @@ type OptSavePreparedInlineMessage struct {
 // On success, the sent Message is returned.
 // Bots can currently send animation files of up to 50 MB in size, this limit may be changed in the future.
 func SendAnimation(ctx context.Context, chatId int64, animation InputFile, opts ...*OptSendAnimation) (*Message, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		BusinessConnectionId  string                                                                      `json:"business_connection_id,omitempty"`
 		ChatId                int64                                                                       `json:"chat_id"`
@@ -2038,6 +2194,8 @@ type OptSendAnimation struct {
 // SendAudio Use this method to send audio files, if you want Telegram clients to display them in the music player. Your audio must be in the .MP3 or .M4A format. On success, the sent Message is returned. Bots can currently send audio files of up to 50 MB in size, this limit may be changed in the future.
 // For sending voice messages, use the sendVoice method instead.
 func SendAudio(ctx context.Context, chatId int64, audio InputFile, opts ...*OptSendAudio) (*Message, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		BusinessConnectionId string                                                                      `json:"business_connection_id,omitempty"`
 		ChatId               int64                                                                       `json:"chat_id"`
@@ -2132,6 +2290,8 @@ type OptSendAudio struct {
 // SendChatAction Use this method when you need to tell the user that something is happening on the bot's side. The status is set for 5 seconds or less (when a message arrives from your bot, Telegram clients clear its typing status). Returns True on success.
 // We only recommend using this method when a response from the bot will take a noticeable amount of time to arrive.
 func SendChatAction(ctx context.Context, chatId int64, action string, opts ...*OptSendChatAction) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		BusinessConnectionId string `json:"business_connection_id,omitempty"`
 		ChatId               int64  `json:"chat_id"`
@@ -2160,6 +2320,8 @@ type OptSendChatAction struct {
 
 // SendContact Use this method to send phone contacts. On success, the sent Message is returned.
 func SendContact(ctx context.Context, chatId int64, phoneNumber string, firstName string, opts ...*OptSendContact) (*Message, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		BusinessConnectionId string                                                                      `json:"business_connection_id,omitempty"`
 		ChatId               int64                                                                       `json:"chat_id"`
@@ -2230,6 +2392,8 @@ type OptSendContact struct {
 
 // SendDice Use this method to send an animated emoji that will display a random value. On success, the sent Message is returned.
 func SendDice(ctx context.Context, chatId int64, opts ...*OptSendDice) (*Message, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		BusinessConnectionId string                                                                      `json:"business_connection_id,omitempty"`
 		ChatId               int64                                                                       `json:"chat_id"`
@@ -2292,6 +2456,8 @@ type OptSendDice struct {
 // SendDocument Use this method to send general files. On success, the sent Message is returned.
 // Bots can currently send files of any type of up to 50 MB in size, this limit may be changed in the future.
 func SendDocument(ctx context.Context, chatId int64, document InputFile, opts ...*OptSendDocument) (*Message, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		BusinessConnectionId        string                                                                      `json:"business_connection_id,omitempty"`
 		ChatId                      int64                                                                       `json:"chat_id"`
@@ -2375,6 +2541,8 @@ type OptSendDocument struct {
 
 // SendGame Use this method to send a game. On success, the sent Message is returned.
 func SendGame(ctx context.Context, chatId int64, gameShortName string, opts ...*OptSendGame) (*Message, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		BusinessConnectionId string                `json:"business_connection_id,omitempty"`
 		ChatId               int64                 `json:"chat_id"`
@@ -2434,6 +2602,8 @@ type OptSendGame struct {
 // SendGift Sends a gift to the given user. The gift can't be converted to Telegram Stars by the user.
 // Returns True on success.
 func SendGift(ctx context.Context, userId int64, giftId string, opts ...*OptSendGift) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		UserId        int64            `json:"user_id"`
 		GiftId        string           `json:"gift_id"`
@@ -2467,6 +2637,8 @@ type OptSendGift struct {
 
 // SendInvoice Use this method to send invoices. On success, the sent Message is returned.
 func SendInvoice(ctx context.Context, chatId int64, title string, description string, payload string, currency string, prices []*LabeledPrice, opts ...*OptSendInvoice) (*Message, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId                    int64                 `json:"chat_id"`
 		MessageThreadId           int64                 `json:"message_thread_id,omitempty"`
@@ -2608,6 +2780,8 @@ type OptSendInvoice struct {
 
 // SendLocation Use this method to send point on the map. On success, the sent Message is returned.
 func SendLocation(ctx context.Context, chatId int64, latitude float64, longitude float64, opts ...*OptSendLocation) (*Message, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		BusinessConnectionId string                                                                      `json:"business_connection_id,omitempty"`
 		ChatId               int64                                                                       `json:"chat_id"`
@@ -2690,6 +2864,8 @@ type OptSendLocation struct {
 // Documents and audio files can be only grouped in an album with messages of the same type.
 // On success, an array of Messages that were sent is returned.
 func SendMediaGroup(ctx context.Context, chatId int64, media Album, opts ...*OptSendMediaGroup) ([]*Message, error) {
+	schedule(ctx, chatId, len(media))
+	defer scheduleDone(ctx, chatId, len(media))
 	type Request struct {
 		BusinessConnectionId string           `json:"business_connection_id,omitempty"`
 		ChatId               int64            `json:"chat_id"`
@@ -2743,6 +2919,8 @@ type OptSendMediaGroup struct {
 
 // SendMessage Use this method to send text messages. On success, the sent Message is returned.
 func SendMessage(ctx context.Context, chatId int64, text string, opts ...*OptSendMessage) (*Message, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		BusinessConnectionId string                                                                      `json:"business_connection_id,omitempty"`
 		ChatId               int64                                                                       `json:"chat_id"`
@@ -2816,6 +2994,8 @@ type OptSendMessage struct {
 
 // SendPaidMedia Use this method to send paid media. On success, the sent Message is returned.
 func SendPaidMedia(ctx context.Context, chatId int64, starCount int64, media []InputPaidMedia, opts ...*OptSendPaidMedia) (*Message, error) {
+	schedule(ctx, chatId, len(media))
+	defer scheduleDone(ctx, chatId, len(media))
 	type Request struct {
 		BusinessConnectionId  string                                                                      `json:"business_connection_id,omitempty"`
 		ChatId                int64                                                                       `json:"chat_id"`
@@ -2891,6 +3071,8 @@ type OptSendPaidMedia struct {
 
 // SendPhoto Use this method to send photos. On success, the sent Message is returned.
 func SendPhoto(ctx context.Context, chatId int64, photo InputFile, opts ...*OptSendPhoto) (*Message, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		BusinessConnectionId  string                                                                      `json:"business_connection_id,omitempty"`
 		ChatId                int64                                                                       `json:"chat_id"`
@@ -2974,6 +3156,8 @@ type OptSendPhoto struct {
 
 // SendPoll Use this method to send a native poll. On success, the sent Message is returned.
 func SendPoll(ctx context.Context, chatId int64, question string, options []*InputPollOption, opts ...*OptSendPoll) (*Message, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		BusinessConnectionId  string                                                                      `json:"business_connection_id,omitempty"`
 		ChatId                int64                                                                       `json:"chat_id"`
@@ -3095,6 +3279,8 @@ type OptSendPoll struct {
 // SendSticker Use this method to send static .WEBP, animated .TGS, or video .WEBM stickers.
 // On success, the sent Message is returned.
 func SendSticker(ctx context.Context, chatId int64, sticker InputFile, opts ...*OptSendSticker) (*Message, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		BusinessConnectionId string                                                                      `json:"business_connection_id,omitempty"`
 		ChatId               int64                                                                       `json:"chat_id"`
@@ -3158,6 +3344,8 @@ type OptSendSticker struct {
 
 // SendVenue Use this method to send information about a venue. On success, the sent Message is returned.
 func SendVenue(ctx context.Context, chatId int64, latitude float64, longitude float64, title string, address string, opts ...*OptSendVenue) (*Message, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		BusinessConnectionId string                                                                      `json:"business_connection_id,omitempty"`
 		ChatId               int64                                                                       `json:"chat_id"`
@@ -3244,6 +3432,8 @@ type OptSendVenue struct {
 // On success, the sent Message is returned.
 // Bots can currently send video files of up to 50 MB in size, this limit may be changed in the future.
 func SendVideo(ctx context.Context, chatId int64, video InputFile, opts ...*OptSendVideo) (*Message, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		BusinessConnectionId  string                                                                      `json:"business_connection_id,omitempty"`
 		ChatId                int64                                                                       `json:"chat_id"`
@@ -3350,9 +3540,77 @@ type OptSendVideo struct {
 	ReplyMarkup           VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
 }
 
+type VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply interface {
+	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup
+	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup
+	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove
+	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply
+}
+
+var (
+	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &InlineKeyboardMarkup{}
+	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ReplyKeyboardMarkup{}
+	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ReplyKeyboardRemove{}
+	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ForceReply{}
+)
+
+func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
+	return impl
+}
+func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
+	return nil
+}
+func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
+	return nil
+}
+func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
+	return nil
+}
+
+func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
+	return nil
+}
+func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
+	return impl
+}
+func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
+	return nil
+}
+func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
+	return nil
+}
+
+func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
+	return nil
+}
+func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
+	return nil
+}
+func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
+	return impl
+}
+func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
+	return nil
+}
+
+func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
+	return nil
+}
+func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
+	return nil
+}
+func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
+	return nil
+}
+func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
+	return impl
+}
+
 // SendVideoNote As of v.4.0, Telegram clients support rounded square MPEG4 videos of up to 1 minute long.
 // Use this method to send video messages. On success, the sent Message is returned.
 func SendVideoNote(ctx context.Context, chatId int64, videoNote InputFile, opts ...*OptSendVideoNote) (*Message, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		BusinessConnectionId string                                                                      `json:"business_connection_id,omitempty"`
 		ChatId               int64                                                                       `json:"chat_id"`
@@ -3429,6 +3687,8 @@ type OptSendVideoNote struct {
 // On success, the sent Message is returned.
 // Bots can currently send voice messages of up to 50 MB in size, this limit may be changed in the future.
 func SendVoice(ctx context.Context, chatId int64, voice InputFile, opts ...*OptSendVoice) (*Message, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		BusinessConnectionId string                                                                      `json:"business_connection_id,omitempty"`
 		ChatId               int64                                                                       `json:"chat_id"`
@@ -3505,75 +3765,11 @@ type OptSendVoice struct {
 	ReplyMarkup          VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
 }
 
-type VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply interface {
-	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup
-	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup
-	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove
-	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply
-}
-
-var (
-	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &InlineKeyboardMarkup{}
-	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ReplyKeyboardMarkup{}
-	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ReplyKeyboardRemove{}
-	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ForceReply{}
-)
-
-func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
-	return impl
-}
-func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
-	return nil
-}
-func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
-	return nil
-}
-func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
-	return nil
-}
-
-func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
-	return nil
-}
-func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
-	return impl
-}
-func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
-	return nil
-}
-func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
-	return nil
-}
-
-func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
-	return nil
-}
-func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
-	return nil
-}
-func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
-	return impl
-}
-func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
-	return nil
-}
-
-func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
-	return nil
-}
-func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
-	return nil
-}
-func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
-	return nil
-}
-func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
-	return impl
-}
-
 // SetChatAdministratorCustomTitle Use this method to set a custom title for an administrator in a supergroup promoted by the bot.
 // Returns True on success.
 func SetChatAdministratorCustomTitle(ctx context.Context, chatId int64, userId int64, customTitle string) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId      int64  `json:"chat_id"`
 		UserId      int64  `json:"user_id"`
@@ -3591,6 +3787,8 @@ func SetChatAdministratorCustomTitle(ctx context.Context, chatId int64, userId i
 // The bot must be an administrator in the chat for this to work and must have the appropriate administrator rights.
 // Returns True on success.
 func SetChatDescription(ctx context.Context, chatId int64, opts ...*OptSetChatDescription) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId      int64  `json:"chat_id"`
 		Description string `json:"description,omitempty"`
@@ -3613,6 +3811,8 @@ type OptSetChatDescription struct {
 // SetChatMenuButton Use this method to change the bot's menu button in a private chat, or the default menu button.
 // Returns True on success.
 func SetChatMenuButton(ctx context.Context, opts ...*OptSetChatMenuButton) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		ChatId     int64      `json:"chat_id,omitempty"`
 		MenuButton MenuButton `json:"menu_button,omitempty"`
@@ -3637,6 +3837,8 @@ type OptSetChatMenuButton struct {
 // SetChatPermissions Use this method to set default chat permissions for all members. Returns True on success.
 // The bot must be an administrator in the group or a supergroup for this to work and must have the can_restrict_members administrator rights.
 func SetChatPermissions(ctx context.Context, chatId int64, permissions *ChatPermissions, opts ...*OptSetChatPermissions) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId                        int64            `json:"chat_id"`
 		Permissions                   *ChatPermissions `json:"permissions"`
@@ -3662,6 +3864,8 @@ type OptSetChatPermissions struct {
 // The bot must be an administrator in the chat for this to work and must have the appropriate administrator rights.
 // Returns True on success.
 func SetChatPhoto(ctx context.Context, chatId int64, photo *LocalFile) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId int64      `json:"chat_id"`
 		Photo  *LocalFile `json:"photo"`
@@ -3677,6 +3881,8 @@ func SetChatPhoto(ctx context.Context, chatId int64, photo *LocalFile) (bool, er
 // The bot must be an administrator in the chat for this to work and must have the appropriate administrator rights.
 // Use the field can_set_sticker_set optionally returned in getChat requests to check if the bot can use this method.
 func SetChatStickerSet(ctx context.Context, chatId int64, stickerSetName string) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId         int64  `json:"chat_id"`
 		StickerSetName string `json:"sticker_set_name"`
@@ -3692,6 +3898,8 @@ func SetChatStickerSet(ctx context.Context, chatId int64, stickerSetName string)
 // The bot must be an administrator in the chat for this to work and must have the appropriate administrator rights.
 // Returns True on success.
 func SetChatTitle(ctx context.Context, chatId int64, title string) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId int64  `json:"chat_id"`
 		Title  string `json:"title"`
@@ -3705,6 +3913,8 @@ func SetChatTitle(ctx context.Context, chatId int64, title string) (bool, error)
 
 // SetCustomEmojiStickerSetThumbnail Use this method to set the thumbnail of a custom emoji sticker set. Returns True on success.
 func SetCustomEmojiStickerSetThumbnail(ctx context.Context, name string, opts ...*OptSetCustomEmojiStickerSetThumbnail) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		Name          string `json:"name"`
 		CustomEmojiId string `json:"custom_emoji_id,omitempty"`
@@ -3728,6 +3938,8 @@ type OptSetCustomEmojiStickerSetThumbnail struct {
 // On success, if the message is not an inline message, the Message is returned, otherwise True is returned.
 // Returns an error, if the new score is not greater than the user's current score in the chat and force is False.
 func SetGameScore(ctx context.Context, userId int64, score int64, opts ...*OptSetGameScore) (*Message, error) /* >> either: [bool] */ {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		UserId             int64  `json:"user_id"`
 		Score              int64  `json:"score"`
@@ -3773,6 +3985,8 @@ type OptSetGameScore struct {
 // Automatically forwarded messages from a channel to its discussion group have the same available reactions as messages in the channel.
 // Bots can't use paid reactions. Returns True on success.
 func SetMessageReaction(ctx context.Context, chatId int64, messageId int64, opts ...*OptSetMessageReaction) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId    int64          `json:"chat_id"`
 		MessageId int64          `json:"message_id"`
@@ -3802,6 +4016,8 @@ type OptSetMessageReaction struct {
 // SetMyCommands Use this method to change the list of the bot's commands. See this manual for more details about bot commands.
 // Returns True on success.
 func SetMyCommands(ctx context.Context, commands []*BotCommand, opts ...*OptSetMyCommands) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		Commands     []*BotCommand   `json:"commands"`
 		Scope        BotCommandScope `json:"scope,omitempty"`
@@ -3830,6 +4046,8 @@ type OptSetMyCommands struct {
 // These rights will be suggested to users, but they are free to modify the list before adding the bot.
 // Returns True on success.
 func SetMyDefaultAdministratorRights(ctx context.Context, opts ...*OptSetMyDefaultAdministratorRights) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		Rights      *ChatAdministratorRights `json:"rights,omitempty"`
 		ForChannels bool                     `json:"for_channels,omitempty"`
@@ -3854,6 +4072,8 @@ type OptSetMyDefaultAdministratorRights struct {
 // SetMyDescription Use this method to change the bot's description, which is shown in the chat with the bot if the chat is empty.
 // Returns True on success.
 func SetMyDescription(ctx context.Context, opts ...*OptSetMyDescription) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		Description  string `json:"description,omitempty"`
 		LanguageCode string `json:"language_code,omitempty"`
@@ -3877,6 +4097,8 @@ type OptSetMyDescription struct {
 
 // SetMyName Use this method to change the bot's name. Returns True on success.
 func SetMyName(ctx context.Context, opts ...*OptSetMyName) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		Name         string `json:"name,omitempty"`
 		LanguageCode string `json:"language_code,omitempty"`
@@ -3901,6 +4123,8 @@ type OptSetMyName struct {
 // SetMyShortDescription Use this method to change the bot's short description, which is shown on the bot's profile page and is sent together with the link when users share the bot.
 // Returns True on success.
 func SetMyShortDescription(ctx context.Context, opts ...*OptSetMyShortDescription) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		ShortDescription string `json:"short_description,omitempty"`
 		LanguageCode     string `json:"language_code,omitempty"`
@@ -3925,6 +4149,8 @@ type OptSetMyShortDescription struct {
 // SetPassportDataErrors Informs a user that some of the Telegram Passport elements they provided contains errors. The user will not be able to re-submit their Passport to you until the errors are fixed (the contents of the field for which you returned the error must change). Returns True on success.
 // Use this if the data submitted by the user doesn't satisfy the standards your service requires for any reason. For example, if a birthday date seems invalid, a submitted document is blurry, a scan shows evidence of tampering, etc. Supply some details in the error message to make sure the user knows how to correct the issues.
 func SetPassportDataErrors(ctx context.Context, userId int64, errors []PassportElementError) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		UserId int64                  `json:"user_id"`
 		Errors []PassportElementError `json:"errors"`
@@ -3939,6 +4165,8 @@ func SetPassportDataErrors(ctx context.Context, userId int64, errors []PassportE
 // SetStickerEmojiList Use this method to change the list of emoji assigned to a regular or custom emoji sticker.
 // The sticker must belong to a sticker set created by the bot. Returns True on success.
 func SetStickerEmojiList(ctx context.Context, sticker string, emojiList []string) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		Sticker   string   `json:"sticker"`
 		EmojiList []string `json:"emoji_list"`
@@ -3953,6 +4181,8 @@ func SetStickerEmojiList(ctx context.Context, sticker string, emojiList []string
 // SetStickerKeywords Use this method to change search keywords assigned to a regular or custom emoji sticker.
 // The sticker must belong to a sticker set created by the bot. Returns True on success.
 func SetStickerKeywords(ctx context.Context, sticker string, opts ...*OptSetStickerKeywords) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		Sticker  string   `json:"sticker"`
 		Keywords []string `json:"keywords,omitempty"`
@@ -3975,6 +4205,8 @@ type OptSetStickerKeywords struct {
 // SetStickerMaskPosition Use this method to change the mask position of a mask sticker. Returns True on success.
 // The sticker must belong to a sticker set that was created by the bot.
 func SetStickerMaskPosition(ctx context.Context, sticker string, opts ...*OptSetStickerMaskPosition) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		Sticker      string        `json:"sticker"`
 		MaskPosition *MaskPosition `json:"mask_position,omitempty"`
@@ -3997,6 +4229,8 @@ type OptSetStickerMaskPosition struct {
 // SetStickerPositionInSet Use this method to move a sticker in a set created by the bot to a specific position.
 // Returns True on success.
 func SetStickerPositionInSet(ctx context.Context, sticker string, position int64) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		Sticker  string `json:"sticker"`
 		Position int64  `json:"position"`
@@ -4011,6 +4245,8 @@ func SetStickerPositionInSet(ctx context.Context, sticker string, position int64
 // SetStickerSetThumbnail Use this method to set the thumbnail of a regular or mask sticker set. Returns True on success.
 // The format of the thumbnail file must match the format of the stickers in the set.
 func SetStickerSetThumbnail(ctx context.Context, name string, userId int64, format string, opts ...*OptSetStickerSetThumbnail) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		Name      string    `json:"name"`
 		UserId    int64     `json:"user_id"`
@@ -4036,6 +4272,8 @@ type OptSetStickerSetThumbnail struct {
 
 // SetStickerSetTitle Use this method to set the title of a created sticker set. Returns True on success.
 func SetStickerSetTitle(ctx context.Context, name string, title string) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		Name  string `json:"name"`
 		Title string `json:"title"`
@@ -4050,6 +4288,8 @@ func SetStickerSetTitle(ctx context.Context, name string, title string) (bool, e
 // SetUserEmojiStatus Changes the emoji status for a given user that previously allowed the bot to manage their emoji status via the Mini App method requestEmojiStatusAccess.
 // Returns True on success.
 func SetUserEmojiStatus(ctx context.Context, userId int64, opts ...*OptSetUserEmojiStatus) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		UserId                    int64  `json:"user_id"`
 		EmojiStatusCustomEmojiId  string `json:"emoji_status_custom_emoji_id,omitempty"`
@@ -4077,6 +4317,8 @@ type OptSetUserEmojiStatus struct {
 // SetWebhook Use this method to specify a URL and receive incoming updates via an outgoing webhook. Whenever there is an update for the bot, we will send an HTTPS POST request to the specified URL, containing a JSON-serialized Update. In case of an unsuccessful request, we will give up after a reasonable amount of attempts. Returns True on success.
 // If you'd like to make sure that the webhook was set by you, you can specify secret data in the parameter secret_token. If specified, the request will contain a header "X-Telegram-Bot-Api-Secret-Token" with the secret token as content.
 func SetWebhook(ctx context.Context, url string, opts ...*OptSetWebhook) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		Url                string     `json:"url"`
 		Certificate        *LocalFile `json:"certificate,omitempty"`
@@ -4124,6 +4366,8 @@ type OptSetWebhook struct {
 // StopMessageLiveLocation Use this method to stop updating a live location message before live_period expires.
 // On success, if the message is not an inline message, the edited Message is returned, otherwise True is returned.
 func StopMessageLiveLocation(ctx context.Context, opts ...*OptStopMessageLiveLocation) (*Message, error) /* >> either: [bool] */ {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		BusinessConnectionId string                `json:"business_connection_id,omitempty"`
 		ChatId               int64                 `json:"chat_id,omitempty"`
@@ -4162,6 +4406,8 @@ type OptStopMessageLiveLocation struct {
 
 // StopPoll Use this method to stop a poll which was sent by the bot. On success, the stopped Poll is returned.
 func StopPoll(ctx context.Context, chatId int64, messageId int64, opts ...*OptStopPoll) (*Poll, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		BusinessConnectionId string                `json:"business_connection_id,omitempty"`
 		ChatId               int64                 `json:"chat_id"`
@@ -4195,6 +4441,8 @@ type OptStopPoll struct {
 // So if the user is a member of the chat they will also be removed from the chat.
 // If you don't want this, use the parameter only_if_banned.
 func UnbanChatMember(ctx context.Context, chatId int64, userId int64, opts ...*OptUnbanChatMember) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId       int64 `json:"chat_id"`
 		UserId       int64 `json:"user_id"`
@@ -4220,6 +4468,8 @@ type OptUnbanChatMember struct {
 // The bot must be an administrator for this to work and must have the appropriate administrator rights.
 // Returns True on success.
 func UnbanChatSenderChat(ctx context.Context, chatId int64, senderChatId int64) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId       int64 `json:"chat_id"`
 		SenderChatId int64 `json:"sender_chat_id"`
@@ -4234,6 +4484,8 @@ func UnbanChatSenderChat(ctx context.Context, chatId int64, senderChatId int64) 
 // UnhideGeneralForumTopic Use this method to unhide the 'General' topic in a forum supergroup chat. Returns True on success.
 // The bot must be an administrator in the chat for this to work and must have the can_manage_topics administrator rights.
 func UnhideGeneralForumTopic(ctx context.Context, chatId int64) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId int64 `json:"chat_id"`
 	}
@@ -4246,6 +4498,8 @@ func UnhideGeneralForumTopic(ctx context.Context, chatId int64) (bool, error) {
 // UnpinAllChatMessages Use this method to clear the list of pinned messages in a chat. Returns True on success.
 // If the chat is not a private chat, the bot must be an administrator in the chat for this to work and must have the 'can_pin_messages' administrator right in a supergroup or 'can_edit_messages' administrator right in a channel.
 func UnpinAllChatMessages(ctx context.Context, chatId int64) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId int64 `json:"chat_id"`
 	}
@@ -4258,6 +4512,8 @@ func UnpinAllChatMessages(ctx context.Context, chatId int64) (bool, error) {
 // UnpinAllForumTopicMessages Use this method to clear the list of pinned messages in a forum topic. Returns True on success.
 // The bot must be an administrator in the chat for this to work and must have the can_pin_messages administrator right in the supergroup.
 func UnpinAllForumTopicMessages(ctx context.Context, chatId int64, messageThreadId int64) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId          int64 `json:"chat_id"`
 		MessageThreadId int64 `json:"message_thread_id"`
@@ -4272,6 +4528,8 @@ func UnpinAllForumTopicMessages(ctx context.Context, chatId int64, messageThread
 // UnpinAllGeneralForumTopicMessages Use this method to clear the list of pinned messages in a General forum topic. Returns True on success.
 // The bot must be an administrator in the chat for this to work and must have the can_pin_messages administrator right in the supergroup.
 func UnpinAllGeneralForumTopicMessages(ctx context.Context, chatId int64) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId int64 `json:"chat_id"`
 	}
@@ -4284,6 +4542,8 @@ func UnpinAllGeneralForumTopicMessages(ctx context.Context, chatId int64) (bool,
 // UnpinChatMessage Use this method to remove a message from the list of pinned messages in a chat. Returns True on success.
 // If the chat is not a private chat, the bot must be an administrator in the chat for this to work and must have the 'can_pin_messages' administrator right in a supergroup or 'can_edit_messages' administrator right in a channel.
 func UnpinChatMessage(ctx context.Context, chatId int64, opts ...*OptUnpinChatMessage) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		BusinessConnectionId string `json:"business_connection_id,omitempty"`
 		ChatId               int64  `json:"chat_id"`
@@ -4311,6 +4571,8 @@ type OptUnpinChatMessage struct {
 // UploadStickerFile Use this method to upload a file with a sticker for later use in the createNewStickerSet, addStickerToSet, or replaceStickerInSet methods (the file can be used multiple times).
 // Returns the uploaded File on success.
 func UploadStickerFile(ctx context.Context, userId int64, sticker *LocalFile, stickerFormat string) (*File, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		UserId        int64      `json:"user_id"`
 		Sticker       *LocalFile `json:"sticker"`

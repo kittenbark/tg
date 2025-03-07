@@ -105,6 +105,12 @@ func (bot *Bot) Plugin(plugin ...Plugin) *Bot {
 	return bot
 }
 
+// Scheduler ensures no 429 Too Many Requests.
+func (bot *Bot) Scheduler(scheduler ...Scheduler) *Bot {
+	bot.context = context.WithValue(bot.context, ContextScheduler, at(scheduler, 0, NewScheduler()))
+	return bot
+}
+
 // ContextWithCancel build new Context with a fresh timeout.
 func (bot *Bot) ContextWithCancel() (ctx context.Context, cancel context.CancelFunc) {
 	if bot.contextTimeout == 0 {
