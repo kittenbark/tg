@@ -96,6 +96,14 @@ func CommonReactionReply(emoji string, big ...bool) HandlerFunc {
 	}
 }
 
+func CommonDeleteMessage(ctx context.Context, upd *Update) error {
+	if upd == nil || upd.Message == nil || upd.Message.Chat == nil {
+		return errors.New("tg#CommonDeleteMessage: bad update, no upd/message/chat")
+	}
+	_, err := DeleteMessage(ctx, upd.Message.Chat.Id, upd.Message.MessageId)
+	return err
+}
+
 func OnCommand(command string) FilterFunc {
 	const botCommandEntity = "bot_command"
 	if !strings.HasPrefix(command, "/") {
