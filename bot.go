@@ -130,9 +130,25 @@ func (bot *Bot) OnError(fn OnErrorFunc) *Bot {
 	return bot.Plugin(PluginOnError(fn))
 }
 
-func (bot *Bot) Ping() bool {
-	_, err := GetMe(bot.Context())
-	return err == nil
+func (bot *Bot) SetMyCommands(scope BotCommandScope, commands ...string) *Bot {
+	if len(commands) < 2 {
+		panic("tg: SetMyCommands must have at least two parameters")
+	}
+
+	result := []*BotCommand{}
+	for info := range slices.Chunk(commands, 2) {
+		result = append(result, &BotCommand{
+			Command:     info[0],
+			Description: info[1],
+		})
+	}
+	ctx, cancel := bot.ContextWithCancel()
+	defer cancel()
+
+	if _, err := SetMyCommands(ctx, result, &OptSetMyCommands{Scope: scope}); err != nil {
+		bot.pluginsHook(PluginHookOnError, &PluginHookContextOnError{ctx, bot, err})
+	}
+	return bot
 }
 
 // Start locks the execution, interruptible with Stop.

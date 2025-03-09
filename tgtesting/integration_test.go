@@ -29,7 +29,13 @@ func TestIntegrationShort(t *testing.T) {
 	if chat == 0 {
 		t.Skip("no test chat found")
 	}
-	bot := tg.NewFromEnv()
+	bot := tg.NewFromEnv().
+		SetMyCommands(&tg.BotCommandScopeAllPrivateChats{},
+			"/start", "this is start fr (private chat)",
+		).
+		SetMyCommands(&tg.BotCommandScopeAllGroupChats{},
+			"/start", "this is start fr (group chat)",
+		)
 
 	t.Run("setMessageReaction", func(t *testing.T) {
 		t.Parallel()
