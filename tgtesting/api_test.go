@@ -371,7 +371,7 @@ func TestFilters(t *testing.T) {
 	require.True(t, onText(nil, &tg.Update{Message: &tg.Message{Text: "kittenbark"}}))
 	require.False(t, onText(nil, &tg.Update{Message: &tg.Message{Text: "kit"}}))
 
-	onUrl := tg.OnUrl()
+	onUrl := tg.OnUrl
 	require.True(t, onUrl(nil, &tg.Update{Message: &tg.Message{Text: "http://google.com"}}))
 	require.False(t, onUrl(nil, &tg.Update{Message: &tg.Message{Text: "google.com"}}))
 	require.True(t, onUrl(nil, &tg.Update{Message: &tg.Message{Text: "https://google.com?url=me"}}))
