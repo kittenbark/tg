@@ -363,7 +363,7 @@ func TestScheduler(t *testing.T) {
 	})
 }
 
-func TestRegexes(t *testing.T) {
+func TestFilters(t *testing.T) {
 	t.Parallel()
 
 	onText := tg.OnTextRegexp("kitten")
@@ -376,6 +376,40 @@ func TestRegexes(t *testing.T) {
 	require.False(t, onUrl(nil, &tg.Update{Message: &tg.Message{Text: "google.com"}}))
 	require.True(t, onUrl(nil, &tg.Update{Message: &tg.Message{Text: "https://google.com?url=me"}}))
 	require.False(t, onUrl(nil, &tg.Update{Message: &tg.Message{Text: "kittenbark"}}))
+
+	require.True(t, tg.OnCommand("/start")(nil, &tg.Update{Message: &tg.Message{
+		Text:     "kitten /start",
+		Entities: []*tg.MessageEntity{{Type: "bot_command", Offset: 7, Length: 6}},
+	}}))
+	require.True(t, tg.OnCommand("/start")(nil, &tg.Update{Message: &tg.Message{
+		Text:     "kitten /start@somebot",
+		Entities: []*tg.MessageEntity{{Type: "bot_command", Offset: 7, Length: 14}},
+	}}))
+	require.False(t, tg.OnCommand("/start")(nil, &tg.Update{Message: &tg.Message{
+		Text:     "kitten /stopp@somebot",
+		Entities: []*tg.MessageEntity{{Type: "bot_command", Offset: 7, Length: 14}},
+	}}))
+	require.False(t, tg.OnCommand("/start")(nil, &tg.Update{Message: &tg.Message{Text: "kitten start"}}))
+	require.True(t, tg.OnCommand("/start")(nil, &tg.Update{Message: &tg.Message{
+		Text:     "/start",
+		Entities: []*tg.MessageEntity{{Type: "bot_command", Offset: 0, Length: 6}},
+	}}))
+	require.False(t, tg.OnCommand("/start")(nil, &tg.Update{Message: &tg.Message{
+		Text:     "/starting",
+		Entities: []*tg.MessageEntity{{Type: "bot_command", Offset: 0, Length: 9}},
+	}}))
+	require.True(t, tg.OnCommand("/start")(nil, &tg.Update{Message: &tg.Message{
+		Text:     "/start@somebot",
+		Entities: []*tg.MessageEntity{{Type: "bot_command", Offset: 0, Length: 14}},
+	}}))
+	require.False(t, tg.OnCommand("/start")(nil, &tg.Update{Message: &tg.Message{
+		Text:     "/start@somebot",
+		Entities: []*tg.MessageEntity{{Type: "blockquote", Offset: 0, Length: 14}},
+	}}))
+	require.False(t, tg.OnCommand("/start")(nil, &tg.Update{Message: &tg.Message{
+		Text:     "/start",
+		Entities: []*tg.MessageEntity{{Type: "blockquote", Offset: 0, Length: 9}},
+	}}))
 }
 
 func MakeTestOK[Expected any, Request any](expected *Expected, request func(ctx context.Context) (*Request, error), stubs ...Stub) func(t *testing.T) {

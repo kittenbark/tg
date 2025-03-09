@@ -7,7 +7,6 @@ import (
 	"log/slog"
 	"math/rand/v2"
 	"regexp"
-	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -111,24 +110,26 @@ func OnCommand(command string) FilterFunc {
 	}
 
 	return func(ctx context.Context, upd *Update) bool {
-		if !OnMessage(ctx, upd) {
+		if !OnText(ctx, upd) && len(upd.Message.Entities) == 0 {
 			return false
 		}
 
-		var commandEntity *MessageEntity
-		pred := func(entity *MessageEntity) bool { return entity != nil && entity.Type == botCommandEntity }
-		if pos := slices.IndexFunc(upd.Message.Entities, pred); pos != -1 {
-			commandEntity = upd.Message.Entities[pos]
-		} else if pos = slices.IndexFunc(upd.Message.Entities, pred); pos != -1 {
-			commandEntity = upd.Message.Entities[pos]
+		for _, entity := range upd.Message.Entities {
+			if entity == nil || entity.Type != botCommandEntity {
+				continue
+			}
+
+			entityText, _, _ := strings.Cut(
+				upd.Message.Text[entity.Offset:entity.Offset+entity.Length],
+				"@",
+			)
+
+			if entityText == command {
+				return true
+			}
 		}
 
-		if commandEntity == nil {
-			return false
-		}
-		offset := commandEntity.Offset
-		length := commandEntity.Length
-		return upd.Message.Text[offset:offset+length] == command
+		return false
 	}
 }
 
