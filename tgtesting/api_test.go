@@ -410,6 +410,28 @@ func TestFilters(t *testing.T) {
 		Text:     "/start",
 		Entities: []*tg.MessageEntity{{Type: "blockquote", Offset: 0, Length: 9}},
 	}}))
+
+	filters := []tg.FilterFunc{
+		tg.OnText,
+		tg.OnUrl,
+		tg.OnMessage,
+		tg.OnMedia,
+		tg.OnAudio,
+		tg.OnVideo,
+		tg.OnPhoto,
+		tg.OnCallback,
+		tg.OnPrivate,
+		tg.OnPublicMessage,
+		tg.OnPrivateMessage,
+		tg.OnSticker,
+		tg.OnVideoNote,
+		tg.OnChance(0),
+		tg.OnTextRegexp("kitten"),
+		tg.OnCallbackWithData[int](),
+	}
+	for _, filter := range filters {
+		require.False(t, filter(nil, &tg.Update{}), "func", getFuncName(filter))
+	}
 }
 
 func MakeTestOK[Expected any, Request any](expected *Expected, request func(ctx context.Context) (*Request, error), stubs ...Stub) func(t *testing.T) {

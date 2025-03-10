@@ -139,7 +139,7 @@ func OnPrivate(ctx context.Context, upd *Update) bool {
 		upd.EditedMessage != nil && isMessagePrivate(upd.EditedMessage) ||
 		upd.MessageReaction != nil && upd.MessageReaction.Chat != nil && upd.MessageReaction.User != nil && upd.MessageReaction.Chat.Id == upd.MessageReaction.User.Id ||
 		upd.MessageReactionCount != nil && upd.MessageReactionCount.Chat != nil && upd.MessageReaction.User != nil && upd.MessageReaction.Chat.Id == upd.MessageReaction.User.Id ||
-		upd.InlineQuery == nil && upd.InlineQuery.ChatType == "private"
+		upd.InlineQuery != nil && upd.InlineQuery.ChatType == "private"
 }
 
 func OnMessage(ctx context.Context, upd *Update) bool {

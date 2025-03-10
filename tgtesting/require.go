@@ -8,6 +8,7 @@ import (
 	"os"
 	"path"
 	"reflect"
+	"runtime"
 	"testing"
 )
 
@@ -83,4 +84,8 @@ func OutsideFile(local string, url string) string {
 	}
 
 	return local
+}
+
+func getFuncName(fn any) string {
+	return runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name()
 }
