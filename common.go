@@ -111,7 +111,7 @@ func OnCommand(command string) FilterFunc {
 	}
 
 	return func(ctx context.Context, upd *Update) bool {
-		if !OnText(ctx, upd) && len(upd.Message.Entities) == 0 {
+		if !OnText(ctx, upd) || len(upd.Message.Entities) == 0 {
 			return false
 		}
 
