@@ -143,8 +143,9 @@ func TestIntegrationLong(t *testing.T) {
 		}
 		ctx := bot.Context()
 
-		sent, err := tg.SendVideo(ctx, chat, tg.FromDisk(video))
+		sent, err := tg.SendVideo(ctx, chat, tg.FromDisk(video), &tg.OptSendVideo{Caption: "this is mp4"})
 		require.NoError(t, err)
+		require.Equal(t, "this is mp4", sent.Caption)
 
 		target := path.Join(dir, "h264_"+path.Base(video))
 		if out, err := ffmpegConvert(ctx, video, target); err != nil {

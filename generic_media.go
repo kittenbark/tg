@@ -212,6 +212,12 @@ func multipartWritePipes[Request any](request *Request, pipe *io.PipeWriter, mul
 				return
 			}
 
+		case string:
+			if err := multipart.WriteField(fieldName, field); err != nil {
+				_ = pipe.CloseWithError(err)
+				return
+			}
+
 		default:
 			data, err := json.Marshal(field)
 			if err != nil {
