@@ -423,6 +423,7 @@ func TestFilters(t *testing.T) {
 		tg.OnCallback,
 		tg.OnPrivate,
 		tg.OnPublicMessage,
+		tg.OnChat(1),
 		tg.OnPrivateMessage,
 		tg.OnSticker,
 		tg.OnVideoNote,
