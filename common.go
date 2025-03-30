@@ -45,6 +45,18 @@ func Synced(handlerFunc HandlerFunc) HandlerFunc {
 	}
 }
 
+type SyncedGroup struct {
+	mutex sync.Mutex
+}
+
+func (group *SyncedGroup) Synced(handler HandlerFunc) HandlerFunc {
+	return func(ctx context.Context, upd *Update) error {
+		group.mutex.Lock()
+		defer group.mutex.Unlock()
+		return handler(ctx, upd)
+	}
+}
+
 func Either(fn ...FilterFunc) FilterFunc {
 	return func(ctx context.Context, upd *Update) bool {
 		for _, f := range fn {

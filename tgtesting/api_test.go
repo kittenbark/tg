@@ -110,9 +110,10 @@ func TestGetUpdatesCallbackQuery(t *testing.T) {
 		return value.Value == "other"
 	}
 	met1, met2, met3, met4 := 0, 0, 0, 0
+	hg := &tg.SyncedGroup{}
 	bot.
 		OnError(tg.OnErrorLog).
-		Branch(tg.OnCallbackWithData[CallbackData](isOther), func(ctx context.Context, upd *tg.Update) error {
+		Branch(tg.OnCallbackWithData[CallbackData](isOther), hg.Synced(func(ctx context.Context, upd *tg.Update) error {
 			met1++
 			value, err := tg.CallbackData[CallbackData](upd)
 			if err != nil {
@@ -121,8 +122,8 @@ func TestGetUpdatesCallbackQuery(t *testing.T) {
 			require.Equal(t, 123, value.Id)
 			require.Equal(t, "other", value.Value)
 			return nil
-		}).
-		Branch(tg.OnCallbackWithData[CallbackData](), func(ctx context.Context, upd *tg.Update) error {
+		})).
+		Branch(tg.OnCallbackWithData[CallbackData](), hg.Synced(func(ctx context.Context, upd *tg.Update) error {
 			met2++
 			value, err := tg.CallbackData[CallbackData](upd)
 			if err != nil {
@@ -131,7 +132,7 @@ func TestGetUpdatesCallbackQuery(t *testing.T) {
 			require.Equal(t, 123, value.Id)
 			require.Equal(t, "testvalue", value.Value)
 			return nil
-		}).
+		})).
 		Branch(tg.OnCallback, func(ctx context.Context, upd *tg.Update) error {
 			met3++
 			require.Equal(t, int64(123456), upd.UpdateId)
