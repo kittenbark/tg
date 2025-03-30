@@ -173,6 +173,10 @@ func OnChat(chatId int64) FilterFunc {
 	}
 }
 
+func OnForwarded(ctx context.Context, upd *Update) bool {
+	return OnMessage(ctx, upd) && upd.Message.ForwardOrigin != nil
+}
+
 func OnChance(chance float64) FilterFunc {
 	return func(ctx context.Context, upd *Update) bool {
 		return rand.Float64() < chance

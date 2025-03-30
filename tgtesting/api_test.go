@@ -426,6 +426,7 @@ func TestFilters(t *testing.T) {
 		tg.OnChat(1),
 		tg.OnPrivateMessage,
 		tg.OnSticker,
+		tg.OnForwarded,
 		tg.OnVideoNote,
 		tg.OnChance(0),
 		tg.OnTextRegexp("kitten"),
