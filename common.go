@@ -177,6 +177,14 @@ func OnForwarded(ctx context.Context, upd *Update) bool {
 	return OnMessage(ctx, upd) && upd.Message.ForwardOrigin != nil
 }
 
+func OnReply(ctx context.Context, upd *Update) bool {
+	return OnMessage(ctx, upd) && upd.Message.ReplyToMessage != nil
+}
+
+func OnEdited(ctx context.Context, upd *Update) bool {
+	return upd != nil && (upd.EditedMessage != nil || upd.EditedChannelPost != nil || upd.EditedBusinessMessage != nil)
+}
+
 func OnChance(chance float64) FilterFunc {
 	return func(ctx context.Context, upd *Update) bool {
 		return rand.Float64() < chance

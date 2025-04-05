@@ -428,6 +428,8 @@ func TestFilters(t *testing.T) {
 		tg.OnSticker,
 		tg.OnForwarded,
 		tg.OnVideoNote,
+		tg.OnReply,
+		tg.OnEdited,
 		tg.OnChance(0),
 		tg.OnTextRegexp("kitten"),
 		tg.OnCallbackWithData[int](),
