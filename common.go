@@ -315,6 +315,13 @@ func OnCallbackWithData[T any](pred ...func(value *T) bool) FilterFunc {
 	}
 }
 
+func AsReplyTo(msg *Message) *ReplyParameters {
+	if msg == nil {
+		return nil
+	}
+	return &ReplyParameters{MessageId: msg.MessageId}
+}
+
 func isMessagePrivate(msg *Message) bool {
 	return msg.Chat != nil && msg.From != nil && msg.Chat.Id == msg.From.Id
 }
