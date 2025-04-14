@@ -177,6 +177,10 @@ func OnForwarded(ctx context.Context, upd *Update) bool {
 	return OnMessage(ctx, upd) && upd.Message.ForwardOrigin != nil
 }
 
+func OnAutomaticForward(ctx context.Context, upd *Update) bool {
+	return upd != nil && upd.Message != nil && upd.Message.IsAutomaticForward
+}
+
 func OnReply(ctx context.Context, upd *Update) bool {
 	return OnMessage(ctx, upd) && upd.Message.ReplyToMessage != nil
 }

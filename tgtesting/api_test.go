@@ -427,6 +427,7 @@ func TestFilters(t *testing.T) {
 		tg.OnPrivateMessage,
 		tg.OnSticker,
 		tg.OnForwarded,
+		tg.OnAutomaticForward,
 		tg.OnVideoNote,
 		tg.OnReply,
 		tg.OnEdited,
