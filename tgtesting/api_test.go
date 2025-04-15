@@ -431,6 +431,7 @@ func TestFilters(t *testing.T) {
 		tg.OnVideoNote,
 		tg.OnReply,
 		tg.OnEdited,
+		tg.OnChatJoinRequest,
 		tg.OnChance(0),
 		tg.OnTextRegexp("kitten"),
 		tg.OnCallbackWithData[int](),

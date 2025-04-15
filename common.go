@@ -319,6 +319,10 @@ func OnCallbackWithData[T any](pred ...func(value *T) bool) FilterFunc {
 	}
 }
 
+func OnChatJoinRequest(ctx context.Context, upd *Update) bool {
+	return upd.ChatJoinRequest != nil
+}
+
 func AsReplyTo(msg *Message) *ReplyParameters {
 	if msg == nil {
 		return nil
