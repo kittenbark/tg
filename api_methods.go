@@ -284,6 +284,22 @@ func CloseGeneralForumTopic(ctx context.Context, chatId int64) (bool, error) {
 	return GenericRequest[Request, bool](ctx, "closeGeneralForumTopic", request)
 }
 
+// ConvertGiftToStars Converts a given regular gift to Telegram Stars. Requires the can_convert_gifts_to_stars business bot right.
+// Returns True on success.
+func ConvertGiftToStars(ctx context.Context, businessConnectionId string, ownedGiftId string) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId string `json:"business_connection_id"`
+		OwnedGiftId          string `json:"owned_gift_id"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+		OwnedGiftId:          ownedGiftId,
+	}
+	return GenericRequest[Request, bool](ctx, "convertGiftToStars", request)
+}
+
 // CopyMessage Use this method to copy messages of any kind. Returns the MessageId of the sent message on success.
 // Service messages, paid media messages, giveaway messages, giveaway winners messages, and invoice messages can't be copied.
 // A quiz poll can be copied only if the value of the field correct_option_id is known to the bot.
@@ -296,6 +312,7 @@ func CopyMessage(ctx context.Context, chatId int64, fromChatId int64, messageId 
 		MessageThreadId       int64                                                                       `json:"message_thread_id,omitempty"`
 		FromChatId            int64                                                                       `json:"from_chat_id"`
 		MessageId             int64                                                                       `json:"message_id"`
+		VideoStartTimestamp   int64                                                                       `json:"video_start_timestamp,omitempty"`
 		Caption               string                                                                      `json:"caption,omitempty"`
 		ParseMode             string                                                                      `json:"parse_mode,omitempty"`
 		CaptionEntities       []*MessageEntity                                                            `json:"caption_entities,omitempty"`
@@ -314,6 +331,9 @@ func CopyMessage(ctx context.Context, chatId int64, fromChatId int64, messageId 
 	for _, opt := range opts {
 		if opt.MessageThreadId != 0 {
 			request.MessageThreadId = opt.MessageThreadId
+		}
+		if opt.VideoStartTimestamp != 0 {
+			request.VideoStartTimestamp = opt.VideoStartTimestamp
 		}
 		if opt.Caption != "" {
 			request.Caption = opt.Caption
@@ -348,6 +368,7 @@ func CopyMessage(ctx context.Context, chatId int64, fromChatId int64, messageId 
 
 type OptCopyMessage struct {
 	MessageThreadId       int64
+	VideoStartTimestamp   int64
 	Caption               string
 	ParseMode             string
 	CaptionEntities       []*MessageEntity
@@ -357,6 +378,72 @@ type OptCopyMessage struct {
 	AllowPaidBroadcast    bool
 	ReplyParameters       *ReplyParameters
 	ReplyMarkup           VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
+}
+
+type VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply interface {
+	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup
+	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup
+	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove
+	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply
+}
+
+var (
+	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &InlineKeyboardMarkup{}
+	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ReplyKeyboardMarkup{}
+	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ReplyKeyboardRemove{}
+	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ForceReply{}
+)
+
+func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
+	return impl
+}
+func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
+	return nil
+}
+func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
+	return nil
+}
+func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
+	return nil
+}
+
+func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
+	return nil
+}
+func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
+	return impl
+}
+func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
+	return nil
+}
+func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
+	return nil
+}
+
+func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
+	return nil
+}
+func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
+	return nil
+}
+func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
+	return impl
+}
+func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
+	return nil
+}
+
+func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
+	return nil
+}
+func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
+	return nil
+}
+func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
+	return nil
+}
+func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
+	return impl
 }
 
 // CopyMessages Use this method to copy messages of any kind. Album grouping is kept for copied messages.
@@ -670,6 +757,22 @@ func DeclineChatJoinRequest(ctx context.Context, chatId int64, userId int64) (bo
 	return GenericRequest[Request, bool](ctx, "declineChatJoinRequest", request)
 }
 
+// DeleteBusinessMessages Delete messages on behalf of a business account. Returns True on success.
+// Requires the can_delete_outgoing_messages business bot right to delete messages sent by the bot itself, or the can_delete_all_messages business bot right to delete any message.
+func DeleteBusinessMessages(ctx context.Context, businessConnectionId string, messageIds []int64) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId string  `json:"business_connection_id"`
+		MessageIds           []int64 `json:"message_ids"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+		MessageIds:           messageIds,
+	}
+	return GenericRequest[Request, bool](ctx, "deleteBusinessMessages", request)
+}
+
 // DeleteChatPhoto Use this method to delete a chat photo. Photos can't be changed for private chats.
 // The bot must be an administrator in the chat for this to work and must have the appropriate administrator rights.
 // Returns True on success.
@@ -807,6 +910,22 @@ func DeleteStickerSet(ctx context.Context, name string) (bool, error) {
 		Name: name,
 	}
 	return GenericRequest[Request, bool](ctx, "deleteStickerSet", request)
+}
+
+// DeleteStory Deletes a story previously posted by the bot on behalf of a managed business account.
+// Requires the can_manage_stories business bot right. Returns True on success.
+func DeleteStory(ctx context.Context, businessConnectionId string, storyId int64) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId string `json:"business_connection_id"`
+		StoryId              int64  `json:"story_id"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+		StoryId:              storyId,
+	}
+	return GenericRequest[Request, bool](ctx, "deleteStory", request)
 }
 
 // DeleteWebhook Use this method to remove webhook integration if you decide to switch back to getUpdates.
@@ -1225,6 +1344,49 @@ type OptEditMessageText struct {
 	ReplyMarkup          *InlineKeyboardMarkup
 }
 
+// EditStory Edits a story previously posted by the bot on behalf of a managed business account.
+// Requires the can_manage_stories business bot right. Returns Story on success.
+func EditStory(ctx context.Context, businessConnectionId string, storyId int64, content InputStoryContent, opts ...*OptEditStory) (*Story, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId string            `json:"business_connection_id"`
+		StoryId              int64             `json:"story_id"`
+		Content              InputStoryContent `json:"content"`
+		Caption              string            `json:"caption,omitempty"`
+		ParseMode            string            `json:"parse_mode,omitempty"`
+		CaptionEntities      []*MessageEntity  `json:"caption_entities,omitempty"`
+		Areas                []*StoryArea      `json:"areas,omitempty"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+		StoryId:              storyId,
+		Content:              content,
+	}
+	for _, opt := range opts {
+		if opt.Caption != "" {
+			request.Caption = opt.Caption
+		}
+		if opt.ParseMode != "" {
+			request.ParseMode = opt.ParseMode
+		}
+		if opt.CaptionEntities != nil {
+			request.CaptionEntities = opt.CaptionEntities
+		}
+		if opt.Areas != nil {
+			request.Areas = opt.Areas
+		}
+	}
+	return GenericRequest[Request, *Story](ctx, "editStory", request)
+}
+
+type OptEditStory struct {
+	Caption         string
+	ParseMode       string
+	CaptionEntities []*MessageEntity
+	Areas           []*StoryArea
+}
+
 // EditUserStarSubscription Allows the bot to cancel or re-enable extension of a subscription paid in Telegram Stars.
 // Returns True on success.
 func EditUserStarSubscription(ctx context.Context, userId int64, telegramPaymentChargeId string, isCanceled bool) (bool, error) {
@@ -1267,6 +1429,7 @@ func ForwardMessage(ctx context.Context, chatId int64, fromChatId int64, message
 		ChatId              int64 `json:"chat_id"`
 		MessageThreadId     int64 `json:"message_thread_id,omitempty"`
 		FromChatId          int64 `json:"from_chat_id"`
+		VideoStartTimestamp int64 `json:"video_start_timestamp,omitempty"`
 		DisableNotification bool  `json:"disable_notification,omitempty"`
 		ProtectContent      bool  `json:"protect_content,omitempty"`
 		MessageId           int64 `json:"message_id"`
@@ -1280,6 +1443,9 @@ func ForwardMessage(ctx context.Context, chatId int64, fromChatId int64, message
 		if opt.MessageThreadId != 0 {
 			request.MessageThreadId = opt.MessageThreadId
 		}
+		if opt.VideoStartTimestamp != 0 {
+			request.VideoStartTimestamp = opt.VideoStartTimestamp
+		}
 		if opt.DisableNotification {
 			request.DisableNotification = opt.DisableNotification
 		}
@@ -1292,6 +1458,7 @@ func ForwardMessage(ctx context.Context, chatId int64, fromChatId int64, message
 
 type OptForwardMessage struct {
 	MessageThreadId     int64
+	VideoStartTimestamp int64
 	DisableNotification bool
 	ProtectContent      bool
 }
@@ -1336,8 +1503,8 @@ type OptForwardMessages struct {
 	ProtectContent      bool
 }
 
-// GetAvailableGifts Returns the list of gifts that can be sent by the bot to users. Requires no parameters.
-// Returns a Gifts object.
+// GetAvailableGifts Returns the list of gifts that can be sent by the bot to users and channel chats.
+// Requires no parameters. Returns a Gifts object.
 func GetAvailableGifts(ctx context.Context) (*Gifts, error) {
 	schedule(ctx, 0, 1)
 	defer scheduleDone(ctx, 0, 1)
@@ -1345,6 +1512,79 @@ func GetAvailableGifts(ctx context.Context) (*Gifts, error) {
 	}
 	request := &Request{}
 	return GenericRequest[Request, *Gifts](ctx, "getAvailableGifts", request)
+}
+
+// GetBusinessAccountGifts Returns the gifts received and owned by a managed business account. Returns OwnedGifts on success.
+// Requires the can_view_gifts_and_stars business bot right.
+func GetBusinessAccountGifts(ctx context.Context, businessConnectionId string, opts ...*OptGetBusinessAccountGifts) (*OwnedGifts, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId string `json:"business_connection_id"`
+		ExcludeUnsaved       bool   `json:"exclude_unsaved,omitempty"`
+		ExcludeSaved         bool   `json:"exclude_saved,omitempty"`
+		ExcludeUnlimited     bool   `json:"exclude_unlimited,omitempty"`
+		ExcludeLimited       bool   `json:"exclude_limited,omitempty"`
+		ExcludeUnique        bool   `json:"exclude_unique,omitempty"`
+		SortByPrice          bool   `json:"sort_by_price,omitempty"`
+		Offset               string `json:"offset,omitempty"`
+		Limit                int64  `json:"limit,omitempty"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+	}
+	for _, opt := range opts {
+		if opt.ExcludeUnsaved {
+			request.ExcludeUnsaved = opt.ExcludeUnsaved
+		}
+		if opt.ExcludeSaved {
+			request.ExcludeSaved = opt.ExcludeSaved
+		}
+		if opt.ExcludeUnlimited {
+			request.ExcludeUnlimited = opt.ExcludeUnlimited
+		}
+		if opt.ExcludeLimited {
+			request.ExcludeLimited = opt.ExcludeLimited
+		}
+		if opt.ExcludeUnique {
+			request.ExcludeUnique = opt.ExcludeUnique
+		}
+		if opt.SortByPrice {
+			request.SortByPrice = opt.SortByPrice
+		}
+		if opt.Offset != "" {
+			request.Offset = opt.Offset
+		}
+		if opt.Limit != 0 {
+			request.Limit = opt.Limit
+		}
+	}
+	return GenericRequest[Request, *OwnedGifts](ctx, "getBusinessAccountGifts", request)
+}
+
+type OptGetBusinessAccountGifts struct {
+	ExcludeUnsaved   bool
+	ExcludeSaved     bool
+	ExcludeUnlimited bool
+	ExcludeLimited   bool
+	ExcludeUnique    bool
+	SortByPrice      bool
+	Offset           string
+	Limit            int64
+}
+
+// GetBusinessAccountStarBalance Returns the amount of Telegram Stars owned by a managed business account. Returns StarAmount on success.
+// Requires the can_view_gifts_and_stars business bot right.
+func GetBusinessAccountStarBalance(ctx context.Context, businessConnectionId string) (*StarAmount, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId string `json:"business_connection_id"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+	}
+	return GenericRequest[Request, *StarAmount](ctx, "getBusinessAccountStarBalance", request)
 }
 
 // GetBusinessConnection Use this method to get information about the connection of the bot with a business account.
@@ -1757,6 +1997,43 @@ func GetWebhookInfo(ctx context.Context) (*WebhookInfo, error) {
 	return GenericRequest[Request, *WebhookInfo](ctx, "getWebhookInfo", request)
 }
 
+// GiftPremiumSubscription Gifts a Telegram Premium subscription to the given user. Returns True on success.
+func GiftPremiumSubscription(ctx context.Context, userId int64, monthCount int64, starCount int64, opts ...*OptGiftPremiumSubscription) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
+	type Request struct {
+		UserId        int64            `json:"user_id"`
+		MonthCount    int64            `json:"month_count"`
+		StarCount     int64            `json:"star_count"`
+		Text          string           `json:"text,omitempty"`
+		TextParseMode string           `json:"text_parse_mode,omitempty"`
+		TextEntities  []*MessageEntity `json:"text_entities,omitempty"`
+	}
+	request := &Request{
+		UserId:     userId,
+		MonthCount: monthCount,
+		StarCount:  starCount,
+	}
+	for _, opt := range opts {
+		if opt.Text != "" {
+			request.Text = opt.Text
+		}
+		if opt.TextParseMode != "" {
+			request.TextParseMode = opt.TextParseMode
+		}
+		if opt.TextEntities != nil {
+			request.TextEntities = opt.TextEntities
+		}
+	}
+	return GenericRequest[Request, bool](ctx, "giftPremiumSubscription", request)
+}
+
+type OptGiftPremiumSubscription struct {
+	Text          string
+	TextParseMode string
+	TextEntities  []*MessageEntity
+}
+
 // HideGeneralForumTopic Use this method to hide the 'General' topic in a forum supergroup chat. Returns True on success.
 // The bot must be an administrator in the chat for this to work and must have the can_manage_topics administrator rights.
 // The topic will be automatically closed if it was open.
@@ -1827,6 +2104,59 @@ func PinChatMessage(ctx context.Context, chatId int64, messageId int64, opts ...
 type OptPinChatMessage struct {
 	BusinessConnectionId string
 	DisableNotification  bool
+}
+
+// PostStory Posts a story on behalf of a managed business account. Requires the can_manage_stories business bot right.
+// Returns Story on success.
+func PostStory(ctx context.Context, businessConnectionId string, content InputStoryContent, activePeriod int64, opts ...*OptPostStory) (*Story, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId string            `json:"business_connection_id"`
+		Content              InputStoryContent `json:"content"`
+		ActivePeriod         int64             `json:"active_period"`
+		Caption              string            `json:"caption,omitempty"`
+		ParseMode            string            `json:"parse_mode,omitempty"`
+		CaptionEntities      []*MessageEntity  `json:"caption_entities,omitempty"`
+		Areas                []*StoryArea      `json:"areas,omitempty"`
+		PostToChatPage       bool              `json:"post_to_chat_page,omitempty"`
+		ProtectContent       bool              `json:"protect_content,omitempty"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+		Content:              content,
+		ActivePeriod:         activePeriod,
+	}
+	for _, opt := range opts {
+		if opt.Caption != "" {
+			request.Caption = opt.Caption
+		}
+		if opt.ParseMode != "" {
+			request.ParseMode = opt.ParseMode
+		}
+		if opt.CaptionEntities != nil {
+			request.CaptionEntities = opt.CaptionEntities
+		}
+		if opt.Areas != nil {
+			request.Areas = opt.Areas
+		}
+		if opt.PostToChatPage {
+			request.PostToChatPage = opt.PostToChatPage
+		}
+		if opt.ProtectContent {
+			request.ProtectContent = opt.ProtectContent
+		}
+	}
+	return GenericRequest[Request, *Story](ctx, "postStory", request)
+}
+
+type OptPostStory struct {
+	Caption         string
+	ParseMode       string
+	CaptionEntities []*MessageEntity
+	Areas           []*StoryArea
+	PostToChatPage  bool
+	ProtectContent  bool
 }
 
 // PromoteChatMember Use this method to promote or demote a user in a supergroup or a channel. Returns True on success.
@@ -1926,6 +2256,24 @@ type OptPromoteChatMember struct {
 	CanManageTopics     bool
 }
 
+// ReadBusinessMessage Marks incoming message as read on behalf of a business account. Requires the can_read_messages business bot right.
+// Returns True on success.
+func ReadBusinessMessage(ctx context.Context, businessConnectionId string, chatId int64, messageId int64) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
+	type Request struct {
+		BusinessConnectionId string `json:"business_connection_id"`
+		ChatId               int64  `json:"chat_id"`
+		MessageId            int64  `json:"message_id"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+		ChatId:               chatId,
+		MessageId:            messageId,
+	}
+	return GenericRequest[Request, bool](ctx, "readBusinessMessage", request)
+}
+
 // RefundStarPayment Refunds a successful payment in Telegram Stars. Returns True on success.
 func RefundStarPayment(ctx context.Context, userId int64, telegramPaymentChargeId string) (bool, error) {
 	schedule(ctx, 0, 1)
@@ -1939,6 +2287,58 @@ func RefundStarPayment(ctx context.Context, userId int64, telegramPaymentChargeI
 		TelegramPaymentChargeId: telegramPaymentChargeId,
 	}
 	return GenericRequest[Request, bool](ctx, "refundStarPayment", request)
+}
+
+// RemoveBusinessAccountProfilePhoto Removes the current profile photo of a managed business account. Returns True on success.
+// Requires the can_edit_profile_photo business bot right.
+func RemoveBusinessAccountProfilePhoto(ctx context.Context, businessConnectionId string, opts ...*OptRemoveBusinessAccountProfilePhoto) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId string `json:"business_connection_id"`
+		IsPublic             bool   `json:"is_public,omitempty"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+	}
+	for _, opt := range opts {
+		if opt.IsPublic {
+			request.IsPublic = opt.IsPublic
+		}
+	}
+	return GenericRequest[Request, bool](ctx, "removeBusinessAccountProfilePhoto", request)
+}
+
+type OptRemoveBusinessAccountProfilePhoto struct {
+	IsPublic bool
+}
+
+// RemoveChatVerification Removes verification from a chat that is currently verified on behalf of the organization represented by the bot.
+// Returns True on success.
+func RemoveChatVerification(ctx context.Context, chatId int64) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
+	type Request struct {
+		ChatId int64 `json:"chat_id"`
+	}
+	request := &Request{
+		ChatId: chatId,
+	}
+	return GenericRequest[Request, bool](ctx, "removeChatVerification", request)
+}
+
+// RemoveUserVerification Removes verification from a user who is currently verified on behalf of the organization represented by the bot.
+// Returns True on success.
+func RemoveUserVerification(ctx context.Context, userId int64) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
+	type Request struct {
+		UserId int64 `json:"user_id"`
+	}
+	request := &Request{
+		UserId: userId,
+	}
+	return GenericRequest[Request, bool](ctx, "removeUserVerification", request)
 }
 
 // ReopenForumTopic Use this method to reopen a closed topic in a forum supergroup chat. Returns True on success.
@@ -2599,23 +2999,33 @@ type OptSendGame struct {
 	ReplyMarkup          *InlineKeyboardMarkup
 }
 
-// SendGift Sends a gift to the given user. The gift can't be converted to Telegram Stars by the user.
+// SendGift Sends a gift to the given user or channel chat. The gift can't be converted to Telegram Stars by the receiver.
 // Returns True on success.
-func SendGift(ctx context.Context, userId int64, giftId string, opts ...*OptSendGift) (bool, error) {
+func SendGift(ctx context.Context, giftId string, opts ...*OptSendGift) (bool, error) {
 	schedule(ctx, 0, 1)
 	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
-		UserId        int64            `json:"user_id"`
+		UserId        int64            `json:"user_id,omitempty"`
+		ChatId        int64            `json:"chat_id,omitempty"`
 		GiftId        string           `json:"gift_id"`
+		PayForUpgrade bool             `json:"pay_for_upgrade,omitempty"`
 		Text          string           `json:"text,omitempty"`
 		TextParseMode string           `json:"text_parse_mode,omitempty"`
 		TextEntities  []*MessageEntity `json:"text_entities,omitempty"`
 	}
 	request := &Request{
-		UserId: userId,
 		GiftId: giftId,
 	}
 	for _, opt := range opts {
+		if opt.UserId != 0 {
+			request.UserId = opt.UserId
+		}
+		if opt.ChatId != 0 {
+			request.ChatId = opt.ChatId
+		}
+		if opt.PayForUpgrade {
+			request.PayForUpgrade = opt.PayForUpgrade
+		}
 		if opt.Text != "" {
 			request.Text = opt.Text
 		}
@@ -2630,6 +3040,9 @@ func SendGift(ctx context.Context, userId int64, giftId string, opts ...*OptSend
 }
 
 type OptSendGift struct {
+	UserId        int64
+	ChatId        int64
+	PayForUpgrade bool
 	Text          string
 	TextParseMode string
 	TextEntities  []*MessageEntity
@@ -3443,6 +3856,8 @@ func SendVideo(ctx context.Context, chatId int64, video InputFile, opts ...*OptS
 		Width                 int64                                                                       `json:"width,omitempty"`
 		Height                int64                                                                       `json:"height,omitempty"`
 		Thumbnail             InputFile                                                                   `json:"thumbnail,omitempty"`
+		Cover                 InputFile                                                                   `json:"cover,omitempty"`
+		StartTimestamp        int64                                                                       `json:"start_timestamp,omitempty"`
 		Caption               string                                                                      `json:"caption,omitempty"`
 		ParseMode             string                                                                      `json:"parse_mode,omitempty"`
 		CaptionEntities       []*MessageEntity                                                            `json:"caption_entities,omitempty"`
@@ -3478,6 +3893,12 @@ func SendVideo(ctx context.Context, chatId int64, video InputFile, opts ...*OptS
 		}
 		if opt.Thumbnail != nil {
 			request.Thumbnail = opt.Thumbnail
+		}
+		if opt.Cover != nil {
+			request.Cover = opt.Cover
+		}
+		if opt.StartTimestamp != 0 {
+			request.StartTimestamp = opt.StartTimestamp
 		}
 		if opt.Caption != "" {
 			request.Caption = opt.Caption
@@ -3526,6 +3947,8 @@ type OptSendVideo struct {
 	Width                 int64
 	Height                int64
 	Thumbnail             InputFile
+	Cover                 InputFile
+	StartTimestamp        int64
 	Caption               string
 	ParseMode             string
 	CaptionEntities       []*MessageEntity
@@ -3538,72 +3961,6 @@ type OptSendVideo struct {
 	MessageEffectId       string
 	ReplyParameters       *ReplyParameters
 	ReplyMarkup           VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
-}
-
-type VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply interface {
-	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup
-	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup
-	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove
-	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply
-}
-
-var (
-	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &InlineKeyboardMarkup{}
-	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ReplyKeyboardMarkup{}
-	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ReplyKeyboardRemove{}
-	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ForceReply{}
-)
-
-func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
-	return impl
-}
-func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
-	return nil
-}
-func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
-	return nil
-}
-func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
-	return nil
-}
-
-func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
-	return nil
-}
-func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
-	return impl
-}
-func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
-	return nil
-}
-func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
-	return nil
-}
-
-func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
-	return nil
-}
-func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
-	return nil
-}
-func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
-	return impl
-}
-func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
-	return nil
-}
-
-func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
-	return nil
-}
-func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
-	return nil
-}
-func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
-	return nil
-}
-func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
-	return impl
 }
 
 // SendVideoNote As of v.4.0, Telegram clients support rounded square MPEG4 videos of up to 1 minute long.
@@ -3763,6 +4120,124 @@ type OptSendVoice struct {
 	MessageEffectId      string
 	ReplyParameters      *ReplyParameters
 	ReplyMarkup          VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
+}
+
+// SetBusinessAccountBio Changes the bio of a managed business account. Requires the can_change_bio business bot right.
+// Returns True on success.
+func SetBusinessAccountBio(ctx context.Context, businessConnectionId string, opts ...*OptSetBusinessAccountBio) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId string `json:"business_connection_id"`
+		Bio                  string `json:"bio,omitempty"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+	}
+	for _, opt := range opts {
+		if opt.Bio != "" {
+			request.Bio = opt.Bio
+		}
+	}
+	return GenericRequest[Request, bool](ctx, "setBusinessAccountBio", request)
+}
+
+type OptSetBusinessAccountBio struct {
+	Bio string
+}
+
+// SetBusinessAccountGiftSettings Changes the privacy settings pertaining to incoming gifts in a managed business account.
+// Requires the can_change_gift_settings business bot right. Returns True on success.
+func SetBusinessAccountGiftSettings(ctx context.Context, businessConnectionId string, showGiftButton bool, acceptedGiftTypes *AcceptedGiftTypes) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId string             `json:"business_connection_id"`
+		ShowGiftButton       bool               `json:"show_gift_button"`
+		AcceptedGiftTypes    *AcceptedGiftTypes `json:"accepted_gift_types"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+		ShowGiftButton:       showGiftButton,
+		AcceptedGiftTypes:    acceptedGiftTypes,
+	}
+	return GenericRequest[Request, bool](ctx, "setBusinessAccountGiftSettings", request)
+}
+
+// SetBusinessAccountName Changes the first and last name of a managed business account. Requires the can_change_name business bot right.
+// Returns True on success.
+func SetBusinessAccountName(ctx context.Context, businessConnectionId string, firstName string, opts ...*OptSetBusinessAccountName) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId string `json:"business_connection_id"`
+		FirstName            string `json:"first_name"`
+		LastName             string `json:"last_name,omitempty"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+		FirstName:            firstName,
+	}
+	for _, opt := range opts {
+		if opt.LastName != "" {
+			request.LastName = opt.LastName
+		}
+	}
+	return GenericRequest[Request, bool](ctx, "setBusinessAccountName", request)
+}
+
+type OptSetBusinessAccountName struct {
+	LastName string
+}
+
+// SetBusinessAccountProfilePhoto Changes the profile photo of a managed business account. Requires the can_edit_profile_photo business bot right.
+// Returns True on success.
+func SetBusinessAccountProfilePhoto(ctx context.Context, businessConnectionId string, photo InputProfilePhoto, opts ...*OptSetBusinessAccountProfilePhoto) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId string            `json:"business_connection_id"`
+		Photo                InputProfilePhoto `json:"photo"`
+		IsPublic             bool              `json:"is_public,omitempty"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+		Photo:                photo,
+	}
+	for _, opt := range opts {
+		if opt.IsPublic {
+			request.IsPublic = opt.IsPublic
+		}
+	}
+	return GenericRequest[Request, bool](ctx, "setBusinessAccountProfilePhoto", request)
+}
+
+type OptSetBusinessAccountProfilePhoto struct {
+	IsPublic bool
+}
+
+// SetBusinessAccountUsername Changes the username of a managed business account. Requires the can_change_username business bot right.
+// Returns True on success.
+func SetBusinessAccountUsername(ctx context.Context, businessConnectionId string, opts ...*OptSetBusinessAccountUsername) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId string `json:"business_connection_id"`
+		Username             string `json:"username,omitempty"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+	}
+	for _, opt := range opts {
+		if opt.Username != "" {
+			request.Username = opt.Username
+		}
+	}
+	return GenericRequest[Request, bool](ctx, "setBusinessAccountUsername", request)
+}
+
+type OptSetBusinessAccountUsername struct {
+	Username string
 }
 
 // SetChatAdministratorCustomTitle Use this method to set a custom title for an administrator in a supergroup promoted by the bot.
@@ -3981,7 +4456,7 @@ type OptSetGameScore struct {
 	InlineMessageId    string
 }
 
-// SetMessageReaction Use this method to change the chosen reactions on a message. Service messages can't be reacted to.
+// SetMessageReaction Use this method to change the chosen reactions on a message. Service messages of some types can't be reacted to.
 // Automatically forwarded messages from a channel to its discussion group have the same available reactions as messages in the channel.
 // Bots can't use paid reactions. Returns True on success.
 func SetMessageReaction(ctx context.Context, chatId int64, messageId int64, opts ...*OptSetMessageReaction) (bool, error) {
@@ -4314,7 +4789,7 @@ type OptSetUserEmojiStatus struct {
 	EmojiStatusExpirationDate int64
 }
 
-// SetWebhook Use this method to specify a URL and receive incoming updates via an outgoing webhook. Whenever there is an update for the bot, we will send an HTTPS POST request to the specified URL, containing a JSON-serialized Update. In case of an unsuccessful request, we will give up after a reasonable amount of attempts. Returns True on success.
+// SetWebhook Use this method to specify a URL and receive incoming updates via an outgoing webhook. Whenever there is an update for the bot, we will send an HTTPS POST request to the specified URL, containing a JSON-serialized Update. In case of an unsuccessful request (a request with response HTTP status code different from 2XY), we will repeat the request and give up after a reasonable amount of attempts. Returns True on success.
 // If you'd like to make sure that the webhook was set by you, you can specify secret data in the parameter secret_token. If specified, the request will contain a header "X-Telegram-Bot-Api-Secret-Token" with the secret token as content.
 func SetWebhook(ctx context.Context, url string, opts ...*OptSetWebhook) (bool, error) {
 	schedule(ctx, 0, 1)
@@ -4432,6 +4907,50 @@ func StopPoll(ctx context.Context, chatId int64, messageId int64, opts ...*OptSt
 type OptStopPoll struct {
 	BusinessConnectionId string
 	ReplyMarkup          *InlineKeyboardMarkup
+}
+
+// TransferBusinessAccountStars Transfers Telegram Stars from the business account balance to the bot's balance.
+// Requires the can_transfer_stars business bot right. Returns True on success.
+func TransferBusinessAccountStars(ctx context.Context, businessConnectionId string, starCount int64) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId string `json:"business_connection_id"`
+		StarCount            int64  `json:"star_count"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+		StarCount:            starCount,
+	}
+	return GenericRequest[Request, bool](ctx, "transferBusinessAccountStars", request)
+}
+
+// TransferGift Transfers an owned unique gift to another user. Requires the can_transfer_and_upgrade_gifts business bot right.
+// Requires can_transfer_stars business bot right if the transfer is paid. Returns True on success.
+func TransferGift(ctx context.Context, businessConnectionId string, ownedGiftId string, newOwnerChatId int64, opts ...*OptTransferGift) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId string `json:"business_connection_id"`
+		OwnedGiftId          string `json:"owned_gift_id"`
+		NewOwnerChatId       int64  `json:"new_owner_chat_id"`
+		StarCount            int64  `json:"star_count,omitempty"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+		OwnedGiftId:          ownedGiftId,
+		NewOwnerChatId:       newOwnerChatId,
+	}
+	for _, opt := range opts {
+		if opt.StarCount != 0 {
+			request.StarCount = opt.StarCount
+		}
+	}
+	return GenericRequest[Request, bool](ctx, "transferGift", request)
+}
+
+type OptTransferGift struct {
+	StarCount int64
 }
 
 // UnbanChatMember Use this method to unban a previously banned user in a supergroup or channel. Returns True on success.
@@ -4568,6 +5087,38 @@ type OptUnpinChatMessage struct {
 	MessageId            int64
 }
 
+// UpgradeGift Upgrades a given regular gift to a unique gift. Requires the can_transfer_and_upgrade_gifts business bot right.
+// Additionally requires the can_transfer_stars business bot right if the upgrade is paid.
+// Returns True on success.
+func UpgradeGift(ctx context.Context, businessConnectionId string, ownedGiftId string, opts ...*OptUpgradeGift) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId string `json:"business_connection_id"`
+		OwnedGiftId          string `json:"owned_gift_id"`
+		KeepOriginalDetails  bool   `json:"keep_original_details,omitempty"`
+		StarCount            int64  `json:"star_count,omitempty"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+		OwnedGiftId:          ownedGiftId,
+	}
+	for _, opt := range opts {
+		if opt.KeepOriginalDetails {
+			request.KeepOriginalDetails = opt.KeepOriginalDetails
+		}
+		if opt.StarCount != 0 {
+			request.StarCount = opt.StarCount
+		}
+	}
+	return GenericRequest[Request, bool](ctx, "upgradeGift", request)
+}
+
+type OptUpgradeGift struct {
+	KeepOriginalDetails bool
+	StarCount           int64
+}
+
 // UploadStickerFile Use this method to upload a file with a sticker for later use in the createNewStickerSet, addStickerToSet, or replaceStickerInSet methods (the file can be used multiple times).
 // Returns the uploaded File on success.
 func UploadStickerFile(ctx context.Context, userId int64, sticker *LocalFile, stickerFormat string) (*File, error) {
@@ -4584,4 +5135,50 @@ func UploadStickerFile(ctx context.Context, userId int64, sticker *LocalFile, st
 		StickerFormat: stickerFormat,
 	}
 	return GenericRequestMultipart[Request, *File](ctx, "uploadStickerFile", request)
+}
+
+// VerifyChat Verifies a chat on behalf of the organization which is represented by the bot. Returns True on success.
+func VerifyChat(ctx context.Context, chatId int64, opts ...*OptVerifyChat) (bool, error) {
+	schedule(ctx, chatId, 1)
+	defer scheduleDone(ctx, chatId, 1)
+	type Request struct {
+		ChatId            int64  `json:"chat_id"`
+		CustomDescription string `json:"custom_description,omitempty"`
+	}
+	request := &Request{
+		ChatId: chatId,
+	}
+	for _, opt := range opts {
+		if opt.CustomDescription != "" {
+			request.CustomDescription = opt.CustomDescription
+		}
+	}
+	return GenericRequest[Request, bool](ctx, "verifyChat", request)
+}
+
+type OptVerifyChat struct {
+	CustomDescription string
+}
+
+// VerifyUser Verifies a user on behalf of the organization which is represented by the bot. Returns True on success.
+func VerifyUser(ctx context.Context, userId int64, opts ...*OptVerifyUser) (bool, error) {
+	schedule(ctx, 0, 1)
+	defer scheduleDone(ctx, 0, 1)
+	type Request struct {
+		UserId            int64  `json:"user_id"`
+		CustomDescription string `json:"custom_description,omitempty"`
+	}
+	request := &Request{
+		UserId: userId,
+	}
+	for _, opt := range opts {
+		if opt.CustomDescription != "" {
+			request.CustomDescription = opt.CustomDescription
+		}
+	}
+	return GenericRequest[Request, bool](ctx, "verifyUser", request)
+}
+
+type OptVerifyUser struct {
+	CustomDescription string
 }
