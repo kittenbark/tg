@@ -123,7 +123,7 @@ func TestIntegrationLong(t *testing.T) {
 
 		album, err := tg.SendMediaGroup(ctx, chat, tg.Album{
 			&tg.Photo{Media: tg.FromDisk(photo)},
-			&tg.Video{Media: tg.FromDisk(video), Caption: thisIsKot},
+			&tg.Video{Media: tg.FromDisk(video), Caption: thisIsKot, Thumbnail: tg.FromDisk(photo)},
 		})
 		require.NoError(t, err)
 

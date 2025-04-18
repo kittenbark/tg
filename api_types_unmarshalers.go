@@ -27,11 +27,6 @@ func (impl *BackgroundTypeFill) UnmarshalJSON(data []byte) error {
 	impl.DarkThemeDimming = inst.DarkThemeDimming
 	if inst.Fill != nil && inst.Fill.Type == nil {
 		switch *inst.Fill.Type {
-		case "solid":
-			impl.Fill = &BackgroundFillSolid{
-				Type:  deref(inst.Fill.Type),
-				Color: deref(inst.Fill.Color),
-			}
 		case "freeform_gradient":
 			impl.Fill = &BackgroundFillFreeformGradient{
 				Type:   deref(inst.Fill.Type),
@@ -43,6 +38,11 @@ func (impl *BackgroundTypeFill) UnmarshalJSON(data []byte) error {
 				TopColor:      deref(inst.Fill.TopColor),
 				BottomColor:   deref(inst.Fill.BottomColor),
 				RotationAngle: deref(inst.Fill.RotationAngle),
+			}
+		case "solid":
+			impl.Fill = &BackgroundFillSolid{
+				Type:  deref(inst.Fill.Type),
+				Color: deref(inst.Fill.Color),
 			}
 		}
 	}
@@ -84,11 +84,6 @@ func (impl *BackgroundTypePattern) UnmarshalJSON(data []byte) error {
 	impl.IsMoving = inst.IsMoving
 	if inst.Fill != nil && inst.Fill.Type == nil {
 		switch *inst.Fill.Type {
-		case "solid":
-			impl.Fill = &BackgroundFillSolid{
-				Type:  deref(inst.Fill.Type),
-				Color: deref(inst.Fill.Color),
-			}
 		case "freeform_gradient":
 			impl.Fill = &BackgroundFillFreeformGradient{
 				Type:   deref(inst.Fill.Type),
@@ -100,6 +95,11 @@ func (impl *BackgroundTypePattern) UnmarshalJSON(data []byte) error {
 				TopColor:      deref(inst.Fill.TopColor),
 				BottomColor:   deref(inst.Fill.BottomColor),
 				RotationAngle: deref(inst.Fill.RotationAngle),
+			}
+		case "solid":
+			impl.Fill = &BackgroundFillSolid{
+				Type:  deref(inst.Fill.Type),
+				Color: deref(inst.Fill.Color),
 			}
 		}
 	}
@@ -129,6 +129,15 @@ func (impl *ChatBackground) UnmarshalJSON(data []byte) error {
 	}
 	if inst.Type != nil && inst.Type.Type == nil {
 		switch *inst.Type.Type {
+		case "pattern":
+			impl.Type = &BackgroundTypePattern{
+				Type:       deref(inst.Type.Type),
+				Document:   deref(inst.Type.Document),
+				Fill:       deref(inst.Type.Fill),
+				Intensity:  deref(inst.Type.Intensity),
+				IsInverted: deref(inst.Type.IsInverted),
+				IsMoving:   deref(inst.Type.IsMoving),
+			}
 		case "wallpaper":
 			impl.Type = &BackgroundTypeWallpaper{
 				Type:             deref(inst.Type.Type),
@@ -147,15 +156,6 @@ func (impl *ChatBackground) UnmarshalJSON(data []byte) error {
 				Type:             deref(inst.Type.Type),
 				Fill:             deref(inst.Type.Fill),
 				DarkThemeDimming: deref(inst.Type.DarkThemeDimming),
-			}
-		case "pattern":
-			impl.Type = &BackgroundTypePattern{
-				Type:       deref(inst.Type.Type),
-				Document:   deref(inst.Type.Document),
-				Fill:       deref(inst.Type.Fill),
-				Intensity:  deref(inst.Type.Intensity),
-				IsInverted: deref(inst.Type.IsInverted),
-				IsMoving:   deref(inst.Type.IsMoving),
 			}
 		}
 	}
@@ -239,11 +239,6 @@ func (impl *ChatBoostRemoved) UnmarshalJSON(data []byte) error {
 	impl.RemoveDate = inst.RemoveDate
 	if inst.Source != nil && inst.Source.Source == nil {
 		switch *inst.Source.Source {
-		case "premium":
-			impl.Source = &ChatBoostSourcePremium{
-				Source: deref(inst.Source.Source),
-				User:   deref(inst.Source.User),
-			}
 		case "gift_code":
 			impl.Source = &ChatBoostSourceGiftCode{
 				Source: deref(inst.Source.Source),
@@ -256,6 +251,11 @@ func (impl *ChatBoostRemoved) UnmarshalJSON(data []byte) error {
 				User:              deref(inst.Source.User),
 				PrizeStarCount:    deref(inst.Source.PrizeStarCount),
 				IsUnclaimed:       deref(inst.Source.IsUnclaimed),
+			}
+		case "premium":
+			impl.Source = &ChatBoostSourcePremium{
+				Source: deref(inst.Source.Source),
+				User:   deref(inst.Source.User),
 			}
 		}
 	}
@@ -336,8 +336,6 @@ func (impl *ChatFullInfo) UnmarshalJSON(data []byte) error {
 		PinnedMessage *Message `json:"pinned_message"`
 		// Optional. Default chat member permissions, for groups and supergroups
 		Permissions *ChatPermissions `json:"permissions"`
-		// Information about types of gifts that are accepted by the chat or by the corresponding user for private chats
-		AcceptedGiftTypes *AcceptedGiftTypes `json:"accepted_gift_types"`
 		// Optional. True, if paid media messages can be sent or forwarded to the channel chat.
 		// The field is available only for channel chats.
 		CanSendPaidMedia bool `json:"can_send_paid_media"`
@@ -409,7 +407,6 @@ func (impl *ChatFullInfo) UnmarshalJSON(data []byte) error {
 	impl.InviteLink = inst.InviteLink
 	impl.PinnedMessage = inst.PinnedMessage
 	impl.Permissions = inst.Permissions
-	impl.AcceptedGiftTypes = inst.AcceptedGiftTypes
 	impl.CanSendPaidMedia = inst.CanSendPaidMedia
 	impl.SlowModeDelay = inst.SlowModeDelay
 	impl.UnrestrictBoostCount = inst.UnrestrictBoostCount
@@ -430,10 +427,6 @@ func (impl *ChatFullInfo) UnmarshalJSON(data []byte) error {
 				continue
 			}
 			switch *item.Type {
-			case "paid":
-				impl.AvailableReactions = append(impl.AvailableReactions, &ReactionTypePaid{
-					Type: deref(item.Type),
-				})
 			case "custom_emoji":
 				impl.AvailableReactions = append(impl.AvailableReactions, &ReactionTypeCustomEmoji{
 					Type:          deref(item.Type),
@@ -443,6 +436,10 @@ func (impl *ChatFullInfo) UnmarshalJSON(data []byte) error {
 				impl.AvailableReactions = append(impl.AvailableReactions, &ReactionTypeEmoji{
 					Type:  deref(item.Type),
 					Emoji: deref(item.Emoji),
+				})
+			case "paid":
+				impl.AvailableReactions = append(impl.AvailableReactions, &ReactionTypePaid{
+					Type: deref(item.Type),
 				})
 			}
 		}
@@ -547,6 +544,28 @@ func (impl *ChatMemberUpdated) UnmarshalJSON(data []byte) error {
 	impl.ViaChatFolderInviteLink = inst.ViaChatFolderInviteLink
 	if inst.OldChatMember != nil && inst.OldChatMember.Status == nil {
 		switch *inst.OldChatMember.Status {
+		case "administrator":
+			impl.OldChatMember = &ChatMemberAdministrator{
+				Status:              deref(inst.OldChatMember.Status),
+				User:                deref(inst.OldChatMember.User),
+				CanBeEdited:         deref(inst.OldChatMember.CanBeEdited),
+				IsAnonymous:         deref(inst.OldChatMember.IsAnonymous),
+				CanManageChat:       deref(inst.OldChatMember.CanManageChat),
+				CanDeleteMessages:   deref(inst.OldChatMember.CanDeleteMessages),
+				CanManageVideoChats: deref(inst.OldChatMember.CanManageVideoChats),
+				CanRestrictMembers:  deref(inst.OldChatMember.CanRestrictMembers),
+				CanPromoteMembers:   deref(inst.OldChatMember.CanPromoteMembers),
+				CanChangeInfo:       deref(inst.OldChatMember.CanChangeInfo),
+				CanInviteUsers:      deref(inst.OldChatMember.CanInviteUsers),
+				CanPostStories:      deref(inst.OldChatMember.CanPostStories),
+				CanEditStories:      deref(inst.OldChatMember.CanEditStories),
+				CanDeleteStories:    deref(inst.OldChatMember.CanDeleteStories),
+				CanPostMessages:     deref(inst.OldChatMember.CanPostMessages),
+				CanEditMessages:     deref(inst.OldChatMember.CanEditMessages),
+				CanPinMessages:      deref(inst.OldChatMember.CanPinMessages),
+				CanManageTopics:     deref(inst.OldChatMember.CanManageTopics),
+				CustomTitle:         deref(inst.OldChatMember.CustomTitle),
+			}
 		case "creator":
 			impl.OldChatMember = &ChatMemberOwner{
 				Status:      deref(inst.OldChatMember.Status),
@@ -592,32 +611,17 @@ func (impl *ChatMemberUpdated) UnmarshalJSON(data []byte) error {
 				CanManageTopics:       deref(inst.OldChatMember.CanManageTopics),
 				UntilDate:             deref(inst.OldChatMember.UntilDate),
 			}
-		case "administrator":
-			impl.OldChatMember = &ChatMemberAdministrator{
-				Status:              deref(inst.OldChatMember.Status),
-				User:                deref(inst.OldChatMember.User),
-				CanBeEdited:         deref(inst.OldChatMember.CanBeEdited),
-				IsAnonymous:         deref(inst.OldChatMember.IsAnonymous),
-				CanManageChat:       deref(inst.OldChatMember.CanManageChat),
-				CanDeleteMessages:   deref(inst.OldChatMember.CanDeleteMessages),
-				CanManageVideoChats: deref(inst.OldChatMember.CanManageVideoChats),
-				CanRestrictMembers:  deref(inst.OldChatMember.CanRestrictMembers),
-				CanPromoteMembers:   deref(inst.OldChatMember.CanPromoteMembers),
-				CanChangeInfo:       deref(inst.OldChatMember.CanChangeInfo),
-				CanInviteUsers:      deref(inst.OldChatMember.CanInviteUsers),
-				CanPostStories:      deref(inst.OldChatMember.CanPostStories),
-				CanEditStories:      deref(inst.OldChatMember.CanEditStories),
-				CanDeleteStories:    deref(inst.OldChatMember.CanDeleteStories),
-				CanPostMessages:     deref(inst.OldChatMember.CanPostMessages),
-				CanEditMessages:     deref(inst.OldChatMember.CanEditMessages),
-				CanPinMessages:      deref(inst.OldChatMember.CanPinMessages),
-				CanManageTopics:     deref(inst.OldChatMember.CanManageTopics),
-				CustomTitle:         deref(inst.OldChatMember.CustomTitle),
-			}
 		}
 	}
 	if inst.NewChatMember != nil && inst.NewChatMember.Status == nil {
 		switch *inst.NewChatMember.Status {
+		case "creator":
+			impl.NewChatMember = &ChatMemberOwner{
+				Status:      deref(inst.NewChatMember.Status),
+				User:        deref(inst.NewChatMember.User),
+				IsAnonymous: deref(inst.NewChatMember.IsAnonymous),
+				CustomTitle: deref(inst.NewChatMember.CustomTitle),
+			}
 		case "kicked":
 			impl.NewChatMember = &ChatMemberBanned{
 				Status:    deref(inst.NewChatMember.Status),
@@ -677,13 +681,6 @@ func (impl *ChatMemberUpdated) UnmarshalJSON(data []byte) error {
 				CanPinMessages:      deref(inst.NewChatMember.CanPinMessages),
 				CanManageTopics:     deref(inst.NewChatMember.CanManageTopics),
 				CustomTitle:         deref(inst.NewChatMember.CustomTitle),
-			}
-		case "creator":
-			impl.NewChatMember = &ChatMemberOwner{
-				Status:      deref(inst.NewChatMember.Status),
-				User:        deref(inst.NewChatMember.User),
-				IsAnonymous: deref(inst.NewChatMember.IsAnonymous),
-				CustomTitle: deref(inst.NewChatMember.CustomTitle),
 			}
 		}
 	}
@@ -782,18 +779,6 @@ func (impl *ExternalReplyInfo) UnmarshalJSON(data []byte) error {
 	impl.Venue = inst.Venue
 	if inst.Origin != nil && inst.Origin.Type == nil {
 		switch *inst.Origin.Type {
-		case "hidden_user":
-			impl.Origin = &MessageOriginHiddenUser{
-				Type:           deref(inst.Origin.Type),
-				Date:           deref(inst.Origin.Date),
-				SenderUserName: deref(inst.Origin.SenderUserName),
-			}
-		case "user":
-			impl.Origin = &MessageOriginUser{
-				Type:       deref(inst.Origin.Type),
-				Date:       deref(inst.Origin.Date),
-				SenderUser: deref(inst.Origin.SenderUser),
-			}
 		case "channel":
 			impl.Origin = &MessageOriginChannel{
 				Type:            deref(inst.Origin.Type),
@@ -808,6 +793,18 @@ func (impl *ExternalReplyInfo) UnmarshalJSON(data []byte) error {
 				Date:            deref(inst.Origin.Date),
 				SenderChat:      deref(inst.Origin.SenderChat),
 				AuthorSignature: deref(inst.Origin.AuthorSignature),
+			}
+		case "hidden_user":
+			impl.Origin = &MessageOriginHiddenUser{
+				Type:           deref(inst.Origin.Type),
+				Date:           deref(inst.Origin.Date),
+				SenderUserName: deref(inst.Origin.SenderUserName),
+			}
+		case "user":
+			impl.Origin = &MessageOriginUser{
+				Type:       deref(inst.Origin.Type),
+				Date:       deref(inst.Origin.Date),
+				SenderUser: deref(inst.Origin.SenderUser),
 			}
 		}
 	}
@@ -867,6 +864,8 @@ func (impl *InlineQueryResultArticle) UnmarshalJSON(data []byte) error {
 		ReplyMarkup *InlineKeyboardMarkup `json:"reply_markup"`
 		// Optional. URL of the result
 		Url string `json:"url"`
+		// Optional. Pass True if you don't want the URL to be shown in the message
+		HideUrl bool `json:"hide_url"`
 		// Optional. Short description of the result
 		Description string `json:"description"`
 		// Optional. Url of the thumbnail for the result
@@ -887,6 +886,7 @@ func (impl *InlineQueryResultArticle) UnmarshalJSON(data []byte) error {
 	impl.Title = inst.Title
 	impl.ReplyMarkup = inst.ReplyMarkup
 	impl.Url = inst.Url
+	impl.HideUrl = inst.HideUrl
 	impl.Description = inst.Description
 	impl.ThumbnailUrl = inst.ThumbnailUrl
 	impl.ThumbnailWidth = inst.ThumbnailWidth
@@ -3969,7 +3969,7 @@ func (impl *InlineQueryResultGif) UnmarshalJSON(data []byte) error {
 		Type string `json:"type"`
 		// Unique identifier for this result, 1-64 bytes
 		Id string `json:"id"`
-		// A valid URL for the GIF file
+		// A valid URL for the GIF file. File size must not exceed 1MB
 		GifUrl string `json:"gif_url"`
 		// Optional. Width of the GIF
 		GifWidth int64 `json:"gif_width"`
@@ -4518,7 +4518,7 @@ func (impl *InlineQueryResultMpeg4Gif) UnmarshalJSON(data []byte) error {
 		Type string `json:"type"`
 		// Unique identifier for this result, 1-64 bytes
 		Id string `json:"id"`
-		// A valid URL for the MPEG4 file
+		// A valid URL for the MPEG4 file. File size must not exceed 1MB
 		Mpeg4Url string `json:"mpeg4_url"`
 		// Optional. Video width
 		Mpeg4Width int64 `json:"mpeg4_width"`
@@ -5892,8 +5892,6 @@ func (impl *Message) UnmarshalJSON(data []byte) error {
 		// Optional.
 		// Signature of the post author for messages in channels, or the custom title of an anonymous group administrator
 		AuthorSignature string `json:"author_signature"`
-		// Optional. The number of Telegram Stars that were paid by the sender of the message to send it
-		PaidStarCount int64 `json:"paid_star_count"`
 		// Optional. For text messages, the actual UTF-8 text of the message
 		Text string `json:"text"`
 		// Optional. For text messages, special entities like usernames, URLs, bot commands, etc.
@@ -5994,10 +5992,6 @@ func (impl *Message) UnmarshalJSON(data []byte) error {
 		UsersShared *UsersShared `json:"users_shared"`
 		// Optional. Service message: a chat was shared with the bot
 		ChatShared *ChatShared `json:"chat_shared"`
-		// Optional. Service message: a regular gift was sent or received
-		Gift *GiftInfo `json:"gift"`
-		// Optional. Service message: a unique gift was sent or received
-		UniqueGift *UniqueGiftInfo `json:"unique_gift"`
 		// Optional. The domain name of the website on which the user has logged in.
 		// More about Telegram Login: https://core.telegram.org/widgets/login
 		ConnectedWebsite string `json:"connected_website"`
@@ -6032,8 +6026,6 @@ func (impl *Message) UnmarshalJSON(data []byte) error {
 		GiveawayWinners *GiveawayWinners `json:"giveaway_winners"`
 		// Optional. Service message: a giveaway without public winners was completed
 		GiveawayCompleted *GiveawayCompleted `json:"giveaway_completed"`
-		// Optional. Service message: the price for paid messages has changed in the chat
-		PaidMessagePriceChanged *PaidMessagePriceChanged `json:"paid_message_price_changed"`
 		// Optional. Service message: video chat scheduled
 		VideoChatScheduled *VideoChatScheduled `json:"video_chat_scheduled"`
 		// Optional. Service message: video chat started
@@ -6074,7 +6066,6 @@ func (impl *Message) UnmarshalJSON(data []byte) error {
 	impl.IsFromOffline = inst.IsFromOffline
 	impl.MediaGroupId = inst.MediaGroupId
 	impl.AuthorSignature = inst.AuthorSignature
-	impl.PaidStarCount = inst.PaidStarCount
 	impl.Text = inst.Text
 	impl.Entities = inst.Entities
 	impl.LinkPreviewOptions = inst.LinkPreviewOptions
@@ -6116,8 +6107,6 @@ func (impl *Message) UnmarshalJSON(data []byte) error {
 	impl.RefundedPayment = inst.RefundedPayment
 	impl.UsersShared = inst.UsersShared
 	impl.ChatShared = inst.ChatShared
-	impl.Gift = inst.Gift
-	impl.UniqueGift = inst.UniqueGift
 	impl.ConnectedWebsite = inst.ConnectedWebsite
 	impl.WriteAccessAllowed = inst.WriteAccessAllowed
 	impl.PassportData = inst.PassportData
@@ -6134,7 +6123,6 @@ func (impl *Message) UnmarshalJSON(data []byte) error {
 	impl.Giveaway = inst.Giveaway
 	impl.GiveawayWinners = inst.GiveawayWinners
 	impl.GiveawayCompleted = inst.GiveawayCompleted
-	impl.PaidMessagePriceChanged = inst.PaidMessagePriceChanged
 	impl.VideoChatScheduled = inst.VideoChatScheduled
 	impl.VideoChatStarted = inst.VideoChatStarted
 	impl.VideoChatEnded = inst.VideoChatEnded
@@ -6261,124 +6249,6 @@ func (impl *MessageReactionUpdated) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (impl *OwnedGifts) UnmarshalJSON(data []byte) error {
-	type OwnedGiftUnmarshalJoinedGifts struct {
-		Type                    *string           `json:"type"`
-		Gift                    *OwnedGift        `json:"gift"`
-		OwnedGiftId             *string           `json:"owned_gift_id"`
-		SenderUser              **User            `json:"sender_user"`
-		SendDate                *int64            `json:"send_date"`
-		Text                    *string           `json:"text"`
-		Entities                *[]*MessageEntity `json:"entities"`
-		IsPrivate               *bool             `json:"is_private"`
-		IsSaved                 *bool             `json:"is_saved"`
-		CanBeUpgraded           *bool             `json:"can_be_upgraded"`
-		WasRefunded             *bool             `json:"was_refunded"`
-		ConvertStarCount        *int64            `json:"convert_star_count"`
-		PrepaidUpgradeStarCount *int64            `json:"prepaid_upgrade_star_count"`
-		CanBeTransferred        *bool             `json:"can_be_transferred"`
-		TransferStarCount       *int64            `json:"transfer_star_count"`
-	}
-	type BaseInstance struct {
-		// The total number of gifts owned by the user or the chat
-		TotalCount int64 `json:"total_count"`
-		// Optional. Offset for the next request. If empty, then there are no more results
-		NextOffset string `json:"next_offset"`
-		// Joint of structs, used for parsing variant interfaces.
-		Gifts []*OwnedGiftUnmarshalJoinedGifts `json:"gifts"`
-	}
-	var inst BaseInstance
-	if err := json.Unmarshal(data, &inst); err != nil {
-		return err
-	}
-	impl.TotalCount = inst.TotalCount
-	impl.NextOffset = inst.NextOffset
-	if len(inst.Gifts) != 0 {
-		impl.Gifts = []OwnedGift{}
-		for _, item := range inst.Gifts {
-			if item == nil {
-				continue
-			}
-			nonEmptyFields := []string{}
-			if item.Type != nil {
-				nonEmptyFields = append(nonEmptyFields, "Type")
-			}
-			if item.Gift != nil {
-				nonEmptyFields = append(nonEmptyFields, "Gift")
-			}
-			if item.OwnedGiftId != nil {
-				nonEmptyFields = append(nonEmptyFields, "OwnedGiftId")
-			}
-			if item.SenderUser != nil {
-				nonEmptyFields = append(nonEmptyFields, "SenderUser")
-			}
-			if item.SendDate != nil {
-				nonEmptyFields = append(nonEmptyFields, "SendDate")
-			}
-			if item.IsSaved != nil {
-				nonEmptyFields = append(nonEmptyFields, "IsSaved")
-			}
-			if item.CanBeTransferred != nil {
-				nonEmptyFields = append(nonEmptyFields, "CanBeTransferred")
-			}
-			if item.TransferStarCount != nil {
-				nonEmptyFields = append(nonEmptyFields, "TransferStarCount")
-			}
-			if item.Text != nil {
-				nonEmptyFields = append(nonEmptyFields, "Text")
-			}
-			if item.Entities != nil {
-				nonEmptyFields = append(nonEmptyFields, "Entities")
-			}
-			if item.IsPrivate != nil {
-				nonEmptyFields = append(nonEmptyFields, "IsPrivate")
-			}
-			if item.CanBeUpgraded != nil {
-				nonEmptyFields = append(nonEmptyFields, "CanBeUpgraded")
-			}
-			if item.WasRefunded != nil {
-				nonEmptyFields = append(nonEmptyFields, "WasRefunded")
-			}
-			if item.ConvertStarCount != nil {
-				nonEmptyFields = append(nonEmptyFields, "ConvertStarCount")
-			}
-			if item.PrepaidUpgradeStarCount != nil {
-				nonEmptyFields = append(nonEmptyFields, "PrepaidUpgradeStarCount")
-			}
-			switch {
-			case containsAll([]string{"Type", "Gift", "OwnedGiftId", "SenderUser", "SendDate", "IsSaved", "CanBeTransferred", "TransferStarCount"}, nonEmptyFields):
-				impl.Gifts = append(impl.Gifts, &OwnedGiftUnique{
-					Type: deref(item.Type),
-					//Gift:              deref(item.Gift),
-					OwnedGiftId:       deref(item.OwnedGiftId),
-					SenderUser:        deref(item.SenderUser),
-					SendDate:          deref(item.SendDate),
-					IsSaved:           deref(item.IsSaved),
-					CanBeTransferred:  deref(item.CanBeTransferred),
-					TransferStarCount: deref(item.TransferStarCount),
-				})
-			case containsAll([]string{"Type", "Gift", "OwnedGiftId", "SenderUser", "SendDate", "Text", "Entities", "IsPrivate", "IsSaved", "CanBeUpgraded", "WasRefunded", "ConvertStarCount", "PrepaidUpgradeStarCount"}, nonEmptyFields):
-				impl.Gifts = append(impl.Gifts, &OwnedGiftRegular{
-					Type: deref(item.Type),
-					//Gift:                    deref(item.Gift),
-					OwnedGiftId:             deref(item.OwnedGiftId),
-					SenderUser:              deref(item.SenderUser),
-					SendDate:                deref(item.SendDate),
-					Text:                    deref(item.Text),
-					Entities:                deref(item.Entities),
-					IsPrivate:               deref(item.IsPrivate),
-					IsSaved:                 deref(item.IsSaved),
-					CanBeUpgraded:           deref(item.CanBeUpgraded),
-					WasRefunded:             deref(item.WasRefunded),
-					ConvertStarCount:        deref(item.ConvertStarCount),
-					PrepaidUpgradeStarCount: deref(item.PrepaidUpgradeStarCount),
-				})
-			}
-		}
-	}
-	return nil
-}
-
 func (impl *PaidMediaInfo) UnmarshalJSON(data []byte) error {
 	type PaidMediaUnmarshalJoinedPaidMedia struct {
 		Type     *string         `json:"type"`
@@ -6488,38 +6358,32 @@ func (impl *ReactionCount) UnmarshalJSON(data []byte) error {
 
 func (impl *StarTransaction) UnmarshalJSON(data []byte) error {
 	type TransactionPartnerUnmarshalJoinedSource struct {
-		Type                        *string                 `json:"type"`
-		TransactionType             *string                 `json:"transaction_type"`
-		User                        **User                  `json:"user"`
-		Affiliate                   **AffiliateInfo         `json:"affiliate"`
-		InvoicePayload              *string                 `json:"invoice_payload"`
-		SubscriptionPeriod          *int64                  `json:"subscription_period"`
-		PaidMedia                   *[]PaidMedia            `json:"paid_media"`
-		PaidMediaPayload            *string                 `json:"paid_media_payload"`
-		Gift                        **Gift                  `json:"gift"`
-		PremiumSubscriptionDuration *int64                  `json:"premium_subscription_duration"`
-		Chat                        **Chat                  `json:"chat"`
-		SponsorUser                 **User                  `json:"sponsor_user"`
-		CommissionPerMille          *int64                  `json:"commission_per_mille"`
-		WithdrawalState             *RevenueWithdrawalState `json:"withdrawal_state"`
-		RequestCount                *int64                  `json:"request_count"`
+		Type               *string                 `json:"type"`
+		User               **User                  `json:"user"`
+		Affiliate          **AffiliateInfo         `json:"affiliate"`
+		InvoicePayload     *string                 `json:"invoice_payload"`
+		SubscriptionPeriod *int64                  `json:"subscription_period"`
+		PaidMedia          *[]PaidMedia            `json:"paid_media"`
+		PaidMediaPayload   *string                 `json:"paid_media_payload"`
+		Gift               **Gift                  `json:"gift"`
+		SponsorUser        **User                  `json:"sponsor_user"`
+		CommissionPerMille *int64                  `json:"commission_per_mille"`
+		WithdrawalState    *RevenueWithdrawalState `json:"withdrawal_state"`
+		RequestCount       *int64                  `json:"request_count"`
 	}
 	type TransactionPartnerUnmarshalJoinedReceiver struct {
-		Type                        *string                 `json:"type"`
-		TransactionType             *string                 `json:"transaction_type"`
-		User                        **User                  `json:"user"`
-		Affiliate                   **AffiliateInfo         `json:"affiliate"`
-		InvoicePayload              *string                 `json:"invoice_payload"`
-		SubscriptionPeriod          *int64                  `json:"subscription_period"`
-		PaidMedia                   *[]PaidMedia            `json:"paid_media"`
-		PaidMediaPayload            *string                 `json:"paid_media_payload"`
-		Gift                        **Gift                  `json:"gift"`
-		PremiumSubscriptionDuration *int64                  `json:"premium_subscription_duration"`
-		Chat                        **Chat                  `json:"chat"`
-		SponsorUser                 **User                  `json:"sponsor_user"`
-		CommissionPerMille          *int64                  `json:"commission_per_mille"`
-		WithdrawalState             *RevenueWithdrawalState `json:"withdrawal_state"`
-		RequestCount                *int64                  `json:"request_count"`
+		Type               *string                 `json:"type"`
+		User               **User                  `json:"user"`
+		Affiliate          **AffiliateInfo         `json:"affiliate"`
+		InvoicePayload     *string                 `json:"invoice_payload"`
+		SubscriptionPeriod *int64                  `json:"subscription_period"`
+		PaidMedia          *[]PaidMedia            `json:"paid_media"`
+		PaidMediaPayload   *string                 `json:"paid_media_payload"`
+		Gift               **Gift                  `json:"gift"`
+		SponsorUser        **User                  `json:"sponsor_user"`
+		CommissionPerMille *int64                  `json:"commission_per_mille"`
+		WithdrawalState    *RevenueWithdrawalState `json:"withdrawal_state"`
+		RequestCount       *int64                  `json:"request_count"`
 	}
 	type BaseInstance struct {
 		// Unique identifier of the transaction.
@@ -6555,20 +6419,11 @@ func (impl *StarTransaction) UnmarshalJSON(data []byte) error {
 		if inst.Source.RequestCount != nil {
 			nonEmptyFields = append(nonEmptyFields, "RequestCount")
 		}
-		if inst.Source.Chat != nil {
-			nonEmptyFields = append(nonEmptyFields, "Chat")
-		}
-		if inst.Source.Gift != nil {
-			nonEmptyFields = append(nonEmptyFields, "Gift")
-		}
 		if inst.Source.SponsorUser != nil {
 			nonEmptyFields = append(nonEmptyFields, "SponsorUser")
 		}
 		if inst.Source.CommissionPerMille != nil {
 			nonEmptyFields = append(nonEmptyFields, "CommissionPerMille")
-		}
-		if inst.Source.TransactionType != nil {
-			nonEmptyFields = append(nonEmptyFields, "TransactionType")
 		}
 		if inst.Source.User != nil {
 			nonEmptyFields = append(nonEmptyFields, "User")
@@ -6588,8 +6443,8 @@ func (impl *StarTransaction) UnmarshalJSON(data []byte) error {
 		if inst.Source.PaidMediaPayload != nil {
 			nonEmptyFields = append(nonEmptyFields, "PaidMediaPayload")
 		}
-		if inst.Source.PremiumSubscriptionDuration != nil {
-			nonEmptyFields = append(nonEmptyFields, "PremiumSubscriptionDuration")
+		if inst.Source.Gift != nil {
+			nonEmptyFields = append(nonEmptyFields, "Gift")
 		}
 		switch {
 		case containsAll([]string{"Type"}, nonEmptyFields):
@@ -6610,30 +6465,22 @@ func (impl *StarTransaction) UnmarshalJSON(data []byte) error {
 				Type:         deref(inst.Source.Type),
 				RequestCount: deref(inst.Source.RequestCount),
 			}
-		case containsAll([]string{"Type", "Chat", "Gift"}, nonEmptyFields):
-			impl.Source = &TransactionPartnerChat{
-				Type: deref(inst.Source.Type),
-				Chat: deref(inst.Source.Chat),
-				Gift: deref(inst.Source.Gift),
-			}
 		case containsAll([]string{"Type", "SponsorUser", "CommissionPerMille"}, nonEmptyFields):
 			impl.Source = &TransactionPartnerAffiliateProgram{
 				Type:               deref(inst.Source.Type),
 				SponsorUser:        deref(inst.Source.SponsorUser),
 				CommissionPerMille: deref(inst.Source.CommissionPerMille),
 			}
-		case containsAll([]string{"Type", "TransactionType", "User", "Affiliate", "InvoicePayload", "SubscriptionPeriod", "PaidMedia", "PaidMediaPayload", "Gift", "PremiumSubscriptionDuration"}, nonEmptyFields):
+		case containsAll([]string{"Type", "User", "Affiliate", "InvoicePayload", "SubscriptionPeriod", "PaidMedia", "PaidMediaPayload", "Gift"}, nonEmptyFields):
 			impl.Source = &TransactionPartnerUser{
-				Type:                        deref(inst.Source.Type),
-				TransactionType:             deref(inst.Source.TransactionType),
-				User:                        deref(inst.Source.User),
-				Affiliate:                   deref(inst.Source.Affiliate),
-				InvoicePayload:              deref(inst.Source.InvoicePayload),
-				SubscriptionPeriod:          deref(inst.Source.SubscriptionPeriod),
-				PaidMedia:                   deref(inst.Source.PaidMedia),
-				PaidMediaPayload:            deref(inst.Source.PaidMediaPayload),
-				Gift:                        deref(inst.Source.Gift),
-				PremiumSubscriptionDuration: deref(inst.Source.PremiumSubscriptionDuration),
+				Type:               deref(inst.Source.Type),
+				User:               deref(inst.Source.User),
+				Affiliate:          deref(inst.Source.Affiliate),
+				InvoicePayload:     deref(inst.Source.InvoicePayload),
+				SubscriptionPeriod: deref(inst.Source.SubscriptionPeriod),
+				PaidMedia:          deref(inst.Source.PaidMedia),
+				PaidMediaPayload:   deref(inst.Source.PaidMediaPayload),
+				Gift:               deref(inst.Source.Gift),
 			}
 		}
 	}
@@ -6648,20 +6495,11 @@ func (impl *StarTransaction) UnmarshalJSON(data []byte) error {
 		if inst.Receiver.RequestCount != nil {
 			nonEmptyFields = append(nonEmptyFields, "RequestCount")
 		}
-		if inst.Receiver.Chat != nil {
-			nonEmptyFields = append(nonEmptyFields, "Chat")
-		}
-		if inst.Receiver.Gift != nil {
-			nonEmptyFields = append(nonEmptyFields, "Gift")
-		}
 		if inst.Receiver.SponsorUser != nil {
 			nonEmptyFields = append(nonEmptyFields, "SponsorUser")
 		}
 		if inst.Receiver.CommissionPerMille != nil {
 			nonEmptyFields = append(nonEmptyFields, "CommissionPerMille")
-		}
-		if inst.Receiver.TransactionType != nil {
-			nonEmptyFields = append(nonEmptyFields, "TransactionType")
 		}
 		if inst.Receiver.User != nil {
 			nonEmptyFields = append(nonEmptyFields, "User")
@@ -6681,8 +6519,8 @@ func (impl *StarTransaction) UnmarshalJSON(data []byte) error {
 		if inst.Receiver.PaidMediaPayload != nil {
 			nonEmptyFields = append(nonEmptyFields, "PaidMediaPayload")
 		}
-		if inst.Receiver.PremiumSubscriptionDuration != nil {
-			nonEmptyFields = append(nonEmptyFields, "PremiumSubscriptionDuration")
+		if inst.Receiver.Gift != nil {
+			nonEmptyFields = append(nonEmptyFields, "Gift")
 		}
 		switch {
 		case containsAll([]string{"Type"}, nonEmptyFields):
@@ -6703,175 +6541,22 @@ func (impl *StarTransaction) UnmarshalJSON(data []byte) error {
 				Type:         deref(inst.Receiver.Type),
 				RequestCount: deref(inst.Receiver.RequestCount),
 			}
-		case containsAll([]string{"Type", "Chat", "Gift"}, nonEmptyFields):
-			impl.Receiver = &TransactionPartnerChat{
-				Type: deref(inst.Receiver.Type),
-				Chat: deref(inst.Receiver.Chat),
-				Gift: deref(inst.Receiver.Gift),
-			}
 		case containsAll([]string{"Type", "SponsorUser", "CommissionPerMille"}, nonEmptyFields):
 			impl.Receiver = &TransactionPartnerAffiliateProgram{
 				Type:               deref(inst.Receiver.Type),
 				SponsorUser:        deref(inst.Receiver.SponsorUser),
 				CommissionPerMille: deref(inst.Receiver.CommissionPerMille),
 			}
-		case containsAll([]string{"Type", "TransactionType", "User", "Affiliate", "InvoicePayload", "SubscriptionPeriod", "PaidMedia", "PaidMediaPayload", "Gift", "PremiumSubscriptionDuration"}, nonEmptyFields):
+		case containsAll([]string{"Type", "User", "Affiliate", "InvoicePayload", "SubscriptionPeriod", "PaidMedia", "PaidMediaPayload", "Gift"}, nonEmptyFields):
 			impl.Receiver = &TransactionPartnerUser{
-				Type:                        deref(inst.Receiver.Type),
-				TransactionType:             deref(inst.Receiver.TransactionType),
-				User:                        deref(inst.Receiver.User),
-				Affiliate:                   deref(inst.Receiver.Affiliate),
-				InvoicePayload:              deref(inst.Receiver.InvoicePayload),
-				SubscriptionPeriod:          deref(inst.Receiver.SubscriptionPeriod),
-				PaidMedia:                   deref(inst.Receiver.PaidMedia),
-				PaidMediaPayload:            deref(inst.Receiver.PaidMediaPayload),
-				Gift:                        deref(inst.Receiver.Gift),
-				PremiumSubscriptionDuration: deref(inst.Receiver.PremiumSubscriptionDuration),
-			}
-		}
-	}
-	return nil
-}
-
-func (impl *StoryArea) UnmarshalJSON(data []byte) error {
-	type StoryAreaTypeUnmarshalJoinedType struct {
-		Type            *string           `json:"type"`
-		Latitude        *float64          `json:"latitude"`
-		Longitude       *float64          `json:"longitude"`
-		Address         **LocationAddress `json:"address"`
-		ReactionType    *ReactionType     `json:"reaction_type"`
-		IsDark          *bool             `json:"is_dark"`
-		IsFlipped       *bool             `json:"is_flipped"`
-		Url             *string           `json:"url"`
-		Temperature     *float64          `json:"temperature"`
-		Emoji           *string           `json:"emoji"`
-		BackgroundColor *int64            `json:"background_color"`
-		Name            *string           `json:"name"`
-	}
-	type BaseInstance struct {
-		// Position of the area
-		Position *StoryAreaPosition `json:"position"`
-		// Joint of structs, used for parsing variant interfaces.
-		Type *StoryAreaTypeUnmarshalJoinedType `json:"type"`
-	}
-	var inst BaseInstance
-	if err := json.Unmarshal(data, &inst); err != nil {
-		return err
-	}
-	impl.Position = inst.Position
-	if inst.Type != nil {
-		nonEmptyFields := []string{}
-		if inst.Type.Type != nil {
-			nonEmptyFields = append(nonEmptyFields, "Type")
-		}
-		if inst.Type.Url != nil {
-			nonEmptyFields = append(nonEmptyFields, "Url")
-		}
-		if inst.Type.Name != nil {
-			nonEmptyFields = append(nonEmptyFields, "Name")
-		}
-		if inst.Type.Latitude != nil {
-			nonEmptyFields = append(nonEmptyFields, "Latitude")
-		}
-		if inst.Type.Longitude != nil {
-			nonEmptyFields = append(nonEmptyFields, "Longitude")
-		}
-		if inst.Type.Address != nil {
-			nonEmptyFields = append(nonEmptyFields, "Address")
-		}
-		if inst.Type.ReactionType != nil {
-			nonEmptyFields = append(nonEmptyFields, "ReactionType")
-		}
-		if inst.Type.IsDark != nil {
-			nonEmptyFields = append(nonEmptyFields, "IsDark")
-		}
-		if inst.Type.IsFlipped != nil {
-			nonEmptyFields = append(nonEmptyFields, "IsFlipped")
-		}
-		if inst.Type.Temperature != nil {
-			nonEmptyFields = append(nonEmptyFields, "Temperature")
-		}
-		if inst.Type.Emoji != nil {
-			nonEmptyFields = append(nonEmptyFields, "Emoji")
-		}
-		if inst.Type.BackgroundColor != nil {
-			nonEmptyFields = append(nonEmptyFields, "BackgroundColor")
-		}
-		switch {
-		case containsAll([]string{"Type", "Url"}, nonEmptyFields):
-			impl.Type = &StoryAreaTypeLink{
-				Type: deref(inst.Type.Type),
-				Url:  deref(inst.Type.Url),
-			}
-		case containsAll([]string{"Type", "Name"}, nonEmptyFields):
-			impl.Type = &StoryAreaTypeUniqueGift{
-				Type: deref(inst.Type.Type),
-				Name: deref(inst.Type.Name),
-			}
-		case containsAll([]string{"Type", "Latitude", "Longitude", "Address"}, nonEmptyFields):
-			impl.Type = &StoryAreaTypeLocation{
-				Type:      deref(inst.Type.Type),
-				Latitude:  deref(inst.Type.Latitude),
-				Longitude: deref(inst.Type.Longitude),
-				Address:   deref(inst.Type.Address),
-			}
-		case containsAll([]string{"Type", "ReactionType", "IsDark", "IsFlipped"}, nonEmptyFields):
-			impl.Type = &StoryAreaTypeSuggestedReaction{
-				Type:         deref(inst.Type.Type),
-				ReactionType: deref(inst.Type.ReactionType),
-				IsDark:       deref(inst.Type.IsDark),
-				IsFlipped:    deref(inst.Type.IsFlipped),
-			}
-		case containsAll([]string{"Type", "Temperature", "Emoji", "BackgroundColor"}, nonEmptyFields):
-			impl.Type = &StoryAreaTypeWeather{
-				Type:            deref(inst.Type.Type),
-				Temperature:     deref(inst.Type.Temperature),
-				Emoji:           deref(inst.Type.Emoji),
-				BackgroundColor: deref(inst.Type.BackgroundColor),
-			}
-		}
-	}
-	return nil
-}
-
-func (impl *StoryAreaTypeSuggestedReaction) UnmarshalJSON(data []byte) error {
-	type ReactionTypeUnmarshalJoinedReactionType struct {
-		Type          *string `json:"type"`
-		Emoji         *string `json:"emoji"`
-		CustomEmojiId *string `json:"custom_emoji_id"`
-	}
-	type BaseInstance struct {
-		// Type of the area, always "suggested_reaction"
-		Type string `json:"type"`
-		// Optional. Pass True if the reaction area has a dark background
-		IsDark bool `json:"is_dark"`
-		// Optional. Pass True if reaction area corner is flipped
-		IsFlipped bool `json:"is_flipped"`
-		// Joint of structs, used for parsing variant interfaces.
-		ReactionType *ReactionTypeUnmarshalJoinedReactionType `json:"reaction_type"`
-	}
-	var inst BaseInstance
-	if err := json.Unmarshal(data, &inst); err != nil {
-		return err
-	}
-	impl.Type = inst.Type
-	impl.IsDark = inst.IsDark
-	impl.IsFlipped = inst.IsFlipped
-	if inst.ReactionType != nil && inst.ReactionType.Type == nil {
-		switch *inst.ReactionType.Type {
-		case "custom_emoji":
-			impl.ReactionType = &ReactionTypeCustomEmoji{
-				Type:          deref(inst.ReactionType.Type),
-				CustomEmojiId: deref(inst.ReactionType.CustomEmojiId),
-			}
-		case "emoji":
-			impl.ReactionType = &ReactionTypeEmoji{
-				Type:  deref(inst.ReactionType.Type),
-				Emoji: deref(inst.ReactionType.Emoji),
-			}
-		case "paid":
-			impl.ReactionType = &ReactionTypePaid{
-				Type: deref(inst.ReactionType.Type),
+				Type:               deref(inst.Receiver.Type),
+				User:               deref(inst.Receiver.User),
+				Affiliate:          deref(inst.Receiver.Affiliate),
+				InvoicePayload:     deref(inst.Receiver.InvoicePayload),
+				SubscriptionPeriod: deref(inst.Receiver.SubscriptionPeriod),
+				PaidMedia:          deref(inst.Receiver.PaidMedia),
+				PaidMediaPayload:   deref(inst.Receiver.PaidMediaPayload),
+				Gift:               deref(inst.Receiver.Gift),
 			}
 		}
 	}
@@ -6938,24 +6623,18 @@ func (impl *TransactionPartnerUser) UnmarshalJSON(data []byte) error {
 	type BaseInstance struct {
 		// Type of the transaction partner, always "user"
 		Type string `json:"type"`
-		// Type of the transaction, currently one of "invoice_payment" for payments via invoices, "paid_media_payment" for payments for paid media, "gift_purchase" for gifts sent by the bot, "premium_purchase" for Telegram Premium subscriptions gifted by the bot, "business_account_transfer" for direct transfers from managed business accounts
-		TransactionType string `json:"transaction_type"`
 		// Information about the user
 		User *User `json:"user"`
-		// Optional. Information about the affiliate that received a commission via this transaction.
-		// Can be available only for "invoice_payment" and "paid_media_payment" transactions.
+		// Optional. Information about the affiliate that received a commission via this transaction
 		Affiliate *AffiliateInfo `json:"affiliate"`
-		// Optional. Bot-specified invoice payload. Can be available only for "invoice_payment" transactions.
+		// Optional. Bot-specified invoice payload
 		InvoicePayload string `json:"invoice_payload"`
-		// Optional. The duration of the paid subscription. Can be available only for "invoice_payment" transactions.
+		// Optional. The duration of the paid subscription
 		SubscriptionPeriod int64 `json:"subscription_period"`
-		// Optional. Bot-specified paid media payload. Can be available only for "paid_media_payment" transactions.
+		// Optional. Bot-specified paid media payload
 		PaidMediaPayload string `json:"paid_media_payload"`
-		// Optional. The gift sent to the user by the bot; for "gift_purchase" transactions only
+		// Optional. The gift sent to the user by the bot
 		Gift *Gift `json:"gift"`
-		// Optional.
-		// Number of months the gifted Telegram Premium subscription will be active for; for "premium_purchase" transactions only
-		PremiumSubscriptionDuration int64 `json:"premium_subscription_duration"`
 		// Joint of structs, used for parsing variant interfaces.
 		PaidMedia []*PaidMediaUnmarshalJoinedPaidMedia `json:"paid_media,omitempty"`
 	}
@@ -6964,14 +6643,12 @@ func (impl *TransactionPartnerUser) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	impl.Type = inst.Type
-	impl.TransactionType = inst.TransactionType
 	impl.User = inst.User
 	impl.Affiliate = inst.Affiliate
 	impl.InvoicePayload = inst.InvoicePayload
 	impl.SubscriptionPeriod = inst.SubscriptionPeriod
 	impl.PaidMediaPayload = inst.PaidMediaPayload
 	impl.Gift = inst.Gift
-	impl.PremiumSubscriptionDuration = inst.PremiumSubscriptionDuration
 	if len(inst.PaidMedia) != 0 {
 		impl.PaidMedia = []PaidMedia{}
 		for _, item := range inst.PaidMedia {
