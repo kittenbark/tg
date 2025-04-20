@@ -42,6 +42,7 @@ type (
 		Bot     *Bot
 		Update  *Update
 		Handler HandlerFunc
+		Error   error
 	}
 	PluginHookContextOnError struct {
 		Context context.Context

@@ -228,10 +228,11 @@ func (bot *Bot) handlePipe(pipe *pipe, ctx context.Context, update *Update) bool
 
 	case pipe.Handle != nil:
 		bot.pluginsHook(PluginHookOnHandleStart, &PluginHookContextOnHandleStart{ctx, bot, update, pipe.Handle})
-		if err := pipe.Handle(ctx, update); err != nil {
+		err := pipe.Handle(ctx, update)
+		if err != nil {
 			bot.pluginsHook(PluginHookOnError, &PluginHookContextOnError{ctx, bot, err})
 		}
-		bot.pluginsHook(PluginHookOnHandleFinish, &PluginHookContextOnHandleFinish{ctx, bot, update, pipe.Handle})
+		bot.pluginsHook(PluginHookOnHandleFinish, &PluginHookContextOnHandleFinish{ctx, bot, update, pipe.Handle, err})
 		return true
 
 	default:

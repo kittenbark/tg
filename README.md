@@ -45,3 +45,7 @@ func main() {
 ## Contributing
 
 Well, make a PR or create an issue. Btw, submit your examples to be listed above. Enjoy.
+
+## todo
+
+[ ] - update to 9.0 API version (problem: no InputFile for thumbnail in InputMediaVideo)
