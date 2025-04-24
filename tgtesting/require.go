@@ -43,6 +43,12 @@ func (cycle *bicycle) LessOrEqualInt(t *testing.T, expected int64, actual int64,
 	}
 }
 
+func (cycle *bicycle) Geq(t *testing.T, than int64, value int64, msg ...string) {
+	if value < than {
+		t.Fatalf("require.Equal failed: expected less, but not (%v >= %v) %v", value, than, msg)
+	}
+}
+
 func (cycle *bicycle) True(t *testing.T, actual bool, msg ...string) {
 	cycle.Equal(t, true, actual, msg...)
 }

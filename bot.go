@@ -15,6 +15,7 @@ type OnErrorFunc func(ctx context.Context, err error)
 
 type Bot struct {
 	context           context.Context
+	stopUpdates       chan bool
 	contextTimeout    time.Duration
 	contextCancelFunc context.CancelFunc
 
@@ -23,6 +24,7 @@ type Bot struct {
 	defaultHandler HandlerFunc
 
 	syncHandling  bool
+	syncStart     sync.Mutex
 	pollTimeout   time.Duration
 	updatesOffset int64
 }
@@ -154,25 +156,41 @@ func (bot *Bot) SetMyCommands(scope BotCommandScope, commands ...string) *Bot {
 // Start locks the execution, interruptible with Stop.
 // todo: implement webhooks.
 func (bot *Bot) Start() {
+	bot.syncStart.Lock()
+	defer bot.syncStart.Unlock()
+
+	ctx, cancel := context.WithCancel(bot.context)
+	defer cancel()
+	bot.contextCancelFunc = cancel
+	bot.stopUpdates = make(chan bool)
+
 	for {
 		pollStart := time.Now()
 		select {
-		case <-bot.context.Done():
+		case <-ctx.Done():
+			return
+		case <-bot.stopUpdates:
 			return
 		default:
-			bot.longPollIteration()
+			bot.longPollIteration(ctx)
 		}
 		time.Sleep(bot.pollTimeout - time.Since(pollStart))
 	}
 }
 
+// Stop lets handlers finish their jobs, do not check for any more updates.
 func (bot *Bot) Stop() {
+	bot.stopUpdates <- true
+}
+
+// StopImmediately stops polling, by canceling the context.
+func (bot *Bot) StopImmediately() {
 	bot.contextCancelFunc()
 }
 
-func (bot *Bot) longPollIteration() {
-	// Note: Telegram gives you 3s timeout if you have empty list if updates and poll for updates too often.
-	updatesCtx, updatesCtxCancel := context.WithTimeout(bot.context, time.Second*4)
+func (bot *Bot) longPollIteration(ctx context.Context) {
+	// Note: Telegram gives you 3s+ timeout if you have empty list if updates and poll for updates too often.
+	updatesCtx, updatesCtxCancel := context.WithTimeout(ctx, time.Second*10)
 	updates, err := GetUpdates(updatesCtx, &OptGetUpdates{Offset: bot.updatesOffset})
 	updatesCtxCancel()
 	if err != nil {

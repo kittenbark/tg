@@ -3,6 +3,7 @@ package tgtesting
 import (
 	"context"
 	"errors"
+	"fmt"
 	"github.com/kittenbark/tg"
 	"math/rand/v2"
 	"net/http"
@@ -193,6 +194,56 @@ func (plugin *CounterPlugin) Apply(ctx tg.PluginHookContext) {
 		plugin.Calls["handle_finish"]++
 	case *tg.PluginHookContextOnError:
 		plugin.Calls["error"]++
+	}
+}
+
+func TestStartAndStop(t *testing.T) {
+	SetTestingEnv(t, &Config{
+		Stubs: []Stub{
+			{
+				Url: "/getUpdates",
+				Result: StubResultOK(200, []*tg.Update{{
+					UpdateId: 1,
+					Message:  &tg.Message{MessageId: 1, Chat: &tg.Chat{Id: 1}, Text: "testtext"},
+				}}),
+			},
+			{
+				Url:    "/sendMessage",
+				Result: StubResultOK(200, &tg.Message{MessageId: 2, Chat: &tg.Chat{Id: 1}, Text: "testtext"}),
+			},
+		},
+	})
+
+	bot := tg.NewFromEnv()
+	time.AfterFunc(time.Millisecond*10, bot.Stop)
+	bot.Start()
+	time.AfterFunc(time.Millisecond*10, bot.Stop)
+	bot.Start()
+	time.AfterFunc(time.Millisecond*10, bot.StopImmediately)
+	bot.Start()
+
+	var i int = 0
+	start := time.Now()
+	sent := &atomic.Int64{}
+	bot.
+		OnError(tg.OnErrorPanic).
+		Branch(tg.OnMessage, func(ctx context.Context, upd *tg.Update) error {
+			if time.Since(start).Seconds() > 0.05*float64(i+1) {
+				bot.Stop()
+			}
+
+			msg := upd.Message
+			_, err := tg.SendMessage(ctx, msg.Chat.Id, time.Now().String())
+			sent.Add(1)
+			return err
+		}).
+		Start()
+
+	for i = range 10 {
+		bot.Start()
+
+		require.Geq(t, 1, sent.Load(), fmt.Sprintf("i=%d", i))
+		sent.Store(0)
 	}
 }
 

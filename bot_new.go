@@ -128,10 +128,9 @@ func TryNew(cfg *Config) (*Bot, error) {
 		}
 	}
 
-	ctx, ctxCancel := context.WithCancel(ctx)
 	return &Bot{
 		context:           ctx,
-		contextCancelFunc: ctxCancel,
+		contextCancelFunc: func() {},
 		contextTimeout:    withDefault(cfg.TimeoutHandle, defaultHandleTimeout, 0),
 		plugins: map[PluginHookType][]Plugin{
 			PluginHookOnUpdate:       {},
