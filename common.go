@@ -24,15 +24,30 @@ import (
 //			tg.CommonReactionReply("👌")),
 //		).
 //		Start()
-func Chain(handlerFunc ...HandlerFunc) HandlerFunc {
+func Chain(handlers ...HandlerFunc) HandlerFunc {
 	return func(ctx context.Context, upd *Update) error {
-		for _, handler := range handlerFunc {
+		for _, handler := range handlers {
 			if err := handler(ctx, upd); err != nil {
 				return err
 			}
 		}
 		return nil
 	}
+}
+
+func Fallback(handlers ...HandlerFunc) HandlerFunc {
+	return func(ctx context.Context, upd *Update) (err error) {
+		for _, handler := range handlers {
+			if err = handler(ctx, upd); err == nil {
+				return nil
+			}
+		}
+		return err
+	}
+}
+
+func FallbackWithMessage(handler HandlerFunc, msg string) HandlerFunc {
+	return Fallback(handler, CommonTextReply(msg, true))
 }
 
 // Synced wraps handler making it, ugh, synced.
