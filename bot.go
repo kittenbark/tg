@@ -132,30 +132,31 @@ func (bot *Bot) OnError(fn OnErrorFunc) *Bot {
 	return bot.Plugin(PluginOnError(fn))
 }
 
-func (bot *Bot) SetMyCommands(scope BotCommandScope, commands ...string) *Bot {
-	if len(commands) < 2 {
-		panic("tg: SetMyCommands must have at least two parameters")
-	}
+func (bot *Bot) Help(commands ...string) *Bot {
+	return bot.HelpScoped(&BotCommandScopeDefault{}, commands...)
+}
 
+func (bot *Bot) HelpScoped(scope BotCommandScope, commands ...string) *Bot {
 	result := []*BotCommand{}
 	for info := range slices.Chunk(commands, 2) {
 		result = append(result, &BotCommand{
 			Command:     info[0],
-			Description: info[1],
+			Description: at(info, 1, info[0]),
 		})
 	}
+
 	ctx, cancel := bot.ContextWithCancel()
 	defer cancel()
-
 	if _, err := SetMyCommands(ctx, result, &OptSetMyCommands{Scope: scope}); err != nil {
 		bot.pluginsHook(PluginHookOnError, &PluginHookContextOnError{ctx, bot, err})
 	}
+
 	return bot
 }
 
 // Start locks the execution, interruptible with Stop.
 // todo: implement webhooks.
-func (bot *Bot) Start() {
+func (bot *Bot) Start(updates ...*Update) {
 	bot.syncStart.Lock()
 	defer bot.syncStart.Unlock()
 
@@ -163,6 +164,8 @@ func (bot *Bot) Start() {
 	defer cancel()
 	bot.contextCancelFunc = cancel
 	bot.stopUpdates = make(chan bool)
+
+	bot.handleUpdates(ctx, updates)
 
 	for {
 		pollStart := time.Now()
@@ -201,6 +204,10 @@ func (bot *Bot) longPollIteration(ctx context.Context) {
 		return
 	}
 
+	bot.handleUpdates(ctx, updates)
+}
+
+func (bot *Bot) handleUpdates(ctx context.Context, updates []*Update) {
 	ctx, ctxCancel := bot.ContextWithCancel()
 	ctxCancelWg := &sync.WaitGroup{}
 	ctxCancelWg.Add(len(updates))

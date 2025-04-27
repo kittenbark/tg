@@ -30,10 +30,8 @@ func TestIntegrationShort(t *testing.T) {
 		t.Skip("no test chat found")
 	}
 	bot := tg.NewFromEnv().
-		SetMyCommands(&tg.BotCommandScopeAllPrivateChats{},
-			"/start", "this is start fr (private chat)",
-		).
-		SetMyCommands(&tg.BotCommandScopeAllGroupChats{},
+		Help("/start", "this is start fr (private chat)").
+		HelpScoped(&tg.BotCommandScopeAllGroupChats{},
 			"/start", "this is start fr (group chat)",
 		)
 
@@ -168,8 +166,6 @@ func TestIntegrationLong(t *testing.T) {
 }
 
 func TestDDOS(t *testing.T) {
-	t.Skip()
-
 	bot := tg.NewFromEnv().Scheduler()
 
 	start := time.Now()
@@ -185,7 +181,7 @@ func TestDDOS(t *testing.T) {
 			_, err := tg.SendMessage(bot.Context(), chat, strconv.Itoa(int(i.Load())))
 			require.NoError(t, err)
 		}()
-		if time.Since(start).Seconds() > 60 {
+		if time.Since(start).Seconds() > 10 {
 			break
 		}
 		time.Sleep(time.Millisecond)
@@ -193,27 +189,47 @@ func TestDDOS(t *testing.T) {
 }
 
 func TestIntegrationHandleAlbum(t *testing.T) {
-	t.Skip() // todo: support saved updates and uncomment this.
-	//t.Setenv(tg.EnvTimeoutHandle, "0.5")
+	bot := tg.NewFromEnv()
+	ctx, _ := bot.ContextWithCancel()
+	pic, err := tg.SendPhoto(ctx, chat, tg.FromDisk(photo))
+	require.NoError(t, err)
+	vid, err := tg.SendVideo(ctx, chat, tg.FromDisk(video))
+	require.NoError(t, err)
 
-	tg.NewFromEnv().
-		OnError(tg.OnErrorLog).
+	counter := &atomic.Int64{}
+	time.AfterFunc(time.Second*6, bot.Stop)
+	bot.
+		Plugin(tg.PluginLogger(slog.LevelDebug)).
+		OnError(tg.OnErrorPanic).
 		Filter(tg.OnPrivateMessage).
-		Branch(tg.OnMedia, tg.HandleAlbum(func(ctx context.Context, album []*tg.Update) error {
-			messages := []int64{}
-			for _, el := range album {
-				messages = append(messages, el.Message.MessageId)
+		Default(tg.HandleAlbum(func(ctx context.Context, updates []*tg.Update) error {
+			defer counter.Add(1)
+			album := tg.Album{}
+			for _, upd := range updates {
+				msg := upd.Message
+				if msg.Photo != nil {
+					album = append(album, &tg.Photo{Media: tg.FromCloud(msg.Photo.FileId())})
+				}
+				if msg.Video != nil {
+					album = append(album, &tg.Video{Media: tg.FromCloud(msg.Video.FileId)})
+				}
 			}
-			chatId := album[0].Message.Chat.Id
 
-			_, err := tg.CopyMessages(ctx, chatId, chatId, messages)
+			_, err := tg.SendMediaGroup(ctx, updates[0].Message.Chat.Id, album)
 			return err
 		})).
-		Start()
+		Start(
+			&tg.Update{UpdateId: -1, Message: &tg.Message{Chat: &tg.Chat{Id: chat}, From: &tg.User{Id: chat}, Photo: pic.Photo}},
+			&tg.Update{UpdateId: -1, Message: &tg.Message{Chat: &tg.Chat{Id: chat}, From: &tg.User{Id: chat}, Video: vid.Video}},
+			&tg.Update{UpdateId: -1, Message: &tg.Message{Chat: &tg.Chat{Id: chat}, From: &tg.User{Id: chat}, Video: vid.Video, MediaGroupId: "1"}},
+			&tg.Update{UpdateId: -1, Message: &tg.Message{Chat: &tg.Chat{Id: chat}, From: &tg.User{Id: chat}, Video: vid.Video, MediaGroupId: "1"}},
+		)
+
+	require.Equal(t, int64(3), counter.Load())
 }
 
 func TestIntegrationHandleCallback(t *testing.T) {
-	t.Skip()
+	t.Skip("integration testing could be done only by hand, afaik")
 
 	type Info struct {
 		Id     int64  `json:"i"`
@@ -222,7 +238,7 @@ func TestIntegrationHandleCallback(t *testing.T) {
 	}
 
 	tg.NewFromEnv().
-		OnError(tg.OnErrorLog).
+		OnError(tg.OnErrorPanic).
 		Plugin(tg.PluginLogger(slog.LevelDebug)).
 		Branch(tg.OnCallbackWithData[Info](), func(ctx context.Context, upd *tg.Update) error {
 			value, err := tg.CallbackData[Info](upd)
@@ -232,6 +248,10 @@ func TestIntegrationHandleCallback(t *testing.T) {
 			callback := upd.CallbackQuery
 			_, err = tg.SendMessage(ctx, callback.From.Id, fmt.Sprintf("%#v", value))
 			_, err = tg.AnswerCallbackQuery(ctx, callback.Id, &tg.OptAnswerCallbackQuery{Text: "love you"})
+
+			require.Equal(t, chat, value.ChatId)
+			require.Equal(t, "msg_text", value.Str)
+
 			return err
 		}).
 		Branch(tg.OnCallback, func(ctx context.Context, upd *tg.Update) error {
@@ -257,12 +277,15 @@ func TestIntegrationHandleCallback(t *testing.T) {
 }
 
 func TestIntegrationOnNewGroup(t *testing.T) {
-	t.Skip()
+	bot := tg.NewFromEnv()
+	time.AfterFunc(time.Second*6, bot.Stop)
 
-	tg.NewFromEnv().
-		OnError(tg.OnErrorLog).
+	counter := &atomic.Int64{}
+	bot.
+		OnError(tg.OnErrorPanic).
 		Plugin(tg.PluginLogger(slog.LevelDebug)).
 		Branch(tg.OnAddedToGroup, func(ctx context.Context, upd *tg.Update) error {
+			defer counter.Add(1)
 			msg := upd.Message
 
 			_, _ = tg.SendMessage(ctx, chat, "new chat")
@@ -270,19 +293,12 @@ func TestIntegrationOnNewGroup(t *testing.T) {
 			return err
 		}).
 		Command("/start", tg.CommonTextReply("+++")).
-		Start()
-}
+		Start(
+			&tg.Update{UpdateId: -1, Message: &tg.Message{Chat: &tg.Chat{Id: chat}, GroupChatCreated: true}},
+			&tg.Update{UpdateId: -1, Message: &tg.Message{Chat: &tg.Chat{Id: chat}, Text: "/start"}},
+		)
 
-func TestOnPrivate(t *testing.T) {
-	t.Skip()
-
-	tg.NewFromEnv().
-		Plugin(tg.PluginLogger(slog.LevelDebug)).
-		Filter(tg.OnPrivate).
-		Handle(func(ctx context.Context, upd *tg.Update) error {
-			return nil
-		}).
-		Start()
+	require.Equal(t, int64(1), counter.Load())
 }
 
 func TestContext(t *testing.T) {
