@@ -141,7 +141,12 @@ func TestIntegrationLong(t *testing.T) {
 		}
 		ctx := bot.Context()
 
-		sent, err := tg.SendVideo(ctx, chat, tg.FromDisk(video), &tg.OptSendVideo{Caption: "this is mp4"})
+		sent, err := tg.SendVideo(ctx, chat, tg.FromDisk(video, "custom.mp4"), &tg.OptSendVideo{Caption: "this is mp4"})
+		require.NoError(t, err)
+		require.Equal(t, "this is mp4", sent.Caption)
+		require.Equal(t, "custom.mp4", sent.Video.FileName)
+
+		sent, err = tg.SendVideo(ctx, chat, tg.FromDisk(video), &tg.OptSendVideo{Caption: "this is mp4"})
 		require.NoError(t, err)
 		require.Equal(t, "this is mp4", sent.Caption)
 

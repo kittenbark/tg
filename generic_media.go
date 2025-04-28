@@ -31,8 +31,10 @@ var (
 
 // LocalFile This object represents the contents of a file to be uploaded.
 // Must be posted using multipart/form-data in the usual way that files are uploaded via the browser.
+// Use tg.FromDisk(filename) for uploading files.
 type LocalFile struct {
-	path string
+	Path string
+	Name string
 }
 
 func (file *LocalFile) WriteMultipartAsAttachment(multipart *multipart.Writer) (value string, err error) {
@@ -44,12 +46,12 @@ func (file *LocalFile) WriteMultipartAsAttachment(multipart *multipart.Writer) (
 }
 
 func (file *LocalFile) WriteMultipart(multipart *multipart.Writer, field string) error {
-	fileWriter, err := multipart.CreateFormFile(field, filepath.Base(file.path))
+	fileWriter, err := multipart.CreateFormFile(field, file.Name)
 	if err != nil {
 		return err
 	}
 
-	fileReader, err := os.Open(file.path)
+	fileReader, err := os.Open(file.Path)
 	if err != nil {
 		return err
 	}
@@ -61,8 +63,12 @@ func (file *LocalFile) WriteMultipart(multipart *multipart.Writer, field string)
 	return nil
 }
 
-func FromDisk(path string) *LocalFile {
-	return &LocalFile{path: path}
+// FromDisk creates an InputFile suitable for uploading media/files.
+func FromDisk(path string, name ...string) *LocalFile {
+	return &LocalFile{
+		Path: path,
+		Name: at(name, 0, filepath.Base(path)),
+	}
 }
 
 // CloudFile could be a telegram file_id or link to file (i.e. imgbb.com/abcde123).

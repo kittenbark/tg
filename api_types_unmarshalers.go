@@ -279,13 +279,13 @@ func (impl *ChatFullInfo) UnmarshalJSON(data []byte) error {
 		Title string `json:"title"`
 		// Optional. Username, for private chats, supergroups and channels if available
 		Username string `json:"username"`
-		// Optional. First name of the other party in a private chat
+		// Optional. First Name of the other party in a private chat
 		FirstName string `json:"first_name"`
-		// Optional. Last name of the other party in a private chat
+		// Optional. Last Name of the other party in a private chat
 		LastName string `json:"last_name"`
 		// Optional. True, if the supergroup chat is a forum (has topics enabled)
 		IsForum bool `json:"is_forum"`
-		// Identifier of the accent color for the chat name and backgrounds of the chat photo, reply header, and link preview.
+		// Identifier of the accent color for the chat Name and backgrounds of the chat photo, reply header, and link preview.
 		// See accent colors for more details.
 		AccentColorId int64 `json:"accent_color_id"`
 		// The maximum number of reactions that can be set on a message in the chat
@@ -356,11 +356,11 @@ func (impl *ChatFullInfo) UnmarshalJSON(data []byte) error {
 		HasProtectedContent bool `json:"has_protected_content"`
 		// Optional. True, if new chat members will have access to old messages; available only to chat administrators
 		HasVisibleHistory bool `json:"has_visible_history"`
-		// Optional. For supergroups, name of the group sticker set
+		// Optional. For supergroups, Name of the group sticker set
 		StickerSetName string `json:"sticker_set_name"`
 		// Optional. True, if the bot can change the group sticker set
 		CanSetStickerSet bool `json:"can_set_sticker_set"`
-		// Optional. For supergroups, the name of the group's custom emoji sticker set.
+		// Optional. For supergroups, the Name of the group's custom emoji sticker set.
 		// Custom emoji from this set can be used by all users and bots in the group.
 		CustomEmojiStickerSetName string `json:"custom_emoji_sticker_set_name"`
 		// Optional. Unique identifier for the linked chat, i.e.
@@ -3438,9 +3438,9 @@ func (impl *InlineQueryResultContact) UnmarshalJSON(data []byte) error {
 		Id string `json:"id"`
 		// Contact's phone number
 		PhoneNumber string `json:"phone_number"`
-		// Contact's first name
+		// Contact's first Name
 		FirstName string `json:"first_name"`
-		// Optional. Contact's last name
+		// Optional. Contact's last Name
 		LastName string `json:"last_name"`
 		// Optional. Additional data about the contact in the form of a vCard, 0-2048 bytes
 		Vcard string `json:"vcard"`
@@ -5992,7 +5992,7 @@ func (impl *Message) UnmarshalJSON(data []byte) error {
 		UsersShared *UsersShared `json:"users_shared"`
 		// Optional. Service message: a chat was shared with the bot
 		ChatShared *ChatShared `json:"chat_shared"`
-		// Optional. The domain name of the website on which the user has logged in.
+		// Optional. The domain Name of the website on which the user has logged in.
 		// More about Telegram Login: https://core.telegram.org/widgets/login
 		ConnectedWebsite string `json:"connected_website"`
 		// Optional.

@@ -61,7 +61,7 @@ func (bot *Bot) Default(handler HandlerFunc) *Bot {
 	return bot
 }
 
-// Command and only that command, if message do not start with "/" and the command's name,
+// Command and only that command, if message do not start with "/" and the command's Name,
 // the update will be passed below the tree.
 //
 // Example:
