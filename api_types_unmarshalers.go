@@ -27,6 +27,11 @@ func (impl *BackgroundTypeFill) UnmarshalJSON(data []byte) error {
 	impl.DarkThemeDimming = inst.DarkThemeDimming
 	if inst.Fill != nil && inst.Fill.Type == nil {
 		switch *inst.Fill.Type {
+		case "solid":
+			impl.Fill = &BackgroundFillSolid{
+				Type:  deref(inst.Fill.Type),
+				Color: deref(inst.Fill.Color),
+			}
 		case "freeform_gradient":
 			impl.Fill = &BackgroundFillFreeformGradient{
 				Type:   deref(inst.Fill.Type),
@@ -38,11 +43,6 @@ func (impl *BackgroundTypeFill) UnmarshalJSON(data []byte) error {
 				TopColor:      deref(inst.Fill.TopColor),
 				BottomColor:   deref(inst.Fill.BottomColor),
 				RotationAngle: deref(inst.Fill.RotationAngle),
-			}
-		case "solid":
-			impl.Fill = &BackgroundFillSolid{
-				Type:  deref(inst.Fill.Type),
-				Color: deref(inst.Fill.Color),
 			}
 		}
 	}
@@ -129,6 +129,12 @@ func (impl *ChatBackground) UnmarshalJSON(data []byte) error {
 	}
 	if inst.Type != nil && inst.Type.Type == nil {
 		switch *inst.Type.Type {
+		case "fill":
+			impl.Type = &BackgroundTypeFill{
+				Type:             deref(inst.Type.Type),
+				Fill:             deref(inst.Type.Fill),
+				DarkThemeDimming: deref(inst.Type.DarkThemeDimming),
+			}
 		case "pattern":
 			impl.Type = &BackgroundTypePattern{
 				Type:       deref(inst.Type.Type),
@@ -150,12 +156,6 @@ func (impl *ChatBackground) UnmarshalJSON(data []byte) error {
 			impl.Type = &BackgroundTypeChatTheme{
 				Type:      deref(inst.Type.Type),
 				ThemeName: deref(inst.Type.ThemeName),
-			}
-		case "fill":
-			impl.Type = &BackgroundTypeFill{
-				Type:             deref(inst.Type.Type),
-				Fill:             deref(inst.Type.Fill),
-				DarkThemeDimming: deref(inst.Type.DarkThemeDimming),
 			}
 		}
 	}
@@ -239,6 +239,11 @@ func (impl *ChatBoostRemoved) UnmarshalJSON(data []byte) error {
 	impl.RemoveDate = inst.RemoveDate
 	if inst.Source != nil && inst.Source.Source == nil {
 		switch *inst.Source.Source {
+		case "premium":
+			impl.Source = &ChatBoostSourcePremium{
+				Source: deref(inst.Source.Source),
+				User:   deref(inst.Source.User),
+			}
 		case "gift_code":
 			impl.Source = &ChatBoostSourceGiftCode{
 				Source: deref(inst.Source.Source),
@@ -251,11 +256,6 @@ func (impl *ChatBoostRemoved) UnmarshalJSON(data []byte) error {
 				User:              deref(inst.Source.User),
 				PrizeStarCount:    deref(inst.Source.PrizeStarCount),
 				IsUnclaimed:       deref(inst.Source.IsUnclaimed),
-			}
-		case "premium":
-			impl.Source = &ChatBoostSourcePremium{
-				Source: deref(inst.Source.Source),
-				User:   deref(inst.Source.User),
 			}
 		}
 	}
@@ -279,13 +279,13 @@ func (impl *ChatFullInfo) UnmarshalJSON(data []byte) error {
 		Title string `json:"title"`
 		// Optional. Username, for private chats, supergroups and channels if available
 		Username string `json:"username"`
-		// Optional. First Name of the other party in a private chat
+		// Optional. First name of the other party in a private chat
 		FirstName string `json:"first_name"`
-		// Optional. Last Name of the other party in a private chat
+		// Optional. Last name of the other party in a private chat
 		LastName string `json:"last_name"`
 		// Optional. True, if the supergroup chat is a forum (has topics enabled)
 		IsForum bool `json:"is_forum"`
-		// Identifier of the accent color for the chat Name and backgrounds of the chat photo, reply header, and link preview.
+		// Identifier of the accent color for the chat name and backgrounds of the chat photo, reply header, and link preview.
 		// See accent colors for more details.
 		AccentColorId int64 `json:"accent_color_id"`
 		// The maximum number of reactions that can be set on a message in the chat
@@ -356,11 +356,11 @@ func (impl *ChatFullInfo) UnmarshalJSON(data []byte) error {
 		HasProtectedContent bool `json:"has_protected_content"`
 		// Optional. True, if new chat members will have access to old messages; available only to chat administrators
 		HasVisibleHistory bool `json:"has_visible_history"`
-		// Optional. For supergroups, Name of the group sticker set
+		// Optional. For supergroups, name of the group sticker set
 		StickerSetName string `json:"sticker_set_name"`
 		// Optional. True, if the bot can change the group sticker set
 		CanSetStickerSet bool `json:"can_set_sticker_set"`
-		// Optional. For supergroups, the Name of the group's custom emoji sticker set.
+		// Optional. For supergroups, the name of the group's custom emoji sticker set.
 		// Custom emoji from this set can be used by all users and bots in the group.
 		CustomEmojiStickerSetName string `json:"custom_emoji_sticker_set_name"`
 		// Optional. Unique identifier for the linked chat, i.e.
@@ -544,35 +544,6 @@ func (impl *ChatMemberUpdated) UnmarshalJSON(data []byte) error {
 	impl.ViaChatFolderInviteLink = inst.ViaChatFolderInviteLink
 	if inst.OldChatMember != nil && inst.OldChatMember.Status == nil {
 		switch *inst.OldChatMember.Status {
-		case "administrator":
-			impl.OldChatMember = &ChatMemberAdministrator{
-				Status:              deref(inst.OldChatMember.Status),
-				User:                deref(inst.OldChatMember.User),
-				CanBeEdited:         deref(inst.OldChatMember.CanBeEdited),
-				IsAnonymous:         deref(inst.OldChatMember.IsAnonymous),
-				CanManageChat:       deref(inst.OldChatMember.CanManageChat),
-				CanDeleteMessages:   deref(inst.OldChatMember.CanDeleteMessages),
-				CanManageVideoChats: deref(inst.OldChatMember.CanManageVideoChats),
-				CanRestrictMembers:  deref(inst.OldChatMember.CanRestrictMembers),
-				CanPromoteMembers:   deref(inst.OldChatMember.CanPromoteMembers),
-				CanChangeInfo:       deref(inst.OldChatMember.CanChangeInfo),
-				CanInviteUsers:      deref(inst.OldChatMember.CanInviteUsers),
-				CanPostStories:      deref(inst.OldChatMember.CanPostStories),
-				CanEditStories:      deref(inst.OldChatMember.CanEditStories),
-				CanDeleteStories:    deref(inst.OldChatMember.CanDeleteStories),
-				CanPostMessages:     deref(inst.OldChatMember.CanPostMessages),
-				CanEditMessages:     deref(inst.OldChatMember.CanEditMessages),
-				CanPinMessages:      deref(inst.OldChatMember.CanPinMessages),
-				CanManageTopics:     deref(inst.OldChatMember.CanManageTopics),
-				CustomTitle:         deref(inst.OldChatMember.CustomTitle),
-			}
-		case "creator":
-			impl.OldChatMember = &ChatMemberOwner{
-				Status:      deref(inst.OldChatMember.Status),
-				User:        deref(inst.OldChatMember.User),
-				IsAnonymous: deref(inst.OldChatMember.IsAnonymous),
-				CustomTitle: deref(inst.OldChatMember.CustomTitle),
-			}
 		case "kicked":
 			impl.OldChatMember = &ChatMemberBanned{
 				Status:    deref(inst.OldChatMember.Status),
@@ -611,10 +582,61 @@ func (impl *ChatMemberUpdated) UnmarshalJSON(data []byte) error {
 				CanManageTopics:       deref(inst.OldChatMember.CanManageTopics),
 				UntilDate:             deref(inst.OldChatMember.UntilDate),
 			}
+		case "administrator":
+			impl.OldChatMember = &ChatMemberAdministrator{
+				Status:              deref(inst.OldChatMember.Status),
+				User:                deref(inst.OldChatMember.User),
+				CanBeEdited:         deref(inst.OldChatMember.CanBeEdited),
+				IsAnonymous:         deref(inst.OldChatMember.IsAnonymous),
+				CanManageChat:       deref(inst.OldChatMember.CanManageChat),
+				CanDeleteMessages:   deref(inst.OldChatMember.CanDeleteMessages),
+				CanManageVideoChats: deref(inst.OldChatMember.CanManageVideoChats),
+				CanRestrictMembers:  deref(inst.OldChatMember.CanRestrictMembers),
+				CanPromoteMembers:   deref(inst.OldChatMember.CanPromoteMembers),
+				CanChangeInfo:       deref(inst.OldChatMember.CanChangeInfo),
+				CanInviteUsers:      deref(inst.OldChatMember.CanInviteUsers),
+				CanPostStories:      deref(inst.OldChatMember.CanPostStories),
+				CanEditStories:      deref(inst.OldChatMember.CanEditStories),
+				CanDeleteStories:    deref(inst.OldChatMember.CanDeleteStories),
+				CanPostMessages:     deref(inst.OldChatMember.CanPostMessages),
+				CanEditMessages:     deref(inst.OldChatMember.CanEditMessages),
+				CanPinMessages:      deref(inst.OldChatMember.CanPinMessages),
+				CanManageTopics:     deref(inst.OldChatMember.CanManageTopics),
+				CustomTitle:         deref(inst.OldChatMember.CustomTitle),
+			}
+		case "creator":
+			impl.OldChatMember = &ChatMemberOwner{
+				Status:      deref(inst.OldChatMember.Status),
+				User:        deref(inst.OldChatMember.User),
+				IsAnonymous: deref(inst.OldChatMember.IsAnonymous),
+				CustomTitle: deref(inst.OldChatMember.CustomTitle),
+			}
 		}
 	}
 	if inst.NewChatMember != nil && inst.NewChatMember.Status == nil {
 		switch *inst.NewChatMember.Status {
+		case "administrator":
+			impl.NewChatMember = &ChatMemberAdministrator{
+				Status:              deref(inst.NewChatMember.Status),
+				User:                deref(inst.NewChatMember.User),
+				CanBeEdited:         deref(inst.NewChatMember.CanBeEdited),
+				IsAnonymous:         deref(inst.NewChatMember.IsAnonymous),
+				CanManageChat:       deref(inst.NewChatMember.CanManageChat),
+				CanDeleteMessages:   deref(inst.NewChatMember.CanDeleteMessages),
+				CanManageVideoChats: deref(inst.NewChatMember.CanManageVideoChats),
+				CanRestrictMembers:  deref(inst.NewChatMember.CanRestrictMembers),
+				CanPromoteMembers:   deref(inst.NewChatMember.CanPromoteMembers),
+				CanChangeInfo:       deref(inst.NewChatMember.CanChangeInfo),
+				CanInviteUsers:      deref(inst.NewChatMember.CanInviteUsers),
+				CanPostStories:      deref(inst.NewChatMember.CanPostStories),
+				CanEditStories:      deref(inst.NewChatMember.CanEditStories),
+				CanDeleteStories:    deref(inst.NewChatMember.CanDeleteStories),
+				CanPostMessages:     deref(inst.NewChatMember.CanPostMessages),
+				CanEditMessages:     deref(inst.NewChatMember.CanEditMessages),
+				CanPinMessages:      deref(inst.NewChatMember.CanPinMessages),
+				CanManageTopics:     deref(inst.NewChatMember.CanManageTopics),
+				CustomTitle:         deref(inst.NewChatMember.CustomTitle),
+			}
 		case "creator":
 			impl.NewChatMember = &ChatMemberOwner{
 				Status:      deref(inst.NewChatMember.Status),
@@ -659,28 +681,6 @@ func (impl *ChatMemberUpdated) UnmarshalJSON(data []byte) error {
 				CanPinMessages:        deref(inst.NewChatMember.CanPinMessages),
 				CanManageTopics:       deref(inst.NewChatMember.CanManageTopics),
 				UntilDate:             deref(inst.NewChatMember.UntilDate),
-			}
-		case "administrator":
-			impl.NewChatMember = &ChatMemberAdministrator{
-				Status:              deref(inst.NewChatMember.Status),
-				User:                deref(inst.NewChatMember.User),
-				CanBeEdited:         deref(inst.NewChatMember.CanBeEdited),
-				IsAnonymous:         deref(inst.NewChatMember.IsAnonymous),
-				CanManageChat:       deref(inst.NewChatMember.CanManageChat),
-				CanDeleteMessages:   deref(inst.NewChatMember.CanDeleteMessages),
-				CanManageVideoChats: deref(inst.NewChatMember.CanManageVideoChats),
-				CanRestrictMembers:  deref(inst.NewChatMember.CanRestrictMembers),
-				CanPromoteMembers:   deref(inst.NewChatMember.CanPromoteMembers),
-				CanChangeInfo:       deref(inst.NewChatMember.CanChangeInfo),
-				CanInviteUsers:      deref(inst.NewChatMember.CanInviteUsers),
-				CanPostStories:      deref(inst.NewChatMember.CanPostStories),
-				CanEditStories:      deref(inst.NewChatMember.CanEditStories),
-				CanDeleteStories:    deref(inst.NewChatMember.CanDeleteStories),
-				CanPostMessages:     deref(inst.NewChatMember.CanPostMessages),
-				CanEditMessages:     deref(inst.NewChatMember.CanEditMessages),
-				CanPinMessages:      deref(inst.NewChatMember.CanPinMessages),
-				CanManageTopics:     deref(inst.NewChatMember.CanManageTopics),
-				CustomTitle:         deref(inst.NewChatMember.CustomTitle),
 			}
 		}
 	}
@@ -779,6 +779,18 @@ func (impl *ExternalReplyInfo) UnmarshalJSON(data []byte) error {
 	impl.Venue = inst.Venue
 	if inst.Origin != nil && inst.Origin.Type == nil {
 		switch *inst.Origin.Type {
+		case "hidden_user":
+			impl.Origin = &MessageOriginHiddenUser{
+				Type:           deref(inst.Origin.Type),
+				Date:           deref(inst.Origin.Date),
+				SenderUserName: deref(inst.Origin.SenderUserName),
+			}
+		case "user":
+			impl.Origin = &MessageOriginUser{
+				Type:       deref(inst.Origin.Type),
+				Date:       deref(inst.Origin.Date),
+				SenderUser: deref(inst.Origin.SenderUser),
+			}
 		case "channel":
 			impl.Origin = &MessageOriginChannel{
 				Type:            deref(inst.Origin.Type),
@@ -793,18 +805,6 @@ func (impl *ExternalReplyInfo) UnmarshalJSON(data []byte) error {
 				Date:            deref(inst.Origin.Date),
 				SenderChat:      deref(inst.Origin.SenderChat),
 				AuthorSignature: deref(inst.Origin.AuthorSignature),
-			}
-		case "hidden_user":
-			impl.Origin = &MessageOriginHiddenUser{
-				Type:           deref(inst.Origin.Type),
-				Date:           deref(inst.Origin.Date),
-				SenderUserName: deref(inst.Origin.SenderUserName),
-			}
-		case "user":
-			impl.Origin = &MessageOriginUser{
-				Type:       deref(inst.Origin.Type),
-				Date:       deref(inst.Origin.Date),
-				SenderUser: deref(inst.Origin.SenderUser),
 			}
 		}
 	}
@@ -3438,9 +3438,9 @@ func (impl *InlineQueryResultContact) UnmarshalJSON(data []byte) error {
 		Id string `json:"id"`
 		// Contact's phone number
 		PhoneNumber string `json:"phone_number"`
-		// Contact's first Name
+		// Contact's first name
 		FirstName string `json:"first_name"`
-		// Optional. Contact's last Name
+		// Optional. Contact's last name
 		LastName string `json:"last_name"`
 		// Optional. Additional data about the contact in the form of a vCard, 0-2048 bytes
 		Vcard string `json:"vcard"`
@@ -5992,7 +5992,7 @@ func (impl *Message) UnmarshalJSON(data []byte) error {
 		UsersShared *UsersShared `json:"users_shared"`
 		// Optional. Service message: a chat was shared with the bot
 		ChatShared *ChatShared `json:"chat_shared"`
-		// Optional. The domain Name of the website on which the user has logged in.
+		// Optional. The domain name of the website on which the user has logged in.
 		// More about Telegram Login: https://core.telegram.org/widgets/login
 		ConnectedWebsite string `json:"connected_website"`
 		// Optional.

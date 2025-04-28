@@ -11,7 +11,7 @@ func AddStickerToSet(ctx context.Context, userId int64, name string, sticker *In
 	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		UserId  int64         `json:"user_id"`
-		Name    string        `json:"Name"`
+		Name    string        `json:"name"`
 		Sticker *InputSticker `json:"sticker"`
 	}
 	request := &Request{
@@ -414,7 +414,7 @@ func CreateChatInviteLink(ctx context.Context, chatId int64, opts ...*OptCreateC
 	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId             int64  `json:"chat_id"`
-		Name               string `json:"Name,omitempty"`
+		Name               string `json:"name,omitempty"`
 		ExpireDate         int64  `json:"expire_date,omitempty"`
 		MemberLimit        int64  `json:"member_limit,omitempty"`
 		CreatesJoinRequest bool   `json:"creates_join_request,omitempty"`
@@ -455,7 +455,7 @@ func CreateChatSubscriptionInviteLink(ctx context.Context, chatId int64, subscri
 	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId             int64  `json:"chat_id"`
-		Name               string `json:"Name,omitempty"`
+		Name               string `json:"name,omitempty"`
 		SubscriptionPeriod int64  `json:"subscription_period"`
 		SubscriptionPrice  int64  `json:"subscription_price"`
 	}
@@ -484,7 +484,7 @@ func CreateForumTopic(ctx context.Context, chatId int64, name string, opts ...*O
 	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId            int64  `json:"chat_id"`
-		Name              string `json:"Name"`
+		Name              string `json:"name"`
 		IconColor         int64  `json:"icon_color,omitempty"`
 		IconCustomEmojiId string `json:"icon_custom_emoji_id,omitempty"`
 	}
@@ -626,7 +626,7 @@ func CreateNewStickerSet(ctx context.Context, userId int64, name string, title s
 	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		UserId          int64           `json:"user_id"`
-		Name            string          `json:"Name"`
+		Name            string          `json:"name"`
 		Title           string          `json:"title"`
 		Stickers        []*InputSticker `json:"stickers"`
 		StickerType     string          `json:"sticker_type,omitempty"`
@@ -801,7 +801,7 @@ func DeleteStickerSet(ctx context.Context, name string) (bool, error) {
 	schedule(ctx, 0, 1)
 	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
-		Name string `json:"Name"`
+		Name string `json:"name"`
 	}
 	request := &Request{
 		Name: name,
@@ -839,7 +839,7 @@ func EditChatInviteLink(ctx context.Context, chatId int64, inviteLink string, op
 	type Request struct {
 		ChatId             int64  `json:"chat_id"`
 		InviteLink         string `json:"invite_link"`
-		Name               string `json:"Name,omitempty"`
+		Name               string `json:"name,omitempty"`
 		ExpireDate         int64  `json:"expire_date,omitempty"`
 		MemberLimit        int64  `json:"member_limit,omitempty"`
 		CreatesJoinRequest bool   `json:"creates_join_request,omitempty"`
@@ -881,7 +881,7 @@ func EditChatSubscriptionInviteLink(ctx context.Context, chatId int64, inviteLin
 	type Request struct {
 		ChatId     int64  `json:"chat_id"`
 		InviteLink string `json:"invite_link"`
-		Name       string `json:"Name,omitempty"`
+		Name       string `json:"name,omitempty"`
 	}
 	request := &Request{
 		ChatId:     chatId,
@@ -899,7 +899,7 @@ type OptEditChatSubscriptionInviteLink struct {
 	Name string
 }
 
-// EditForumTopic Use this method to edit Name and icon of a topic in a forum supergroup chat. Returns True on success.
+// EditForumTopic Use this method to edit name and icon of a topic in a forum supergroup chat. Returns True on success.
 // The bot must be an administrator in the chat for this to work and must have the can_manage_topics administrator rights, unless it is the creator of the topic.
 func EditForumTopic(ctx context.Context, chatId int64, messageThreadId int64, opts ...*OptEditForumTopic) (bool, error) {
 	schedule(ctx, chatId, 1)
@@ -907,7 +907,7 @@ func EditForumTopic(ctx context.Context, chatId int64, messageThreadId int64, op
 	type Request struct {
 		ChatId            int64  `json:"chat_id"`
 		MessageThreadId   int64  `json:"message_thread_id"`
-		Name              string `json:"Name,omitempty"`
+		Name              string `json:"name,omitempty"`
 		IconCustomEmojiId string `json:"icon_custom_emoji_id,omitempty"`
 	}
 	request := &Request{
@@ -930,7 +930,7 @@ type OptEditForumTopic struct {
 	IconCustomEmojiId string
 }
 
-// EditGeneralForumTopic Use this method to edit the Name of the 'General' topic in a forum supergroup chat.
+// EditGeneralForumTopic Use this method to edit the name of the 'General' topic in a forum supergroup chat.
 // The bot must be an administrator in the chat for this to work and must have the can_manage_topics administrator rights.
 // Returns True on success.
 func EditGeneralForumTopic(ctx context.Context, chatId int64, name string) (bool, error) {
@@ -938,7 +938,7 @@ func EditGeneralForumTopic(ctx context.Context, chatId int64, name string) (bool
 	defer scheduleDone(ctx, chatId, 1)
 	type Request struct {
 		ChatId int64  `json:"chat_id"`
-		Name   string `json:"Name"`
+		Name   string `json:"name"`
 	}
 	request := &Request{
 		ChatId: chatId,
@@ -1452,7 +1452,7 @@ func GetCustomEmojiStickers(ctx context.Context, customEmojiIds []string) ([]*St
 }
 
 // GetFile Use this method to get basic information about a file and prepare it for downloading. For the moment, bots can download files of up to 20MB in size. On success, a File object is returned. The file can then be downloaded via the link https://api.telegram.org/file/bot<token>/<file_path>, where <file_path> is taken from the response. It is guaranteed that the link will be valid for at least 1 hour. When the link expires, a new one can be requested by calling getFile again.
-// Note: This function may not preserve the original file Name and MIME type. You should save the file's MIME type and Name (if available) when the File object is received.
+// Note: This function may not preserve the original file name and MIME type. You should save the file's MIME type and name (if available) when the File object is received.
 func GetFile(ctx context.Context, fileId string) (*File, error) {
 	schedule(ctx, 0, 1)
 	defer scheduleDone(ctx, 0, 1)
@@ -1588,7 +1588,7 @@ type OptGetMyDescription struct {
 	LanguageCode string
 }
 
-// GetMyName Use this method to get the current bot Name for the given user language. Returns BotName on success.
+// GetMyName Use this method to get the current bot name for the given user language. Returns BotName on success.
 func GetMyName(ctx context.Context, opts ...*OptGetMyName) (*BotName, error) {
 	schedule(ctx, 0, 1)
 	defer scheduleDone(ctx, 0, 1)
@@ -1659,7 +1659,7 @@ func GetStickerSet(ctx context.Context, name string) (*StickerSet, error) {
 	schedule(ctx, 0, 1)
 	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
-		Name string `json:"Name"`
+		Name string `json:"name"`
 	}
 	request := &Request{
 		Name: name,
@@ -1979,7 +1979,7 @@ func ReplaceStickerInSet(ctx context.Context, userId int64, name string, oldStic
 	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
 		UserId     int64         `json:"user_id"`
-		Name       string        `json:"Name"`
+		Name       string        `json:"name"`
 		OldSticker string        `json:"old_sticker"`
 		Sticker    *InputSticker `json:"sticker"`
 	}
@@ -2537,6 +2537,72 @@ type OptSendDocument struct {
 	MessageEffectId             string
 	ReplyParameters             *ReplyParameters
 	ReplyMarkup                 VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
+}
+
+type VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply interface {
+	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup
+	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup
+	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove
+	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply
+}
+
+var (
+	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &InlineKeyboardMarkup{}
+	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ReplyKeyboardMarkup{}
+	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ReplyKeyboardRemove{}
+	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ForceReply{}
+)
+
+func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
+	return impl
+}
+func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
+	return nil
+}
+func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
+	return nil
+}
+func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
+	return nil
+}
+
+func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
+	return nil
+}
+func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
+	return impl
+}
+func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
+	return nil
+}
+func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
+	return nil
+}
+
+func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
+	return nil
+}
+func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
+	return nil
+}
+func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
+	return impl
+}
+func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
+	return nil
+}
+
+func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
+	return nil
+}
+func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
+	return nil
+}
+func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
+	return nil
+}
+func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
+	return impl
 }
 
 // SendGame Use this method to send a game. On success, the sent Message is returned.
@@ -3428,72 +3494,6 @@ type OptSendVenue struct {
 	ReplyMarkup          VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
 }
 
-type VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply interface {
-	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup
-	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup
-	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove
-	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply
-}
-
-var (
-	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &InlineKeyboardMarkup{}
-	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ReplyKeyboardMarkup{}
-	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ReplyKeyboardRemove{}
-	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ForceReply{}
-)
-
-func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
-	return impl
-}
-func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
-	return nil
-}
-func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
-	return nil
-}
-func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
-	return nil
-}
-
-func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
-	return nil
-}
-func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
-	return impl
-}
-func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
-	return nil
-}
-func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
-	return nil
-}
-
-func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
-	return nil
-}
-func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
-	return nil
-}
-func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
-	return impl
-}
-func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
-	return nil
-}
-
-func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
-	return nil
-}
-func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
-	return nil
-}
-func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
-	return nil
-}
-func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
-	return impl
-}
-
 // SendVideo Use this method to send video files, Telegram clients support MPEG4 videos (other formats may be sent as Document).
 // On success, the sent Message is returned.
 // Bots can currently send video files of up to 50 MB in size, this limit may be changed in the future.
@@ -3916,7 +3916,7 @@ func SetCustomEmojiStickerSetThumbnail(ctx context.Context, name string, opts ..
 	schedule(ctx, 0, 1)
 	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
-		Name          string `json:"Name"`
+		Name          string `json:"name"`
 		CustomEmojiId string `json:"custom_emoji_id,omitempty"`
 	}
 	request := &Request{
@@ -4095,12 +4095,12 @@ type OptSetMyDescription struct {
 	LanguageCode string
 }
 
-// SetMyName Use this method to change the bot's Name. Returns True on success.
+// SetMyName Use this method to change the bot's name. Returns True on success.
 func SetMyName(ctx context.Context, opts ...*OptSetMyName) (bool, error) {
 	schedule(ctx, 0, 1)
 	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
-		Name         string `json:"Name,omitempty"`
+		Name         string `json:"name,omitempty"`
 		LanguageCode string `json:"language_code,omitempty"`
 	}
 	request := &Request{}
@@ -4248,7 +4248,7 @@ func SetStickerSetThumbnail(ctx context.Context, name string, userId int64, form
 	schedule(ctx, 0, 1)
 	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
-		Name      string    `json:"Name"`
+		Name      string    `json:"name"`
 		UserId    int64     `json:"user_id"`
 		Thumbnail InputFile `json:"thumbnail,omitempty"`
 		Format    string    `json:"format"`
@@ -4275,7 +4275,7 @@ func SetStickerSetTitle(ctx context.Context, name string, title string) (bool, e
 	schedule(ctx, 0, 1)
 	defer scheduleDone(ctx, 0, 1)
 	type Request struct {
-		Name  string `json:"Name"`
+		Name  string `json:"name"`
 		Title string `json:"title"`
 	}
 	request := &Request{

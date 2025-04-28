@@ -24,7 +24,7 @@ type Animation struct {
 	// Type of the result, must be animation
 	Type string `json:"type" default:"animation"`
 	// File to send. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
-	// Pass a file_id to send a file that exists on the Telegram servers (recommended), pass an HTTP URL for Telegram to get a file from the Internet, or pass "attach://<file_attach_name>" to upload a new one using multipart/form-data under <file_attach_name> Name.
+	// Pass a file_id to send a file that exists on the Telegram servers (recommended), pass an HTTP URL for Telegram to get a file from the Internet, or pass "attach://<file_attach_name>" to upload a new one using multipart/form-data under <file_attach_name> name.
 	Media InputFile `json:"media"`
 	// Optional. Thumbnail of the file sent; can be ignored if thumbnail generation for the file is supported server-side.
 	// The thumbnail should be in JPEG format and less than 200 kB in size.
@@ -59,7 +59,7 @@ type Audio struct {
 	// Type of the result, must be audio
 	Type string `json:"type" default:"audio"`
 	// File to send. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
-	// Pass a file_id to send a file that exists on the Telegram servers (recommended), pass an HTTP URL for Telegram to get a file from the Internet, or pass "attach://<file_attach_name>" to upload a new one using multipart/form-data under <file_attach_name> Name.
+	// Pass a file_id to send a file that exists on the Telegram servers (recommended), pass an HTTP URL for Telegram to get a file from the Internet, or pass "attach://<file_attach_name>" to upload a new one using multipart/form-data under <file_attach_name> name.
 	Media InputFile `json:"media"`
 	// Optional. Thumbnail of the file sent; can be ignored if thumbnail generation for the file is supported server-side.
 	// The thumbnail should be in JPEG format and less than 200 kB in size.
@@ -441,10 +441,10 @@ type BotDescription struct {
 	Description string `json:"description"`
 }
 
-// BotName This object represents the bot's Name.
+// BotName This object represents the bot's name.
 type BotName struct {
-	// The bot's Name
-	Name string `json:"Name"`
+	// The bot's name
+	Name string `json:"name"`
 }
 
 // BotShortDescription This object represents the bot's short description.
@@ -501,7 +501,7 @@ type BusinessMessagesDeleted struct {
 
 // BusinessOpeningHours Describes the opening hours of a business.
 type BusinessOpeningHours struct {
-	// Unique Name of the time zone for which the opening hours are defined
+	// Unique name of the time zone for which the opening hours are defined
 	TimeZoneName string `json:"time_zone_name"`
 	// List of time intervals describing business opening hours
 	OpeningHours []*BusinessOpeningHoursInterval `json:"opening_hours"`
@@ -538,7 +538,7 @@ type CallbackQuery struct {
 	// Optional. Data associated with the callback button.
 	// Be aware that the message originated the query can contain no callback buttons with this data.
 	Data string `json:"data,omitempty"`
-	// Optional. Short Name of a Game to be returned, serves as the unique identifier for the game
+	// Optional. Short name of a Game to be returned, serves as the unique identifier for the game
 	GameShortName string `json:"game_short_name,omitempty"`
 }
 
@@ -554,9 +554,9 @@ type Chat struct {
 	Title string `json:"title,omitempty"`
 	// Optional. Username, for private chats, supergroups and channels if available
 	Username string `json:"username,omitempty"`
-	// Optional. First Name of the other party in a private chat
+	// Optional. First name of the other party in a private chat
 	FirstName string `json:"first_name,omitempty"`
-	// Optional. Last Name of the other party in a private chat
+	// Optional. Last name of the other party in a private chat
 	LastName string `json:"last_name,omitempty"`
 	// Optional. True, if the supergroup chat is a forum (has topics enabled)
 	IsForum bool `json:"is_forum,omitempty"`
@@ -715,13 +715,13 @@ type ChatFullInfo struct {
 	Title string `json:"title,omitempty"`
 	// Optional. Username, for private chats, supergroups and channels if available
 	Username string `json:"username,omitempty"`
-	// Optional. First Name of the other party in a private chat
+	// Optional. First name of the other party in a private chat
 	FirstName string `json:"first_name,omitempty"`
-	// Optional. Last Name of the other party in a private chat
+	// Optional. Last name of the other party in a private chat
 	LastName string `json:"last_name,omitempty"`
 	// Optional. True, if the supergroup chat is a forum (has topics enabled)
 	IsForum bool `json:"is_forum,omitempty"`
-	// Identifier of the accent color for the chat Name and backgrounds of the chat photo, reply header, and link preview.
+	// Identifier of the accent color for the chat name and backgrounds of the chat photo, reply header, and link preview.
 	// See accent colors for more details.
 	AccentColorId int64 `json:"accent_color_id"`
 	// The maximum number of reactions that can be set on a message in the chat
@@ -794,11 +794,11 @@ type ChatFullInfo struct {
 	HasProtectedContent bool `json:"has_protected_content,omitempty"`
 	// Optional. True, if new chat members will have access to old messages; available only to chat administrators
 	HasVisibleHistory bool `json:"has_visible_history,omitempty"`
-	// Optional. For supergroups, Name of the group sticker set
+	// Optional. For supergroups, name of the group sticker set
 	StickerSetName string `json:"sticker_set_name,omitempty"`
 	// Optional. True, if the bot can change the group sticker set
 	CanSetStickerSet bool `json:"can_set_sticker_set,omitempty"`
-	// Optional. For supergroups, the Name of the group's custom emoji sticker set.
+	// Optional. For supergroups, the name of the group's custom emoji sticker set.
 	// Custom emoji from this set can be used by all users and bots in the group.
 	CustomEmojiStickerSetName string `json:"custom_emoji_sticker_set_name,omitempty"`
 	// Optional. Unique identifier for the linked chat, i.e.
@@ -823,8 +823,8 @@ type ChatInviteLink struct {
 	IsPrimary bool `json:"is_primary"`
 	// True, if the link is revoked
 	IsRevoked bool `json:"is_revoked"`
-	// Optional. Invite link Name
-	Name string `json:"Name,omitempty"`
+	// Optional. Invite link name
+	Name string `json:"name,omitempty"`
 	// Optional. Point in time (Unix timestamp) when the link will expire or has been expired
 	ExpireDate int64 `json:"expire_date,omitempty"`
 	// Optional.
@@ -1173,9 +1173,9 @@ type ChosenInlineResult struct {
 type Contact struct {
 	// Contact's phone number
 	PhoneNumber string `json:"phone_number"`
-	// Contact's first Name
+	// Contact's first name
 	FirstName string `json:"first_name"`
-	// Optional. Contact's last Name
+	// Optional. Contact's last name
 	LastName string `json:"last_name,omitempty"`
 	// Optional. Contact's user identifier in Telegram.
 	// This number may have more than 32 significant bits and some programming languages may have difficulty/silent defects in interpreting it.
@@ -1204,7 +1204,7 @@ type Document struct {
 	// Type of the result, must be document
 	Type string `json:"type" default:"document"`
 	// File to send. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
-	// Pass a file_id to send a file that exists on the Telegram servers (recommended), pass an HTTP URL for Telegram to get a file from the Internet, or pass "attach://<file_attach_name>" to upload a new one using multipart/form-data under <file_attach_name> Name.
+	// Pass a file_id to send a file that exists on the Telegram servers (recommended), pass an HTTP URL for Telegram to get a file from the Internet, or pass "attach://<file_attach_name>" to upload a new one using multipart/form-data under <file_attach_name> name.
 	Media InputFile `json:"media"`
 	// Optional. Thumbnail of the file sent; can be ignored if thumbnail generation for the file is supported server-side.
 	// The thumbnail should be in JPEG format and less than 200 kB in size.
@@ -1337,7 +1337,7 @@ type File struct {
 	// It can be bigger than 2^31 and some programming languages may have difficulty/silent defects in interpreting it.
 	// But it has at most 52 significant bits, so a signed 64-bit integer or double-precision float type are safe for storing this value.
 	FileSize int64 `json:"file_size,omitempty"`
-	// Optional. File Path. Use https://api.telegram.org/file/bot<token>/<file_path> to get the file.
+	// Optional. File path. Use https://api.telegram.org/file/bot<token>/<file_path> to get the file.
 	FilePath string `json:"file_path,omitempty"`
 }
 
@@ -1366,7 +1366,7 @@ type ForumTopic struct {
 	// Unique identifier of the forum topic
 	MessageThreadId int64 `json:"message_thread_id"`
 	// Name of the topic
-	Name string `json:"Name"`
+	Name string `json:"name"`
 	// Color of the topic icon in RGB format
 	IconColor int64 `json:"icon_color"`
 	// Optional. Unique identifier of the custom emoji shown as the topic icon
@@ -1381,7 +1381,7 @@ type ForumTopicClosed struct {
 // ForumTopicCreated This object represents a service message about a new forum topic created in the chat.
 type ForumTopicCreated struct {
 	// Name of the topic
-	Name string `json:"Name"`
+	Name string `json:"name"`
 	// Color of the topic icon in RGB format
 	IconColor int64 `json:"icon_color"`
 	// Optional. Unique identifier of the custom emoji shown as the topic icon
@@ -1390,8 +1390,8 @@ type ForumTopicCreated struct {
 
 // ForumTopicEdited This object represents a service message about an edited forum topic.
 type ForumTopicEdited struct {
-	// Optional. New Name of the topic, if it was edited
-	Name string `json:"Name,omitempty"`
+	// Optional. New name of the topic, if it was edited
+	Name string `json:"name,omitempty"`
 	// Optional.
 	// New identifier of the custom emoji shown as the topic icon, if it was edited; an empty string if the icon was removed
 	IconCustomEmojiId string `json:"icon_custom_emoji_id,omitempty"`
@@ -2493,9 +2493,9 @@ type InlineQueryResultContact struct {
 	Id string `json:"id"`
 	// Contact's phone number
 	PhoneNumber string `json:"phone_number"`
-	// Contact's first Name
+	// Contact's first name
 	FirstName string `json:"first_name"`
-	// Optional. Contact's last Name
+	// Optional. Contact's last name
 	LastName string `json:"last_name,omitempty"`
 	// Optional. Additional data about the contact in the form of a vCard, 0-2048 bytes
 	Vcard string `json:"vcard,omitempty"`
@@ -2551,7 +2551,7 @@ type InlineQueryResultGame struct {
 	Type string `json:"type"`
 	// Unique identifier for this result, 1-64 bytes
 	Id string `json:"id"`
-	// Short Name of the game
+	// Short name of the game
 	GameShortName string `json:"game_short_name"`
 	// Optional. Inline keyboard attached to the message
 	ReplyMarkup *InlineKeyboardMarkup `json:"reply_markup,omitempty"`
@@ -2822,9 +2822,9 @@ type InlineQueryResultsButton struct {
 type InputContactMessageContent struct {
 	// Contact's phone number
 	PhoneNumber string `json:"phone_number"`
-	// Contact's first Name
+	// Contact's first name
 	FirstName string `json:"first_name"`
-	// Optional. Contact's last Name
+	// Optional. Contact's last name
 	LastName string `json:"last_name,omitempty"`
 	// Optional. Additional data about the contact in the form of a vCard, 0-2048 bytes
 	Vcard string `json:"vcard,omitempty"`
@@ -2832,7 +2832,7 @@ type InputContactMessageContent struct {
 
 // InputInvoiceMessageContent Represents the content of an invoice message to be sent as the result of an inline query.
 type InputInvoiceMessageContent struct {
-	// Product Name, 1-32 characters
+	// Product name, 1-32 characters
 	Title string `json:"title"`
 	// Product description, 1-255 characters
 	Description string `json:"description"`
@@ -2866,7 +2866,7 @@ type InputInvoiceMessageContent struct {
 	PhotoWidth int64 `json:"photo_width,omitempty"`
 	// Optional. Photo height
 	PhotoHeight int64 `json:"photo_height,omitempty"`
-	// Optional. Pass True if you require the user's full Name to complete the order.
+	// Optional. Pass True if you require the user's full name to complete the order.
 	// Ignored for payments in Telegram Stars.
 	NeedName bool `json:"need_name,omitempty"`
 	// Optional. Pass True if you require the user's phone number to complete the order.
@@ -3085,7 +3085,7 @@ type InputPaidMediaPhoto struct {
 	// Type of the media, must be photo
 	Type string `json:"type"`
 	// File to send. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
-	// Pass a file_id to send a file that exists on the Telegram servers (recommended), pass an HTTP URL for Telegram to get a file from the Internet, or pass "attach://<file_attach_name>" to upload a new one using multipart/form-data under <file_attach_name> Name.
+	// Pass a file_id to send a file that exists on the Telegram servers (recommended), pass an HTTP URL for Telegram to get a file from the Internet, or pass "attach://<file_attach_name>" to upload a new one using multipart/form-data under <file_attach_name> name.
 	Media string `json:"media"`
 }
 
@@ -3094,7 +3094,7 @@ type InputPaidMediaVideo struct {
 	// Type of the media, must be video
 	Type string `json:"type"`
 	// File to send. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
-	// Pass a file_id to send a file that exists on the Telegram servers (recommended), pass an HTTP URL for Telegram to get a file from the Internet, or pass "attach://<file_attach_name>" to upload a new one using multipart/form-data under <file_attach_name> Name.
+	// Pass a file_id to send a file that exists on the Telegram servers (recommended), pass an HTTP URL for Telegram to get a file from the Internet, or pass "attach://<file_attach_name>" to upload a new one using multipart/form-data under <file_attach_name> name.
 	Media string `json:"media"`
 	// Optional. Thumbnail of the file sent; can be ignored if thumbnail generation for the file is supported server-side.
 	// The thumbnail should be in JPEG format and less than 200 kB in size.
@@ -3129,7 +3129,7 @@ type InputPollOption struct {
 // InputSticker This object describes a sticker to be added to a sticker set.
 type InputSticker struct {
 	// The added sticker. Animated and video stickers can't be uploaded via HTTP URL.
-	// Pass a file_id as a String to send a file that already exists on the Telegram servers, pass an HTTP URL as a String for Telegram to get a file from the Internet, upload a new one using multipart/form-data, or pass "attach://<file_attach_name>" to upload a new one using multipart/form-data under <file_attach_name> Name.
+	// Pass a file_id as a String to send a file that already exists on the Telegram servers, pass an HTTP URL as a String for Telegram to get a file from the Internet, upload a new one using multipart/form-data, or pass "attach://<file_attach_name>" to upload a new one using multipart/form-data under <file_attach_name> name.
 	// More information on Sending Files: https://core.telegram.org/bots/api#sending-files
 	// >> either: String
 	Sticker InputFile `json:"sticker"`
@@ -3179,7 +3179,7 @@ type InputVenueMessageContent struct {
 
 // Invoice This object contains basic information about an invoice.
 type Invoice struct {
-	// Product Name
+	// Product name
 	Title string `json:"title"`
 	// Product description
 	Description string `json:"description"`
@@ -3569,7 +3569,7 @@ type Message struct {
 	UsersShared *UsersShared `json:"users_shared,omitempty"`
 	// Optional. Service message: a chat was shared with the bot
 	ChatShared *ChatShared `json:"chat_shared,omitempty"`
-	// Optional. The domain Name of the website on which the user has logged in.
+	// Optional. The domain name of the website on which the user has logged in.
 	// More about Telegram Login: https://core.telegram.org/widgets/login
 	ConnectedWebsite string `json:"connected_website,omitempty"`
 	// Optional.
@@ -3768,8 +3768,8 @@ type MessageReactionUpdated struct {
 
 // OrderInfo This object represents information about an order.
 type OrderInfo struct {
-	// Optional. User Name
-	Name string `json:"Name,omitempty"`
+	// Optional. User name
+	Name string `json:"name,omitempty"`
 	// Optional. User's phone number
 	PhoneNumber string `json:"phone_number,omitempty"`
 	// Optional. User email
@@ -4202,7 +4202,7 @@ type Photo struct {
 	// Type of the result, must be photo
 	Type string `json:"type" default:"photo"`
 	// File to send. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
-	// Pass a file_id to send a file that exists on the Telegram servers (recommended), pass an HTTP URL for Telegram to get a file from the Internet, or pass "attach://<file_attach_name>" to upload a new one using multipart/form-data under <file_attach_name> Name.
+	// Pass a file_id to send a file that exists on the Telegram servers (recommended), pass an HTTP URL for Telegram to get a file from the Internet, or pass "attach://<file_attach_name>" to upload a new one using multipart/form-data under <file_attach_name> name.
 	Media InputFile `json:"media"`
 	// Optional. Caption of the photo to be sent, 0-1024 characters after entities parsing
 	Caption string `json:"caption,omitempty"`
@@ -4551,9 +4551,9 @@ type SharedUser struct {
 	// But it has at most 52 significant bits, so 64-bit integers or double-precision float types are safe for storing these identifiers.
 	// The bot may not have access to the user and could be unable to use this identifier, unless the user is already known to the bot by some other means.
 	UserId int64 `json:"user_id"`
-	// Optional. First Name of the user, if the Name was requested by the bot
+	// Optional. First name of the user, if the name was requested by the bot
 	FirstName string `json:"first_name,omitempty"`
-	// Optional. Last Name of the user, if the Name was requested by the bot
+	// Optional. Last name of the user, if the name was requested by the bot
 	LastName string `json:"last_name,omitempty"`
 	// Optional. Username of the user, if the username was requested by the bot
 	Username string `json:"username,omitempty"`
@@ -4671,8 +4671,8 @@ func (impl *Sticker) DownloadTemp(ctx context.Context, dirAndPattern ...string) 
 
 // StickerSet This object represents a sticker set.
 type StickerSet struct {
-	// Sticker set Name
-	Name string `json:"Name"`
+	// Sticker set name
+	Name string `json:"name"`
 	// Sticker set title
 	Title string `json:"title"`
 	// Type of stickers in the set, currently one of "regular", "mask", "custom_emoji"
@@ -4747,7 +4747,7 @@ type TelegramAnimation struct {
 	Duration int64 `json:"duration"`
 	// Optional. Animation thumbnail as defined by the sender
 	Thumbnail *PhotoSize `json:"thumbnail,omitempty"`
-	// Optional. Original animation Name as defined by the sender
+	// Optional. Original animation filename as defined by the sender
 	FileName string `json:"file_name,omitempty"`
 	// Optional. MIME type of the file as defined by the sender
 	MimeType string `json:"mime_type,omitempty"`
@@ -4777,7 +4777,7 @@ type TelegramAudio struct {
 	Performer string `json:"performer,omitempty"`
 	// Optional. Title of the audio as defined by the sender or by audio tags
 	Title string `json:"title,omitempty"`
-	// Optional. Original Name as defined by the sender
+	// Optional. Original filename as defined by the sender
 	FileName string `json:"file_name,omitempty"`
 	// Optional. MIME type of the file as defined by the sender
 	MimeType string `json:"mime_type,omitempty"`
@@ -4805,7 +4805,7 @@ type TelegramDocument struct {
 	FileUniqueId string `json:"file_unique_id"`
 	// Optional. Document thumbnail as defined by the sender
 	Thumbnail *PhotoSize `json:"thumbnail,omitempty"`
-	// Optional. Original Name as defined by the sender
+	// Optional. Original filename as defined by the sender
 	FileName string `json:"file_name,omitempty"`
 	// Optional. MIME type of the file as defined by the sender
 	MimeType string `json:"mime_type,omitempty"`
@@ -4837,7 +4837,7 @@ type TelegramVideo struct {
 	Duration int64 `json:"duration"`
 	// Optional. Video thumbnail
 	Thumbnail *PhotoSize `json:"thumbnail,omitempty"`
-	// Optional. Original Name as defined by the sender
+	// Optional. Original filename as defined by the sender
 	FileName string `json:"file_name,omitempty"`
 	// Optional. MIME type of the file as defined by the sender
 	MimeType string `json:"mime_type,omitempty"`
@@ -5091,9 +5091,9 @@ type User struct {
 	Id int64 `json:"id"`
 	// True, if this user is a bot
 	IsBot bool `json:"is_bot"`
-	// User's or bot's first Name
+	// User's or bot's first name
 	FirstName string `json:"first_name"`
-	// Optional. User's or bot's last Name
+	// Optional. User's or bot's last name
 	LastName string `json:"last_name,omitempty"`
 	// Optional. User's or bot's username
 	Username string `json:"username,omitempty"`
@@ -5162,7 +5162,7 @@ type Video struct {
 	// Type of the result, must be video
 	Type string `json:"type" default:"video"`
 	// File to send. More information on Sending Files: https://core.telegram.org/bots/api#sending-files
-	// Pass a file_id to send a file that exists on the Telegram servers (recommended), pass an HTTP URL for Telegram to get a file from the Internet, or pass "attach://<file_attach_name>" to upload a new one using multipart/form-data under <file_attach_name> Name.
+	// Pass a file_id to send a file that exists on the Telegram servers (recommended), pass an HTTP URL for Telegram to get a file from the Internet, or pass "attach://<file_attach_name>" to upload a new one using multipart/form-data under <file_attach_name> name.
 	Media InputFile `json:"media"`
 	// Optional. Thumbnail of the file sent; can be ignored if thumbnail generation for the file is supported server-side.
 	// The thumbnail should be in JPEG format and less than 200 kB in size.
