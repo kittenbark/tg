@@ -38,7 +38,7 @@ func NewTestingContext(t *testing.T, cfg *Config) context.Context {
 	return ctx
 }
 
-func SetTestingEnv(t *testing.T, cfg *Config) {
+func SetTestingEnv(t TestingEnv, cfg *Config) {
 	cfg = cfg.WithDefaults()
 
 	mux := http.NewServeMux()
@@ -112,7 +112,12 @@ type Stub struct {
 	Result    func(req *http.Request) (status int, body *Response)
 }
 
-func (stub *Stub) RegisterTesting(t *testing.T, cfg *Config, mux *http.ServeMux) {
+type TestingEnv interface {
+	Fatalf(format string, args ...any)
+	Setenv(key, value string)
+}
+
+func (stub *Stub) RegisterTesting(t TestingEnv, cfg *Config, mux *http.ServeMux) {
 	url := fmt.Sprintf("/bot%s/%s", cfg.Token, strings.TrimLeft(stub.Url, "/"))
 	mux.HandleFunc(url, func(w http.ResponseWriter, req *http.Request) {
 		if stub.Validator != nil && !stub.Validator(req) {

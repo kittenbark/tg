@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"log/slog"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -98,8 +99,7 @@ func TryNew(cfg *Config) (*Bot, error) {
 	}
 
 	switch cfg.DownloadType {
-	case DownloadTypeUnspecified:
-	case DownloadTypeClassic:
+	case DownloadTypeUnspecified, DownloadTypeClassic:
 		ctx = context.WithValue(ctx, ContextFileDownloadType, fileDownloadClassic)
 	case DownloadTypeLocalMove:
 		ctx = context.WithValue(ctx, ContextFileDownloadType, fileDownloadLocalMove)
@@ -109,23 +109,9 @@ func TryNew(cfg *Config) (*Bot, error) {
 		return nil, fmt.Errorf("config: invalid download type: %#v", cfg.DownloadType)
 	}
 
-	onError := []Plugin{}
-	if cfg.OnError != nil {
-		onError = append(onError, PluginOnError(cfg.OnError))
-	} else if cfg.OnErrorByType != "" {
-		switch strings.TrimSpace(cfg.OnErrorByType) {
-		case "ignore":
-			onError = append(onError, PluginOnError(onErrorIgnore))
-		case "log":
-			onError = append(onError, PluginOnError(OnErrorLog))
-		case "exit":
-			onError = append(onError, PluginOnError(OnErrorLog))
-		default:
-			return nil, buildError(cfg.buildType,
-				fmt.Errorf("config: unknown on_error value '%s'", cfg.OnErrorByType),
-				fmt.Errorf("env: unknown onError value '%s' (at '%s')", cfg.OnErrorByType, EnvOnError),
-			)
-		}
+	onError, err := buildPluginsOnError(cfg)
+	if err != nil {
+		return nil, err
 	}
 
 	return &Bot{
@@ -145,6 +131,28 @@ func TryNew(cfg *Config) (*Bot, error) {
 		pollTimeout:    withDefault(cfg.TimeoutPoll, defaultPollingTimeout, 0),
 		updatesOffset:  0,
 	}, nil
+}
+
+func buildPluginsOnError(cfg *Config) ([]Plugin, error) {
+	onError := []Plugin{}
+	if cfg.OnError != nil {
+		onError = append(onError, PluginOnError(cfg.OnError))
+	} else if cfg.OnErrorByType != "" {
+		switch strings.TrimSpace(cfg.OnErrorByType) {
+		case "ignore":
+			onError = append(onError, PluginOnError(onErrorIgnore))
+		case "log":
+			onError = append(onError, PluginOnError(OnErrorLog))
+		case "exit":
+			onError = append(onError, PluginOnError(OnErrorLog))
+		default:
+			return nil, buildError(cfg.buildType,
+				fmt.Errorf("config: unknown on_error value '%s'", cfg.OnErrorByType),
+				fmt.Errorf("env: unknown onError value '%s' (at '%s')", cfg.OnErrorByType, EnvOnError),
+			)
+		}
+	}
+	return onError, nil
 }
 
 func TryNewFromEnv() (*Bot, error) {
@@ -203,6 +211,15 @@ func configFromEnv() (config *Config, err error) {
 			downloadType = DownloadTypeLocalCopy
 		default:
 			return nil, fmt.Errorf("env: unknown '%s' (at %s)", env, EnvDownloadType)
+		}
+	} else if env, ok = os.LookupEnv(EnvApiURL); ok {
+		link, err := url.Parse(env)
+		if err != nil {
+			return nil, fmt.Errorf("env: error '%s' while parsing '%s'", err.Error(), EnvApiURL)
+		}
+		switch strings.ToLower(link.Hostname()) {
+		case "localhost", "127.0.0.1":
+			downloadType = DownloadTypeLocalMove
 		}
 	}
 

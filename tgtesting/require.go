@@ -9,7 +9,6 @@ import (
 	"path"
 	"reflect"
 	"runtime"
-	"testing"
 )
 
 // require he-he.
@@ -17,19 +16,19 @@ var require = &bicycle{}
 
 type bicycle struct{}
 
-func (cycle *bicycle) NoError(t *testing.T, err error, msg ...string) {
+func (cycle *bicycle) NoError(t TestingEnv, err error, msg ...string) {
 	if err != nil {
 		t.Fatalf("require.NoError failed: err '%v' %#v", err, msg)
 	}
 }
 
-func (cycle *bicycle) Error(t *testing.T, err error, msg ...string) {
+func (cycle *bicycle) Error(t TestingEnv, err error, msg ...string) {
 	if err == nil {
 		t.Fatalf("require.Error failed: no error %#v", msg)
 	}
 }
 
-func (cycle *bicycle) Equal(t *testing.T, expected any, actual any, msg ...string) {
+func (cycle *bicycle) Equal(t TestingEnv, expected any, actual any, msg ...string) {
 	if !reflect.DeepEqual(actual, expected) {
 		expectedJSON, _ := json.Marshal(expected)
 		actualJSON, _ := json.Marshal(actual)
@@ -37,27 +36,27 @@ func (cycle *bicycle) Equal(t *testing.T, expected any, actual any, msg ...strin
 	}
 }
 
-func (cycle *bicycle) LessOrEqualInt(t *testing.T, expected int64, actual int64, msg ...string) {
+func (cycle *bicycle) LessOrEqualInt(t TestingEnv, expected int64, actual int64, msg ...string) {
 	if actual > expected {
 		t.Fatalf("require.Equal failed: expected less, but not (%v < %v) %v", actual, expected, msg)
 	}
 }
 
-func (cycle *bicycle) Geq(t *testing.T, than int64, value int64, msg ...string) {
+func (cycle *bicycle) Geq(t TestingEnv, than int64, value int64, msg ...string) {
 	if value < than {
 		t.Fatalf("require.Equal failed: expected less, but not (%v >= %v) %v", value, than, msg)
 	}
 }
 
-func (cycle *bicycle) True(t *testing.T, actual bool, msg ...string) {
+func (cycle *bicycle) True(t TestingEnv, actual bool, msg ...string) {
 	cycle.Equal(t, true, actual, msg...)
 }
 
-func (cycle *bicycle) False(t *testing.T, actual bool, msg ...string) {
+func (cycle *bicycle) False(t TestingEnv, actual bool, msg ...string) {
 	cycle.Equal(t, false, actual, msg...)
 }
 
-func (cycle *bicycle) NotNil(t *testing.T, actual any, msg ...string) {
+func (cycle *bicycle) NotNil(t TestingEnv, actual any, msg ...string) {
 	if actual == nil || reflect.ValueOf(actual).IsNil() {
 		t.Fatalf("require.NotNil failed: expected nil, got '%#v' %#v", actual, msg)
 	}

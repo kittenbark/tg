@@ -9,6 +9,7 @@ import (
 	"context"
 	"github.com/kittenbark/tg"
 	"net/http"
+	"sync/atomic"
 	"testing"
 )
 
@@ -75,6 +76,91 @@ func BenchmarkSendPhotoMultipart(b *testing.B) {
 			b.Fatal(err)
 		}
 	}
+}
+
+func BenchmarkBranches(b *testing.B) {
+	SetTestingEnv(b, &Config{
+		Stubs: []Stub{
+			{
+				Url: "/getUpdates",
+				Result: StubResultOK(200, []*tg.Update{
+					{
+						UpdateId: 1,
+						Message:  &tg.Message{MessageId: 1, Chat: &tg.Chat{Id: 1}, Text: "testtext"},
+					},
+					{
+						UpdateId: 2,
+						Message:  &tg.Message{MessageId: 1, Chat: &tg.Chat{Id: 1}, Photo: tg.TelegramPhoto{{FileId: "abc123"}}},
+					},
+				}),
+			},
+		},
+	})
+
+	b.Run("simple", func() func(b *testing.B) {
+		bot := tg.NewFromEnv().
+			OnError(tg.OnErrorPanic).
+			Filter(tg.OnMessage)
+		handleText := &atomic.Int64{}
+		handlePhoto := &atomic.Int64{}
+		bot.
+			Branch(tg.OnText, func(ctx context.Context, upd *tg.Update) error {
+				handleText.Add(1)
+				return nil
+			}).
+			Branch(tg.OnPhoto, func(ctx context.Context, upd *tg.Update) error {
+				handlePhoto.Add(1)
+				if handlePhoto.Load() > 1000 {
+					bot.Stop()
+				}
+				return nil
+			})
+
+		return func(b *testing.B) {
+			for b.Loop() {
+				handleText.Store(0)
+				handlePhoto.Store(0)
+
+				bot.Start()
+				require.Geq(b, 1, handleText.Load())
+				require.Geq(b, 1, handlePhoto.Load())
+			}
+		}
+	}())
+
+	b.Run("simple_100", func() func(b *testing.B) {
+		bot := tg.NewFromEnv().
+			OnError(tg.OnErrorPanic).
+			Filter(tg.OnMessage)
+		for range 100 {
+			bot.Filter(tg.OnMessage)
+		}
+		handleText := &atomic.Int64{}
+		handlePhoto := &atomic.Int64{}
+		bot.
+			Branch(tg.OnText, func(ctx context.Context, upd *tg.Update) error {
+				handleText.Add(1)
+				return nil
+			}).
+			Branch(tg.OnPhoto, func(ctx context.Context, upd *tg.Update) error {
+				handlePhoto.Add(1)
+				if handlePhoto.Load() > 1000 {
+					bot.Stop()
+				}
+				return nil
+			})
+
+		return func(b *testing.B) {
+			for b.Loop() {
+				handleText.Store(0)
+				handlePhoto.Store(0)
+
+				bot.Start()
+				require.Geq(b, 1, handleText.Load())
+				require.Geq(b, 1, handlePhoto.Load())
+			}
+		}
+	}())
 }
 
 func BenchmarkUrlParse(b *testing.B) {
