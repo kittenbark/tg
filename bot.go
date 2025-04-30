@@ -2,6 +2,7 @@ package tg
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"slices"
@@ -19,7 +20,7 @@ type Bot struct {
 	contextTimeout    time.Duration
 	contextCancelFunc context.CancelFunc
 
-	pipeline       *pipe
+	pipeline       pipe
 	plugins        map[PluginHookType][]Plugin
 	defaultHandler HandlerFunc
 
@@ -192,11 +193,11 @@ func (bot *Bot) StopImmediately() {
 }
 
 func (bot *Bot) longPollIteration(ctx context.Context) {
-	// Note: Telegram gives you 3s+ timeout if you have empty list if updates and poll for updates too often.
-	updatesCtx, updatesCtxCancel := context.WithTimeout(ctx, time.Second*10)
+	updatesCtx, updatesCtxCancel := bot.ContextWithCancel()
 	updates, err := GetUpdates(updatesCtx, &OptGetUpdates{Offset: bot.updatesOffset})
 	updatesCtxCancel()
-	if err != nil {
+	// Note: Telegram gives you 3s+ timeout if you have empty list if updates and poll for updates too often.
+	if err != nil && !errors.Is(err, context.Canceled) && !errors.Is(err, context.DeadlineExceeded) {
 		bot.pluginsHook(PluginHookOnError, &PluginHookContextOnError{updatesCtx, bot, err})
 		return
 	}
@@ -235,7 +236,7 @@ func (bot *Bot) handle(updatesCancelContextWg *sync.WaitGroup, ctx context.Conte
 		}
 	}()
 
-	if !bot.handlePipe(bot.pipeline, ctx, update) && bot.defaultHandler != nil {
+	if !bot.handlePipe(&bot.pipeline, ctx, update) && bot.defaultHandler != nil {
 		if err := bot.defaultHandler(ctx, update); err != nil {
 			bot.pluginsHook(PluginHookOnError, &PluginHookContextOnError{ctx, bot, err})
 		}

@@ -29,7 +29,7 @@ const (
 	defaultHandleTimeout = time.Hour
 
 	EnvTimeoutPolling     = envPrefix + "TIMEOUT_POLL"
-	defaultPollingTimeout = 250 * time.Millisecond
+	defaultPollingTimeout = 100 * time.Millisecond
 )
 
 type DownloadType int
@@ -125,7 +125,6 @@ func TryNew(cfg *Config) (*Bot, error) {
 			PluginHookOnHandleFinish: {},
 			PluginHookOnError:        onError,
 		},
-		pipeline:       &pipe{},
 		defaultHandler: nil,
 		syncHandling:   cfg.SyncHandling,
 		pollTimeout:    withDefault(cfg.TimeoutPoll, defaultPollingTimeout, 0),

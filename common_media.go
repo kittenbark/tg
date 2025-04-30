@@ -16,8 +16,7 @@ var (
 
 // HandleAlbum groups updates corresponding to the same MediaGroupId.
 // Note: handling is happening after a delay, which could be adjusted with ConfigHandleAlbum (500ms by default).
-// TODO: support synced updates handling for HandleAlbum.
-func HandleAlbum(fn func(ctx context.Context, album []*Update) error, cfg ...*ConfigHandleAlbum) HandlerFunc {
+func HandleAlbum(fn func(ctx context.Context, updates []*Update) error, cfg ...*ConfigHandleAlbum) HandlerFunc {
 	config := at(cfg, 0, &ConfigHandleAlbum{
 		HandlingTimeout: parseFromEnvDurationMust(EnvTimeoutPolling, defaultPollingTimeout*2+time.Millisecond*50),
 	})
