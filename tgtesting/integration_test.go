@@ -306,6 +306,25 @@ func TestIntegrationOnNewGroup(t *testing.T) {
 	require.Equal(t, int64(1), counter.Load())
 }
 
+func TestLocalApi(t *testing.T) {
+	if _, ok := os.LookupEnv(tg.EnvApiURL); !ok {
+		t.Skipf("no local api url")
+	}
+
+	bot := tg.NewFromEnv()
+
+	ctx, cancel := bot.ContextWithCancel()
+	defer cancel()
+
+	doc, err := tg.SendDocument(ctx, chat, tg.FromDisk(photo))
+	require.NoError(t, err)
+
+	const downloaded = "doc_download.jpg"
+	if err = doc.Document.Download(ctx, downloaded); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestContext(t *testing.T) {
 	localUrl := "http://localhost:8080"
 	t.Setenv(tg.EnvApiURL, localUrl)
