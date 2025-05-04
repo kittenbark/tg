@@ -140,9 +140,9 @@ func CommonArgs[T any](fn CommonArgsHandlerFunc[*T]) HandlerFunc {
 	return func(ctx context.Context, upd *Update) error {
 		fields := slices.Concat(strings.Fields(upd.Message.Text), strings.Fields(upd.Message.Caption))[1:]
 		args := new(T)
-		val := reflect.ValueOf(args)
-		for i := range min(val.Elem().NumField(), len(fields)) {
-			arg := val.Elem().Field(i)
+		val := reflect.ValueOf(args).Elem()
+		for i := range min(val.NumField(), len(fields)) {
+			arg := val.Field(i)
 			switch arg.Kind() {
 			case reflect.String:
 				arg.SetString(fields[i])
