@@ -301,6 +301,60 @@ func TestPlugins(t *testing.T) {
 	}
 }
 
+func TestCommonArgs(t *testing.T) {
+	type Args struct {
+		String string
+		Int    int
+		Bool   bool
+		Float  float64
+	}
+	type Param struct {
+		Text     string
+		Expected Args
+	}
+	for _, param := range []Param{
+		{"/start hello 42 true 3.14", Args{"hello", 42, true, 3.14}},
+		{"/start 42", Args{String: "42"}},
+		{"/start", Args{}},
+	} {
+		t.Run(param.Text, func(t *testing.T) {
+			SetTestingEnv(t, &Config{
+				Stubs: []Stub{
+					{
+						Url: "/getUpdates",
+						Result: StubResultOK(200, []*tg.Update{{
+							UpdateId: 1,
+							Message: &tg.Message{
+								MessageId: 1,
+								Chat:      &tg.Chat{Id: 1},
+								Text:      param.Text,
+								Entities: []*tg.MessageEntity{{
+									Offset: 0,
+									Length: 6,
+									Type:   "bot_command",
+								}},
+							},
+						}}),
+					},
+				},
+			})
+
+			bot := tg.NewFromEnv()
+			time.AfterFunc(time.Millisecond*100, bot.Stop)
+			counter := &atomic.Int64{}
+			bot.
+				OnError(tg.OnErrorPanic).
+				Command("/start", tg.CommonArgs[Args](func(ctx context.Context, upd *tg.Update, args *Args) error {
+					require.Equal(t, param.Expected, *args)
+					counter.Add(1)
+					return nil
+				})).
+				Start()
+			require.Geq(t, 1, counter.Load())
+		})
+	}
+}
+
 func TestScheduler(t *testing.T) {
 	SetTestingEnv(t, &Config{
 		Stubs: []Stub{

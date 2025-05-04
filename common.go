@@ -4,10 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"math/rand/v2"
 	"net/url"
+	"reflect"
 	"regexp"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -129,6 +132,51 @@ func CommonDeleteMessage(ctx context.Context, upd *Update) error {
 	}
 	_, err := DeleteMessage(ctx, upd.Message.Chat.Id, upd.Message.MessageId)
 	return err
+}
+
+type CommonArgsHandlerFunc[T any] func(ctx context.Context, upd *Update, args T) error
+
+func CommonArgs[T any](fn CommonArgsHandlerFunc[*T]) HandlerFunc {
+	return func(ctx context.Context, upd *Update) error {
+		fields := slices.Concat(strings.Fields(upd.Message.Text), strings.Fields(upd.Message.Caption))[1:]
+		args := new(T)
+		val := reflect.ValueOf(args)
+		for i := range min(val.Elem().NumField(), len(fields)) {
+			arg := val.Elem().Field(i)
+			switch arg.Kind() {
+			case reflect.String:
+				arg.SetString(fields[i])
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+				parsed, err := strconv.ParseInt(fields[i], 10, 64)
+				if err != nil {
+					return err
+				}
+				arg.SetInt(parsed)
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+				parsed, err := strconv.ParseUint(fields[i], 10, 64)
+				if err != nil {
+					return err
+				}
+				arg.SetUint(parsed)
+			case reflect.Float32, reflect.Float64:
+				parsed, err := strconv.ParseFloat(fields[i], 64)
+				if err != nil {
+					return err
+				}
+				arg.SetFloat(parsed)
+			case reflect.Bool:
+				parsed, err := strconv.ParseBool(fields[i])
+				if err != nil {
+					return err
+				}
+				arg.SetBool(parsed)
+			default:
+				return fmt.Errorf("tg#CommonArgs: unexpected field type %s", arg.Kind().String())
+			}
+		}
+
+		return fn(ctx, upd, args)
+	}
 }
 
 func OnCommand(command string) FilterFunc {
