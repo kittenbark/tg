@@ -99,7 +99,21 @@ func TryNew(cfg *Config) (*Bot, error) {
 	}
 
 	switch cfg.DownloadType {
-	case DownloadTypeUnspecified, DownloadTypeClassic:
+	case DownloadTypeUnspecified:
+		if cfg.ApiURL == "" {
+			ctx = context.WithValue(ctx, ContextFileDownloadType, fileDownloadClassic)
+			break
+		}
+		ctx = context.WithValue(ctx, ContextFileDownloadType, fileDownloadClassic)
+		link, err := url.Parse(cfg.ApiURL)
+		if err != nil {
+			return nil, fmt.Errorf("env: error '%s' while parsing '%s'", err.Error(), EnvApiURL)
+		}
+		switch strings.ToLower(link.Hostname()) {
+		case "localhost", "127.0.0.1":
+			ctx = context.WithValue(ctx, ContextFileDownloadType, fileDownloadLocalMove)
+		}
+	case DownloadTypeClassic:
 		ctx = context.WithValue(ctx, ContextFileDownloadType, fileDownloadClassic)
 	case DownloadTypeLocalMove:
 		ctx = context.WithValue(ctx, ContextFileDownloadType, fileDownloadLocalMove)
@@ -210,15 +224,6 @@ func configFromEnv() (config *Config, err error) {
 			downloadType = DownloadTypeLocalCopy
 		default:
 			return nil, fmt.Errorf("env: unknown '%s' (at %s)", env, EnvDownloadType)
-		}
-	} else if env, ok = os.LookupEnv(EnvApiURL); ok {
-		link, err := url.Parse(env)
-		if err != nil {
-			return nil, fmt.Errorf("env: error '%s' while parsing '%s'", err.Error(), EnvApiURL)
-		}
-		switch strings.ToLower(link.Hostname()) {
-		case "localhost", "127.0.0.1":
-			downloadType = DownloadTypeLocalMove
 		}
 	}
 
