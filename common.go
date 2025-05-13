@@ -398,6 +398,22 @@ func AsReplyTo(msg *Message) *ReplyParameters {
 	return &ReplyParameters{MessageId: msg.MessageId}
 }
 
+// HandleEditedAsMessage basically reuses upd.EditedMessage as upd.Message,
+// useful for getting track of any message changes in chats.
+func HandleEditedAsMessage(handler HandlerFunc) HandlerFunc {
+	return func(ctx context.Context, upd *Update) error {
+		if upd != nil {
+			if upd.EditedMessage != nil && upd.Message == nil {
+				upd.Message = upd.EditedMessage
+			}
+			if upd.EditedBusinessMessage != nil && upd.BusinessMessage == nil {
+				upd.BusinessMessage = upd.EditedBusinessMessage
+			}
+		}
+		return handler(ctx, upd)
+	}
+}
+
 func isMessagePrivate(msg *Message) bool {
 	return msg.Chat != nil && msg.From != nil && msg.Chat.Id == msg.From.Id
 }
