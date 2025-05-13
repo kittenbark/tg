@@ -516,6 +516,20 @@ func TestFilters(t *testing.T) {
 		Text:     "/start",
 		Entities: []*tg.MessageEntity{{Type: "blockquote", Offset: 0, Length: 9}},
 	}}))
+	require.True(t, tg.OnChat(121, 122, 123)(nil, &tg.Update{Message: &tg.Message{
+		Text:     "/start@somebot",
+		Chat:     &tg.Chat{Id: 123},
+		Entities: []*tg.MessageEntity{{Type: "bot_command", Offset: 0, Length: 14}},
+	}}))
+	require.False(t, tg.OnChat(121, 122, 123)(nil, &tg.Update{Message: &tg.Message{
+		Chat:     &tg.Chat{Id: 456},
+		Text:     "/start@somebot",
+		Entities: []*tg.MessageEntity{{Type: "bot_command", Offset: 0, Length: 14}},
+	}}))
+	require.False(t, tg.OnChat(121, 122, 123)(nil, &tg.Update{Message: &tg.Message{
+		Text:     "/start@somebot",
+		Entities: []*tg.MessageEntity{{Type: "bot_command", Offset: 0, Length: 14}},
+	}}))
 
 	filters := []tg.FilterFunc{
 		tg.OnText,
