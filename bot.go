@@ -39,8 +39,10 @@ type Bot struct {
 //		Filter(tg.OnPrivateMessage).
 //		Command("/start", ...). // Private messages only.
 //		Branch(tg.OnText, ...) 		  // Private messages only.
-func (bot *Bot) Filter(pred FilterFunc) *Bot {
-	bot.pipeline.Last().Next = &pipe{Filter: pred}
+func (bot *Bot) Filter(pred ...FilterFunc) *Bot {
+	for _, fn := range pred {
+		bot.pipeline.Last().Next = &pipe{Filter: fn}
+	}
 	return bot
 }
 

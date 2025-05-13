@@ -400,18 +400,21 @@ func AsReplyTo(msg *Message) *ReplyParameters {
 
 // HandleEditedAsMessage basically reuses upd.EditedMessage as upd.Message,
 // useful for getting track of any message changes in chats.
-func HandleEditedAsMessage(handler HandlerFunc) HandlerFunc {
-	return func(ctx context.Context, upd *Update) error {
-		if upd != nil {
-			if upd.EditedMessage != nil && upd.Message == nil {
-				upd.Message = upd.EditedMessage
-			}
-			if upd.EditedBusinessMessage != nil && upd.BusinessMessage == nil {
-				upd.BusinessMessage = upd.EditedBusinessMessage
-			}
+// It's a bit hacky:
+//
+//	tg.NewFromEnv().
+//		Filter(tg.HandleEditedAsMessage).
+//		...your handlers, filters, branches...
+func HandleEditedAsMessage(ctx context.Context, upd *Update) bool {
+	if upd != nil {
+		if upd.EditedMessage != nil && upd.Message == nil {
+			upd.Message = upd.EditedMessage
 		}
-		return handler(ctx, upd)
+		if upd.EditedBusinessMessage != nil && upd.BusinessMessage == nil {
+			upd.BusinessMessage = upd.EditedBusinessMessage
+		}
 	}
+	return true
 }
 
 func isMessagePrivate(msg *Message) bool {
