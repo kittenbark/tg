@@ -417,6 +417,19 @@ func HandleEditedAsMessage(ctx context.Context, upd *Update) bool {
 	return true
 }
 
+func (impl *Message) TextOrCaption() string {
+	switch {
+	case impl == nil:
+		return ""
+	case impl.Text != "":
+		return impl.Text
+	case impl.Caption != "":
+		return impl.Caption
+	default:
+		return ""
+	}
+}
+
 func isMessagePrivate(msg *Message) bool {
 	return msg.Chat != nil && msg.From != nil && msg.Chat.Id == msg.From.Id
 }
