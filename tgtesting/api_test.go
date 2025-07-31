@@ -551,6 +551,8 @@ func TestFilters(t *testing.T) {
 		tg.OnReply,
 		tg.OnEdited,
 		tg.OnChatJoinRequest,
+		tg.OnNewChatMember(),
+		tg.OnNewChatMember(func(user *tg.User) bool { return true }),
 		tg.OnChance(0),
 		tg.OnTextRegexp("kitten"),
 		tg.OnCallbackWithData[int](),

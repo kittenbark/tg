@@ -1,7 +1,7 @@
 .idea
 .vscode
 .DS_Store
-
+tgcodegen2/
 *.jpg
 *.mp4
 *.env

@@ -391,6 +391,31 @@ func OnChatJoinRequest(ctx context.Context, upd *Update) bool {
 	return upd.ChatJoinRequest != nil
 }
 
+func OnNewChatMember(filters ...func(user *User) bool) FilterFunc {
+	return func(ctx context.Context, upd *Update) bool {
+		if upd == nil || upd.Message == nil || len(upd.Message.NewChatMembers) == 0 {
+			return false
+		}
+		if len(filters) == 0 {
+			return true
+		}
+		// For any users & all filters.
+		for _, user := range upd.Message.NewChatMembers {
+			ok := true
+			for _, filter := range filters {
+				if !filter(user) {
+					ok = false
+					break
+				}
+			}
+			if ok {
+				return true
+			}
+		}
+		return false
+	}
+}
+
 func AsReplyTo(msg *Message) *ReplyParameters {
 	if msg == nil {
 		return nil

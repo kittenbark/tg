@@ -245,7 +245,7 @@ func (bot *Bot) handle(updatesCancelContextWg *sync.WaitGroup, ctx context.Conte
 	}
 }
 
-func (bot *Bot) handlePipe(pipe *pipe, ctx context.Context, update *Update) bool {
+func (bot *Bot) handlePipe(pipe *pipe, ctx context.Context, update *Update) (handled bool) {
 	switch {
 	case pipe == nil:
 		return false
@@ -304,7 +304,7 @@ func Branch() *BranchPipe {
 }
 
 func (branch *BranchPipe) Filter(pred FilterFunc) *BranchPipe {
-	branch.pipeline.Last().Next = &pipe{Filter: pred}
+	branch.pipeline.Last().Next = &pipe{Filter: filterNoPanic(pred)}
 	return branch
 }
 
@@ -333,4 +333,15 @@ func (p *pipe) Last() *pipe {
 		pipe = pipe.Next
 	}
 	return pipe
+}
+
+func filterNoPanic(pred FilterFunc) FilterFunc {
+	return func(ctx context.Context, upd *Update) (result bool) {
+		defer func() {
+			if rec := recover(); rec != nil {
+				result = false
+			}
+		}()
+		return pred(ctx, upd)
+	}
 }
