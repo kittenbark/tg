@@ -250,7 +250,7 @@ func (bot *Bot) handlePipe(pipe *pipe, ctx context.Context, update *Update) (han
 	case pipe == nil:
 		return false
 
-	case pipe.Filter != nil && !pipe.Filter(ctx, update):
+	case pipe.Filter != nil && !filterWrappedPanics(pipe.Filter, ctx, update):
 		bot.pluginsHook(PluginHookOnFilter, &PluginHookContextOnFilter{ctx, bot, pipe.Filter})
 		return false
 
@@ -304,7 +304,7 @@ func Branch() *BranchPipe {
 }
 
 func (branch *BranchPipe) Filter(pred FilterFunc) *BranchPipe {
-	branch.pipeline.Last().Next = &pipe{Filter: filterNoPanic(pred)}
+	branch.pipeline.Last().Next = &pipe{Filter: pred}
 	return branch
 }
 
@@ -335,13 +335,11 @@ func (p *pipe) Last() *pipe {
 	return pipe
 }
 
-func filterNoPanic(pred FilterFunc) FilterFunc {
-	return func(ctx context.Context, upd *Update) (result bool) {
-		defer func() {
-			if rec := recover(); rec != nil {
-				result = false
-			}
-		}()
-		return pred(ctx, upd)
-	}
+func filterWrappedPanics(filter FilterFunc, ctx context.Context, upd *Update) (result bool) {
+	defer func() {
+		if rec := recover(); rec != nil {
+			result = false
+		}
+	}()
+	return filter(ctx, upd)
 }
