@@ -3,6 +3,7 @@ package tg
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"math/rand/v2"
@@ -259,6 +260,7 @@ func GenericDownloadTemp(ctx context.Context, fileId string, dirAndPattern ...st
 		return "", err
 	}
 	defer func(name string) {
+		err = errors.Join(err, tmp.Close())
 		if err != nil {
 			_ = os.Remove(name)
 		}
