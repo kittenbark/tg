@@ -97,6 +97,12 @@ func All(fn ...FilterFunc) FilterFunc {
 	}
 }
 
+func Not(fn FilterFunc) FilterFunc {
+	return func(ctx context.Context, upd *Update) bool {
+		return !fn(ctx, upd)
+	}
+}
+
 func CommonTextReply(text string, asReply ...bool) HandlerFunc {
 	isReply := at(asReply, 0, false)
 	return func(ctx context.Context, upd *Update) error {
