@@ -247,6 +247,20 @@ func OnChat(chatId ...int64) FilterFunc {
 	}
 }
 
+func OnSender(senderId ...int64) FilterFunc {
+	whitelist := map[int64]struct{}{}
+	for _, id := range senderId {
+		whitelist[id] = struct{}{}
+	}
+	return func(ctx context.Context, upd *Update) bool {
+		_, ok := whitelist[getSenderId(upd)]
+		return ok
+	}
+}
+
+// OnChannelPostInCommentsChat uses OnSender with the id of the hidden Telegram channel->comments reposting bot.
+func OnChannelPostInCommentsChat() FilterFunc { return OnSender(777000) }
+
 func OnForwarded(ctx context.Context, upd *Update) bool {
 	return OnMessage(ctx, upd) && upd.Message.ForwardOrigin != nil
 }
@@ -493,7 +507,7 @@ func getChatId(upd *Update) int64 {
 		return upd.PreCheckoutQuery.From.Id
 
 	case upd.ChatJoinRequest != nil:
-		return upd.ChatJoinRequest.From.Id
+		return upd.ChatJoinRequest.Chat.Id
 
 	case upd.MyChatMember != nil:
 		return upd.MyChatMember.Chat.Id
@@ -516,6 +530,63 @@ func getChatId(upd *Update) int64 {
 		return upd.BusinessMessage.Chat.Id
 	case upd.EditedBusinessMessage != nil:
 		return upd.EditedBusinessMessage.Chat.Id
+	case upd.DeletedBusinessMessages != nil:
+		return upd.DeletedBusinessMessages.Chat.Id
+	}
+	return 0
+}
+
+func getSenderId(upd *Update) int64 {
+	defer func() { _ = recover() }()
+
+	switch {
+	case upd == nil:
+		return 0
+	case upd.Message != nil:
+		return upd.Message.From.Id
+	case upd.EditedMessage != nil:
+		return upd.EditedMessage.From.Id
+
+	case upd.ChannelPost != nil:
+		return upd.ChannelPost.From.Id
+	case upd.EditedChannelPost != nil:
+		return upd.EditedChannelPost.From.Id
+
+	case upd.InlineQuery != nil:
+		return upd.InlineQuery.From.Id
+	case upd.ChosenInlineResult != nil:
+		return upd.ChosenInlineResult.From.Id
+	case upd.CallbackQuery != nil:
+		return upd.CallbackQuery.From.Id
+	case upd.ShippingQuery != nil:
+		return upd.ShippingQuery.From.Id
+	case upd.PreCheckoutQuery != nil:
+		return upd.PreCheckoutQuery.From.Id
+
+	case upd.ChatJoinRequest != nil:
+		return upd.ChatJoinRequest.From.Id
+
+	case upd.MyChatMember != nil:
+		return upd.MyChatMember.From.Id
+	case upd.ChatMember != nil:
+		return upd.ChatMember.From.Id
+
+	case upd.ChatBoost != nil:
+		return upd.ChatBoost.Chat.Id
+	case upd.RemovedChatBoost != nil:
+		return upd.RemovedChatBoost.Chat.Id
+
+	case upd.MessageReaction != nil:
+		return upd.MessageReaction.User.Id
+	case upd.MessageReactionCount != nil:
+		return upd.MessageReactionCount.Chat.Id
+
+	case upd.PurchasedPaidMedia != nil:
+		return upd.PurchasedPaidMedia.From.Id
+	case upd.BusinessMessage != nil:
+		return upd.BusinessMessage.From.Id
+	case upd.EditedBusinessMessage != nil:
+		return upd.EditedBusinessMessage.From.Id
 	case upd.DeletedBusinessMessages != nil:
 		return upd.DeletedBusinessMessages.Chat.Id
 	}
