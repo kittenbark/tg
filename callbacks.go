@@ -31,8 +31,9 @@ func (b *Button) HandlerFunc() HandlerFunc {
 }
 
 type CallbackButton struct {
-	Text    string
-	Handler HandlerFunc
+	Text       string
+	Handler    HandlerFunc
+	OnComplete *OptAnswerCallbackQuery
 }
 
 func (c *CallbackButton) Build() *InlineKeyboardButton {
@@ -42,7 +43,16 @@ func (c *CallbackButton) Build() *InlineKeyboardButton {
 }
 
 func (c *CallbackButton) HandlerFunc() HandlerFunc {
-	return c.Handler
+	return func(ctx context.Context, upd *Update) error {
+		if err := c.Handler(ctx, upd); err != nil {
+			return err
+		}
+		if c.OnComplete != nil && upd.CallbackQuery != nil {
+			query := upd.CallbackQuery
+			_, _ = AnswerCallbackQuery(ctx, query.Id, c.OnComplete)
+		}
+		return nil
+	}
 }
 
 type Keyboard struct {

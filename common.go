@@ -598,6 +598,7 @@ func getSenderId(upd *Update) int64 {
 }
 
 var CommonReactionEmojiMap = map[string]string{
+	"":                             "", // this is a hack for cases where emoji is optional
 	":+1:":                         "👍",
 	":thumbsup:":                   "👍",
 	":thumbs_up:":                  "👍",
