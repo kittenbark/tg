@@ -83,8 +83,8 @@ type keyboardSchema struct {
 	Data       string `json:"D"`
 }
 
-func (k *Keyboard) Register(bot *Bot) *Bot {
-	return bot.Branch(k.FilterFunc(), k.HandlerFunc())
+func (k *Keyboard) Branch() (FilterFunc, HandlerFunc) {
+	return k.FilterFunc(), k.HandlerFunc()
 }
 
 func (k *Keyboard) Build() *InlineKeyboardMarkup {
