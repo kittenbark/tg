@@ -1,48 +1,134 @@
 package tg
 
-type Button = InlineKeyboardButton
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"hash/fnv"
+	"log/slog"
+	"sync"
+)
 
-type ButtonT[T any] interface {
-	Build(data T) *Button
+type ButtonI interface {
+	Build() *InlineKeyboardButton
+	HandlerFunc() HandlerFunc
 }
 
 var (
-	_ ButtonT[any] = &buttonStates[any]{}
+	_ ButtonI = (*CallbackButton)(nil)
+	_ ButtonI = (*InlineKeyboardButton)(nil)
 )
 
-type buttonStates[T any] struct {
-	pred   func(data T) int
-	states []*Button
-}
+type Button = InlineKeyboardButton
 
-func (button buttonStates[T]) Build(data T) *Button {
-	index := button.pred(data)
-	if index < 0 || index >= len(button.states) {
+func (b *Button) Build() *Button { return b }
+
+func (b *Button) HandlerFunc() HandlerFunc {
+	return func(ctx context.Context, upd *Update) error {
+		slog.Warn("tg.Button.HandlerFunc was called, use tg.CallbackButton if you need a button with a callback")
 		return nil
 	}
-	return button.states[index]
 }
 
-func ButtonStates[T any](pred func(data T) int, states ...*Button) ButtonT[T] {
-	return &buttonStates[T]{
-		pred:   pred,
-		states: states,
+type CallbackButton struct {
+	Text    string
+	Handler HandlerFunc
+}
+
+func (c *CallbackButton) Build() *InlineKeyboardButton {
+	return &InlineKeyboardButton{
+		Text: c.Text,
 	}
 }
 
-func Keyboard[T any](layout [][]ButtonT[T], data ...T) *InlineKeyboardMarkup {
-	var defaultValue T
-	result := [][]*Button{}
-	for _, row := range layout {
-		resultRow := []*Button{}
-		for _, button := range row {
-			if resultButton := button.Build(at(data, 0, defaultValue)); resultButton != nil {
-				resultRow = append(resultRow, resultButton)
+func (c *CallbackButton) HandlerFunc() HandlerFunc {
+	return c.Handler
+}
+
+type Keyboard struct {
+	Layout [][]ButtonI
+	idOnce sync.Once
+	id     string
+}
+
+func (k *Keyboard) init() {
+	k.idOnce.Do(func() {
+		result := make([][]*InlineKeyboardButton, len(k.Layout))
+		for i, buttons := range k.Layout {
+			result[i] = make([]*InlineKeyboardButton, len(buttons))
+			for j, button := range buttons {
+				result[i][j] = button.Build()
 			}
 		}
-		result = append(result, resultRow)
+		data, _ := json.Marshal(result)
+		hash := fnv.New32()
+		_, _ = hash.Write(data)
+		k.id = fmt.Sprintf("%x", hash.Sum32())
+	})
+}
+
+type keyboardSchema struct {
+	KeyboardId string `json:"K"`
+	ButtonId   int    `json:"B"`
+	Data       string `json:"D"`
+}
+
+func (k *Keyboard) Register(bot *Bot) *Bot {
+	return bot.Branch(k.FilterFunc(), k.HandlerFunc())
+}
+
+func (k *Keyboard) Build() *InlineKeyboardMarkup {
+	k.init()
+	result := make([][]*InlineKeyboardButton, len(k.Layout))
+	buttonId := 0
+	for i, buttons := range k.Layout {
+		result[i] = make([]*InlineKeyboardButton, len(buttons))
+		for j, button := range buttons {
+			buttonId++
+			built := button.Build()
+			data, _ := json.Marshal(keyboardSchema{k.id, buttonId, built.Text})
+			built.CallbackData = string(data)
+			result[i][j] = built
+		}
 	}
 	return &InlineKeyboardMarkup{
 		InlineKeyboard: result,
+	}
+}
+
+func (k *Keyboard) FilterFunc() FilterFunc {
+	k.init()
+	return All(OnCallback, func(ctx context.Context, upd *Update) bool {
+		var data keyboardSchema
+		if err := json.Unmarshal([]byte(upd.CallbackQuery.Data), &data); err != nil {
+			return false
+		}
+		return k.id == data.KeyboardId
+	})
+}
+
+func (k *Keyboard) HandlerFunc() HandlerFunc {
+	k.init()
+	buttonId := 0
+	hashToButton := map[int]HandlerFunc{}
+	for _, buttons := range k.Layout {
+		for _, button := range buttons {
+			buttonId++
+			hashToButton[buttonId] = button.HandlerFunc()
+		}
+	}
+	return func(ctx context.Context, upd *Update) error {
+		var data keyboardSchema
+		if err := json.Unmarshal([]byte(upd.CallbackQuery.Data), &data); err != nil {
+			return err
+		}
+		handler, ok := hashToButton[data.ButtonId]
+		if !ok {
+			return fmt.Errorf("unknown button %d", data.ButtonId)
+		}
+		if upd.CallbackQuery != nil {
+			upd.CallbackQuery.Data = data.Data
+		}
+		return handler(ctx, upd)
 	}
 }

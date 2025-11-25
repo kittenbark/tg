@@ -333,6 +333,37 @@ func TestContext(t *testing.T) {
 	require.Equal(t, localUrl, bot.Context().Value(tg.ContextApiUrl).(string))
 }
 
+func TestKeyboard(t *testing.T) {
+	t.Skip()
+	bot := tg.NewFromEnv()
+
+	echo := func(ctx context.Context, upd *tg.Update) error {
+		callback := upd.CallbackQuery
+		data, _ := json.Marshal(callback)
+		message := fmt.Sprintf("%s\n\n%s", callback.Data, string(data))
+		_, err := tg.SendMessage(ctx, chat, message)
+		return err
+	}
+	kb := tg.Keyboard{
+		Layout: [][]tg.ButtonI{
+			{
+				&tg.CallbackButton{Text: "line button 1", Handler: echo},
+			},
+			{
+				&tg.CallbackButton{Text: "line button 2", Handler: echo},
+				&tg.CallbackButton{Text: "line button 3", Handler: echo},
+			},
+		},
+	}
+
+	_, err := tg.SendMessage(bot.Context(), chat, "placeholder", &tg.OptSendMessage{ReplyMarkup: kb.Build()})
+	require.NoError(t, err)
+
+	bot.
+		Branch(kb.FilterFunc(), kb.HandlerFunc()).
+		Start()
+}
+
 func ffmpegConvert(ctx context.Context, source, target string) ([]byte, error) {
 	return exec.CommandContext(ctx, "ffmpeg",
 		"-y", "-i", source, "-vf", "format=gray", "-c:v", "libx264", "-preset", "ultrafast", "-crf", "23", "-c:a", "copy", target).
