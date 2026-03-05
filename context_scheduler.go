@@ -173,13 +173,13 @@ func (clause *schedulerClauseChat) Done(mutex *sync.Mutex, chat int64, weight in
 	})
 }
 
-func schedule(ctx context.Context, chat int64, weight int) {
+func ContextSchedule(ctx context.Context, chat int64, weight int) {
 	if scheduler, ok := ctx.Value(ContextScheduler).(Scheduler); ok {
 		scheduler.Schedule(ctx, chat, weight)
 	}
 }
 
-func scheduleDone(ctx context.Context, chat int64, weight int) {
+func ContextScheduleDone(ctx context.Context, chat int64, weight int) {
 	if scheduler, ok := ctx.Value(ContextScheduler).(Scheduler); ok {
 		scheduler.Done(ctx, chat, weight)
 	}
