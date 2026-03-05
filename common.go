@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 )
 
 // Chain allows convenient chaining of handlers.
@@ -127,6 +128,28 @@ func CommonReaction(emoji string, big ...bool) *OptSetMessageReaction {
 		Reaction: []ReactionType{&ReactionTypeEmoji{Type: "emoji", Emoji: emoji}},
 		IsBig:    at(big, 0, false),
 	}
+}
+
+func CommonRestrictSenderUntil(until time.Time, permissions ...*ChatPermissions) HandlerFunc {
+	permission := at(permissions, 0, &ChatPermissions{CanSendMessages: false})
+	return func(ctx context.Context, upd *Update) error {
+		if upd == nil && upd.Message == nil {
+			return nil
+		}
+		msg := upd.Message
+		_, err := RestrictChatMember(
+			ctx,
+			msg.Chat.Id,
+			msg.From.Id,
+			permission,
+			&OptRestrictChatMember{UntilDate: until.Unix()},
+		)
+		return err
+	}
+}
+
+func CommonRestrictSender(permissions ...*ChatPermissions) HandlerFunc {
+	return CommonRestrictSenderUntil(time.Unix(0, 0), permissions...)
 }
 
 func CommonReactionReply(emoji string, big ...bool) HandlerFunc {
