@@ -130,11 +130,15 @@ func CommonReaction(emoji string, big ...bool) *OptSetMessageReaction {
 	}
 }
 
-func CommonRestrictSenderUntil(until time.Time, permissions ...*ChatPermissions) HandlerFunc {
+func CommonRestrictSenderUntil(duration time.Duration, permissions ...*ChatPermissions) HandlerFunc {
 	permission := at(permissions, 0, &ChatPermissions{CanSendMessages: false})
 	return func(ctx context.Context, upd *Update) error {
 		if upd == nil && upd.Message == nil {
 			return nil
+		}
+		params := &OptRestrictChatMember{}
+		if duration != 0 {
+			params.UntilDate = time.Now().Add(duration).Unix()
 		}
 		msg := upd.Message
 		_, err := RestrictChatMember(
@@ -142,14 +146,14 @@ func CommonRestrictSenderUntil(until time.Time, permissions ...*ChatPermissions)
 			msg.Chat.Id,
 			msg.From.Id,
 			permission,
-			&OptRestrictChatMember{UntilDate: until.Unix()},
+			params,
 		)
 		return err
 	}
 }
 
 func CommonRestrictSender(permissions ...*ChatPermissions) HandlerFunc {
-	return CommonRestrictSenderUntil(time.Unix(0, 0), permissions...)
+	return CommonRestrictSenderUntil(0, permissions...)
 }
 
 func CommonReactionReply(emoji string, big ...bool) HandlerFunc {
