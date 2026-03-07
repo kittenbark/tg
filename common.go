@@ -119,6 +119,28 @@ func CommonTextReply(text string, asReply ...bool) HandlerFunc {
 	}
 }
 
+func CommonTextReplyExpiring(duration time.Duration, text string, asReply ...bool) HandlerFunc {
+	isReply := at(asReply, 0, false)
+	return func(ctx context.Context, upd *Update) error {
+		opts := []*OptSendMessage{}
+		if isReply {
+			opts = append(opts, &OptSendMessage{ReplyParameters: &ReplyParameters{
+				MessageId:                upd.Message.MessageId,
+				AllowSendingWithoutReply: true,
+			}})
+		}
+		msg, err := SendMessage(ctx, upd.Message.Chat.Id, text, opts...)
+		if err != nil {
+			return err
+		}
+		time.Sleep(duration)
+		if _, err := DeleteMessage(ctx, msg.Chat.Id, upd.Message.MessageId); err != nil {
+			return err
+		}
+		return err
+	}
+}
+
 // CommonReaction helps you not to have emoji in your code, i.e. ":ok:" -> "👌" (via CommonReactionEmojiMap)
 func CommonReaction(emoji string, big ...bool) *OptSetMessageReaction {
 	if mappedEmoji, ok := CommonReactionEmojiMap[emoji]; ok {
