@@ -135,7 +135,7 @@ func CommonTextReplyExpiring(duration time.Duration, text string, asReply ...boo
 			return err
 		}
 		time.Sleep(duration)
-		if _, err := DeleteMessage(ctx, msg.Chat.Id, upd.Message.MessageId); err != nil {
+		if _, err := DeleteMessage(ctx, msg.Chat.Id, msg.MessageId); err != nil {
 			return err
 		}
 		return err
