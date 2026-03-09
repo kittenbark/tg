@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"iter"
 	"log/slog"
 	"math/rand/v2"
 	"net/url"
@@ -528,6 +529,10 @@ func (impl *Message) TextOrCaption() string {
 	}
 }
 
+func (impl *Message) TextOrCaptionEntities() iter.Seq[*MessageEntity] {
+	return chainLists(impl.Entities, impl.CaptionEntities)
+}
+
 func isMessagePrivate(msg *Message) bool {
 	return msg.Chat != nil && msg.From != nil && msg.Chat.Id == msg.From.Id
 }
@@ -644,6 +649,18 @@ func getSenderId(upd *Update) int64 {
 		return upd.DeletedBusinessMessages.Chat.Id
 	}
 	return 0
+}
+
+func chainLists[T any](lists ...[]T) iter.Seq[T] {
+	return func(yield func(T) bool) {
+		for _, list := range lists {
+			for _, el := range list {
+				if !yield(el) {
+					return
+				}
+			}
+		}
+	}
 }
 
 var CommonReactionEmojiMap = map[string]string{
