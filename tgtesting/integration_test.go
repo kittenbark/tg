@@ -356,12 +356,18 @@ func TestKeyboard(t *testing.T) {
 		},
 	}
 
-	_, err := tg.SendMessage(bot.Context(), chat, "placeholder", &tg.OptSendMessage{ReplyMarkup: kb.Build()})
-	require.NoError(t, err)
+	go func() {
+		time.Sleep(time.Second * 5)
+		_, err := tg.SendMessage(
+			bot.Context(),
+			chat,
+			"placeholder",
+			&tg.OptSendMessage{ReplyMarkup: kb.BuildRegister(bot.Context())},
+		)
+		require.NoError(t, err)
+	}()
 
-	bot.
-		Branch(kb.FilterFunc(), kb.HandlerFunc()).
-		Start()
+	bot.Start()
 }
 
 func ffmpegConvert(ctx context.Context, source, target string) ([]byte, error) {

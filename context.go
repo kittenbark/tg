@@ -5,6 +5,7 @@ import (
 )
 
 const (
+	ContextBotInstance      = contextPrefix + "bot_instance"
 	ContextToken            = contextPrefix + "token"
 	ContextTestToken        = contextPrefix + "test_token"
 	ContextHttpClient       = contextPrefix + "http_client"

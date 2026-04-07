@@ -128,7 +128,7 @@ func TryNew(cfg *Config) (*Bot, error) {
 		return nil, err
 	}
 
-	return &Bot{
+	result := &Bot{
 		context:           ctx,
 		contextCancelFunc: func() {},
 		contextTimeout:    withDefault(cfg.TimeoutHandle, defaultHandleTimeout, 0),
@@ -143,7 +143,9 @@ func TryNew(cfg *Config) (*Bot, error) {
 		syncHandling:   cfg.SyncHandling,
 		pollTimeout:    withDefault(cfg.TimeoutPoll, defaultPollingTimeout, 0),
 		updatesOffset:  0,
-	}, nil
+	}
+	result.context = context.WithValue(ctx, ContextBotInstance, result)
+	return result, nil
 }
 
 func buildPluginsOnError(cfg *Config) ([]Plugin, error) {

@@ -87,6 +87,15 @@ func (k *Keyboard) Branch() (FilterFunc, HandlerFunc) {
 	return k.FilterFunc(), k.HandlerFunc()
 }
 
+func (k *Keyboard) BuildRegister(ctx context.Context) *InlineKeyboardMarkup {
+	bot, ok := ctx.Value(ContextBotInstance).(*Bot)
+	if !ok {
+		return nil
+	}
+	bot.Branch(k.FilterFunc(), k.HandlerFunc())
+	return k.Build()
+}
+
 func (k *Keyboard) Build() *InlineKeyboardMarkup {
 	k.init()
 	result := make([][]*InlineKeyboardButton, len(k.Layout))

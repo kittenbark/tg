@@ -20,6 +20,7 @@ type Bot struct {
 	contextTimeout    time.Duration
 	contextCancelFunc context.CancelFunc
 
+	pipelineLock   sync.RWMutex
 	pipeline       pipe
 	plugins        map[PluginHookType][]Plugin
 	defaultHandler HandlerFunc
@@ -40,6 +41,8 @@ type Bot struct {
 //		Command("/start", ...). // Private messages only.
 //		Branch(tg.OnText, ...) 		  // Private messages only.
 func (bot *Bot) Filter(pred ...FilterFunc) *Bot {
+	bot.pipelineLock.Lock()
+	defer bot.pipelineLock.Unlock()
 	for _, fn := range pred {
 		bot.pipeline.Last().Next = &pipe{Filter: fn}
 	}
@@ -54,6 +57,8 @@ func (bot *Bot) Filter(pred ...FilterFunc) *Bot {
 //		Filter(tg.OnPrivateMessage).
 //		Handle(tg.CommonTextReply("hii mom"))
 func (bot *Bot) Handle(handler HandlerFunc) *Bot {
+	bot.pipelineLock.Lock()
+	defer bot.pipelineLock.Unlock()
 	bot.pipeline.Last().Next = &pipe{Handle: handler}
 	return bot
 }
@@ -95,6 +100,8 @@ func (bot *Bot) Branch(pred FilterFunc, handler HandlerFunc) *Bot {
 // complexBranch is pretty much alike Branch, but it *should* allow branching out pretty much alike bot declaring.
 // todo: implement it for real, now its just filters.
 func (bot *Bot) complexBranch(branch *BranchPipe) *Bot {
+	bot.pipelineLock.Lock()
+	defer bot.pipelineLock.Unlock()
 	bot.pipeline.Last().Next = &pipe{Branch: branch.pipeline}
 	return bot
 }
@@ -238,6 +245,8 @@ func (bot *Bot) handle(updatesCancelContextWg *sync.WaitGroup, ctx context.Conte
 		}
 	}()
 
+	bot.pipelineLock.RLock()
+	defer bot.pipelineLock.RUnlock()
 	if !bot.handlePipe(&bot.pipeline, ctx, update) && bot.defaultHandler != nil {
 		if err := bot.defaultHandler(ctx, update); err != nil {
 			bot.pluginsHook(PluginHookOnError, &PluginHookContextOnError{ctx, bot, err})
