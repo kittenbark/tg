@@ -20,7 +20,7 @@ type Bot struct {
 	contextTimeout    time.Duration
 	contextCancelFunc context.CancelFunc
 
-	pipelineLock   sync.RWMutex
+	pipelineLock   sync.Mutex
 	pipeline       pipe
 	plugins        map[PluginHookType][]Plugin
 	defaultHandler HandlerFunc
@@ -245,8 +245,6 @@ func (bot *Bot) handle(updatesCancelContextWg *sync.WaitGroup, ctx context.Conte
 		}
 	}()
 
-	bot.pipelineLock.RLock()
-	defer bot.pipelineLock.RUnlock()
 	if !bot.handlePipe(&bot.pipeline, ctx, update) && bot.defaultHandler != nil {
 		if err := bot.defaultHandler(ctx, update); err != nil {
 			bot.pluginsHook(PluginHookOnError, &PluginHookContextOnError{ctx, bot, err})
