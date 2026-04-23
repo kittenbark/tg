@@ -138,6 +138,13 @@ func (bot *Bot) Context() context.Context {
 	return ctx
 }
 
+func (bot *Bot) ExtraContext(fn ...ExtraContext) *Bot {
+	for _, f := range fn {
+		bot.context = f(bot.context)
+	}
+	return bot
+}
+
 func (bot *Bot) OnError(fn OnErrorFunc) *Bot {
 	return bot.Plugin(PluginOnError(fn))
 }

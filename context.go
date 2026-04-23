@@ -2,6 +2,7 @@ package tg
 
 import (
 	"context"
+	"net/http"
 )
 
 const (
@@ -15,6 +16,14 @@ const (
 
 	contextPrefix = "kittenbark_"
 )
+
+type ExtraContext func(context.Context) context.Context
+
+func WithCustomHttpClient(client *http.Client) ExtraContext {
+	return func(ctx context.Context) context.Context {
+		return context.WithValue(ctx, ContextHttpClient, client)
+	}
+}
 
 func tryGetTokenFromContext(ctx context.Context) (string, error) {
 	if token, ok := ctx.Value(ContextToken).(string); ok {
