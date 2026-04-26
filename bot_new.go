@@ -14,22 +14,28 @@ import (
 )
 
 const (
-	EnvToken            = envPrefix + "TOKEN"
-	EnvTokenTesting     = envPrefix + "TEST_TOKEN"
-	EnvTestingChat      = envPrefix + "TEST_CHAT"
-	EnvTestingGroupChat = envPrefix + "TEST_GROUP_CHAT"
-	EnvApiURL           = envPrefix + "API_URL"
-	EnvDownloadType     = envPrefix + "DOWNLOAD_TYPE"
+	EnvToken            = "TOKEN"
+	EnvTokenTesting     = "TEST_TOKEN"
+	EnvTestingChat      = "TEST_CHAT"
+	EnvTestingGroupChat = "TEST_GROUP_CHAT"
+	EnvApiURL           = "API_URL"
+	EnvDownloadType     = "DOWNLOAD_TYPE"
 	// EnvOnError is either ignore/log/exit.
-	EnvOnError = envPrefix + "ON_ERROR"
-	envPrefix  = "KITTENBARK_TG_"
+	EnvOnError = "ON_ERROR"
 
-	EnvSyncedHandle      = envPrefix + "SYNCED_HANDLE"
-	EnvTimeoutHandle     = envPrefix + "TIMEOUT_HANDLE"
+	EnvSyncedHandle      = "SYNCED_HANDLE"
+	EnvTimeoutHandle     = "TIMEOUT_HANDLE"
 	defaultHandleTimeout = time.Hour
 
-	EnvTimeoutPolling     = envPrefix + "TIMEOUT_POLL"
+	EnvTimeoutPolling     = "TIMEOUT_POLL"
 	defaultPollingTimeout = 100 * time.Millisecond
+)
+
+var (
+	envPrefixes = [...]string{
+		"KITTENBARK_TG_",
+		"KBTG_",
+	}
 )
 
 type DownloadType int
@@ -216,7 +222,7 @@ func buildError[T any](buildType int, config T, env T) T {
 
 func configFromEnv() (config *Config, err error) {
 	var downloadType DownloadType
-	if env, ok := os.LookupEnv(EnvDownloadType); ok {
+	if env, ok := lookupEnv(EnvDownloadType); ok {
 		switch strings.ToLower(strings.TrimSpace(env)) {
 		case "classic":
 			downloadType = DownloadTypeClassic
@@ -230,12 +236,12 @@ func configFromEnv() (config *Config, err error) {
 	}
 
 	config = &Config{
-		Token:         os.Getenv(EnvToken),
-		TokenTesting:  os.Getenv(EnvTokenTesting),
-		ApiURL:        os.Getenv(EnvApiURL),
+		Token:         getEnv(EnvToken),
+		TokenTesting:  getEnv(EnvTokenTesting),
+		ApiURL:        getEnv(EnvApiURL),
 		DownloadType:  downloadType,
 		OnError:       nil,
-		OnErrorByType: strings.ToLower(os.Getenv(EnvOnError)),
+		OnErrorByType: strings.ToLower(getEnv(EnvOnError)),
 		buildType:     buildTypeEnv,
 	}
 	if config.SyncHandling, err = parseFromEnvBool(EnvSyncedHandle, false); err != nil {
@@ -251,6 +257,24 @@ func configFromEnv() (config *Config, err error) {
 	return config, nil
 }
 
+func lookupEnv(env string) (string, bool) {
+	for _, prefix := range envPrefixes {
+		if result, ok := os.LookupEnv(prefix + env); ok {
+			return result, ok
+		}
+	}
+	return "", false
+}
+
+func getEnv(env string) string {
+	for _, prefix := range envPrefixes {
+		if result := os.Getenv(prefix + env); result != "" {
+			return result
+		}
+	}
+	return ""
+}
+
 func parseFromEnvDurationMust(env string, otherwise time.Duration) time.Duration {
 	result, err := parseFromEnvDuration(env, otherwise)
 	if err != nil {
@@ -260,7 +284,7 @@ func parseFromEnvDurationMust(env string, otherwise time.Duration) time.Duration
 }
 
 func parseFromEnvDuration(env string, otherwise time.Duration) (time.Duration, error) {
-	value, ok := os.LookupEnv(EnvSyncedHandle)
+	value, ok := lookupEnv(EnvSyncedHandle)
 	if !ok {
 		return otherwise, nil
 	}
@@ -275,7 +299,7 @@ func parseFromEnvDuration(env string, otherwise time.Duration) (time.Duration, e
 }
 
 func parseFromEnvBool(env string, otherwise bool) (bool, error) {
-	value, ok := os.LookupEnv(env)
+	value, ok := lookupEnv(env)
 	if !ok {
 		return otherwise, nil
 	}
