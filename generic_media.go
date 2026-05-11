@@ -310,6 +310,11 @@ func fileDownloadClassic(ctx context.Context, file *File, path string) error {
 	if err != nil {
 		return err
 	}
+	if headers := getOrDefault(ctx, ContextExtraHeaders, map[string]string{}); headers != nil {
+		for name, value := range headers {
+			httpRequest.Header.Add(name, value)
+		}
+	}
 
 	resp, err := getOrDefault(ctx, ContextHttpClient, http.DefaultClient).Do(httpRequest)
 	if err != nil {
