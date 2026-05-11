@@ -19,6 +19,7 @@ const (
 	EnvTestingChat      = "TEST_CHAT"
 	EnvTestingGroupChat = "TEST_GROUP_CHAT"
 	EnvApiURL           = "API_URL"
+	EnvApiExtraHeaders  = "EXTRA_HEADERS"
 	EnvDownloadType     = "DOWNLOAD_TYPE"
 	// EnvOnError is either ignore/log/exit.
 	EnvOnError = "ON_ERROR"
@@ -48,15 +49,16 @@ const (
 )
 
 type Config struct {
-	Token         string        `json:"token"`
-	TokenTesting  string        `json:"token_testing"`
-	ApiURL        string        `json:"api_url,omitempty"`
-	TimeoutHandle time.Duration `json:"timeout,omitempty"`
-	TimeoutPoll   time.Duration `json:"timeout_poll,omitempty"`
-	SyncHandling  bool          `json:"sync,omitempty"`
-	DownloadType  DownloadType  `json:"download_type,omitempty"`
-	OnError       OnErrorFunc   `json:"-"`
-	OnErrorByType string        `json:"on_error,omitempty"`
+	Token         string            `json:"token"`
+	TokenTesting  string            `json:"token_testing"`
+	ApiURL        string            `json:"api_url,omitempty"`
+	TimeoutHandle time.Duration     `json:"timeout,omitempty"`
+	TimeoutPoll   time.Duration     `json:"timeout_poll,omitempty"`
+	SyncHandling  bool              `json:"sync,omitempty"`
+	DownloadType  DownloadType      `json:"download_type,omitempty"`
+	OnError       OnErrorFunc       `json:"-"`
+	OnErrorByType string            `json:"on_error,omitempty"`
+	ExtraHeaders  map[string]string `json:"extra_headers,omitempty"`
 
 	buildType int
 }
@@ -99,9 +101,11 @@ func TryNew(cfg *Config) (*Bot, error) {
 			fmt.Errorf("env: missing bot api token (at '%s' (or for testing '%s'))", EnvToken, EnvTokenTesting),
 		)
 	}
-
 	if cfg.ApiURL != "" {
 		ctx = context.WithValue(ctx, ContextApiUrl, cfg.ApiURL)
+	}
+	if len(cfg.ExtraHeaders) > 0 {
+		ctx = context.WithValue(ctx, ContextExtraHeaders, cfg.ExtraHeaders)
 	}
 
 	switch cfg.DownloadType {
@@ -235,6 +239,13 @@ func configFromEnv() (config *Config, err error) {
 		}
 	}
 
+	headers := map[string]string{}
+	if env, ok := lookupEnv(EnvApiExtraHeaders); ok {
+		if err := json.Unmarshal([]byte(env), &headers); err != nil {
+			return nil, err
+		}
+	}
+
 	config = &Config{
 		Token:         getEnv(EnvToken),
 		TokenTesting:  getEnv(EnvTokenTesting),
@@ -242,6 +253,7 @@ func configFromEnv() (config *Config, err error) {
 		DownloadType:  downloadType,
 		OnError:       nil,
 		OnErrorByType: strings.ToLower(getEnv(EnvOnError)),
+		ExtraHeaders:  headers,
 		buildType:     buildTypeEnv,
 	}
 	if config.SyncHandling, err = parseFromEnvBool(EnvSyncedHandle, false); err != nil {

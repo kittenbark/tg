@@ -11,6 +11,7 @@ const (
 	ContextTestToken        = contextPrefix + "test_token"
 	ContextHttpClient       = contextPrefix + "http_client"
 	ContextApiUrl           = contextPrefix + "api_url"
+	ContextExtraHeaders     = contextPrefix + "extra_headers"
 	ContextFileDownloadType = contextPrefix + "file_downloader"
 	ContextScheduler        = contextPrefix + "scheduler"
 

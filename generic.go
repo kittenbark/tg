@@ -30,6 +30,11 @@ func GenericRequest[Request any, Result any](ctx context.Context, method string,
 		return
 	}
 	httpRequest.Header.Set("Content-Type", "application/json")
+	if headers := getOrDefault(ctx, ContextExtraHeaders, map[string]string{}); headers != nil {
+		for name, value := range headers {
+			httpRequest.Header.Add(name, value)
+		}
+	}
 
 	httpResponse, err := getOrDefault(ctx, ContextHttpClient, http.DefaultClient).Do(httpRequest)
 	if err != nil {
