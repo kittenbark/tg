@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
@@ -42,6 +43,7 @@ func main() {
 	}
 
 	name := filepath.Base(module)
+	goVersion := runtimeGoVersion()
 
 	goModCreated := false
 	for _, f := range files {
@@ -49,7 +51,7 @@ func main() {
 		if err != nil {
 			fatal(fmt.Errorf("read template %s: %w", f.tmpl, err))
 		}
-		content := strings.NewReplacer("{{module}}", module, "{{name}}", name).Replace(string(data))
+		content := strings.NewReplacer("{{module}}", module, "{{name}}", name, "{{go_version}}", goVersion).Replace(string(data))
 		created, err := writeFile(f.dest, content, overwrite)
 		if err != nil {
 			fatal(err)
@@ -86,6 +88,15 @@ func writeFile(path, content string, overwrite bool) (created bool, err error) {
 	}
 	fmt.Printf("create %s\n", path)
 	return true, os.WriteFile(path, []byte(content), 0644)
+}
+
+func runtimeGoVersion() string {
+	v := strings.TrimPrefix(runtime.Version(), "go")
+	parts := strings.SplitN(v, ".", 3)
+	if len(parts) >= 2 {
+		return parts[0] + "." + parts[1]
+	}
+	return v
 }
 
 func fatal(err error) {
