@@ -1,0 +1,20 @@
+services:
+  {{name}}:
+    build: .
+    environment:
+      - KITTENBARK_TG_TOKEN
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+        window: 120s

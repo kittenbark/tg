@@ -180,7 +180,7 @@ func (bot *Bot) Start(updates ...*Update) {
 	ctx, cancel := context.WithCancel(bot.context)
 	defer cancel()
 	bot.contextCancelFunc = cancel
-	bot.stopUpdates = make(chan bool)
+	bot.stopUpdates = make(chan bool, 1)
 
 	bot.handleUpdates(ctx, updates)
 
@@ -300,7 +300,7 @@ func (bot *Bot) pluginsHook(hook PluginHookType, ctx PluginHookContext) {
 			defer func() {
 				wg.Done()
 				if r := recover(); r != nil {
-					slog.Error("pluginsHook%panic", "err", r)
+					slog.Error("pluginsHook#panic", "err", r)
 				}
 			}()
 

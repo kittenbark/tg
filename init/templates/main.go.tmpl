@@ -1,0 +1,19 @@
+package main
+
+import (
+	"context"
+	"github.com/kittenbark/tg"
+)
+
+func main() {
+	tg.NewFromEnv().
+		Scheduler().
+		OnError(tg.OnErrorLog).
+		Filter(tg.OnPrivateMessage).
+		Command("/start", tg.CommonTextReply("hello!")).
+		Branch(tg.OnText, func(ctx context.Context, upd *tg.Update) error {
+		    // your handler here (and other branches)
+			return nil
+		}).
+		Start()
+}

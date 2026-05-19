@@ -137,17 +137,20 @@ func (k *Keyboard) HandlerFunc() HandlerFunc {
 		}
 	}
 	return func(ctx context.Context, upd *Update) error {
+		if upd.CallbackQuery == nil {
+			return nil
+		}
+
 		var data keyboardSchema
-		if err := json.Unmarshal([]byte(upd.CallbackQuery.Data), &data); err != nil {
+		query := upd.CallbackQuery
+		if err := json.Unmarshal([]byte(query.Data), &data); err != nil {
 			return err
 		}
 		handler, ok := hashToButton[data.ButtonId]
 		if !ok {
 			return fmt.Errorf("unknown button %d", data.ButtonId)
 		}
-		if upd.CallbackQuery != nil {
-			upd.CallbackQuery.Data = data.Data
-		}
+		query.Data = data.Data
 		return handler(ctx, upd)
 	}
 }
