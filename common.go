@@ -156,7 +156,7 @@ func CommonReaction(emoji string, big ...bool) *OptSetMessageReaction {
 func CommonRestrictSenderUntil(duration time.Duration, permissions ...*ChatPermissions) HandlerFunc {
 	permission := at(permissions, 0, &ChatPermissions{CanSendMessages: false})
 	return func(ctx context.Context, upd *Update) error {
-		if upd == nil && upd.Message == nil {
+		if upd == nil || upd.Message == nil {
 			return nil
 		}
 		params := &OptRestrictChatMember{}
@@ -273,7 +273,7 @@ func OnPrivate(ctx context.Context, upd *Update) bool {
 	return OnPrivateMessage(ctx, upd) ||
 		upd.EditedMessage != nil && isMessagePrivate(upd.EditedMessage) ||
 		upd.MessageReaction != nil && upd.MessageReaction.Chat != nil && upd.MessageReaction.User != nil && upd.MessageReaction.Chat.Id == upd.MessageReaction.User.Id ||
-		upd.MessageReactionCount != nil && upd.MessageReactionCount.Chat != nil && upd.MessageReaction.User != nil && upd.MessageReaction.Chat.Id == upd.MessageReaction.User.Id ||
+		upd.MessageReactionCount != nil && upd.MessageReactionCount.Chat != nil ||
 		upd.InlineQuery != nil && upd.InlineQuery.ChatType == "private"
 }
 

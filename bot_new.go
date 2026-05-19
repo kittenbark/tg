@@ -110,11 +110,10 @@ func TryNew(cfg *Config) (*Bot, error) {
 
 	switch cfg.DownloadType {
 	case DownloadTypeUnspecified:
+		ctx = context.WithValue(ctx, ContextFileDownloadType, fileDownloadClassic)
 		if cfg.ApiURL == "" {
-			ctx = context.WithValue(ctx, ContextFileDownloadType, fileDownloadClassic)
 			break
 		}
-		ctx = context.WithValue(ctx, ContextFileDownloadType, fileDownloadClassic)
 		link, err := url.Parse(cfg.ApiURL)
 		if err != nil {
 			return nil, fmt.Errorf("env: error '%s' while parsing '%s'", err.Error(), EnvApiURL)
@@ -169,7 +168,7 @@ func buildPluginsOnError(cfg *Config) ([]Plugin, error) {
 		case "log":
 			onError = append(onError, PluginOnError(OnErrorLog))
 		case "exit":
-			onError = append(onError, PluginOnError(OnErrorLog))
+			onError = append(onError, PluginOnError(OnErrorExit))
 		default:
 			return nil, buildError(cfg.buildType,
 				fmt.Errorf("config: unknown on_error value '%s'", cfg.OnErrorByType),
@@ -296,7 +295,7 @@ func parseFromEnvDurationMust(env string, otherwise time.Duration) time.Duration
 }
 
 func parseFromEnvDuration(env string, otherwise time.Duration) (time.Duration, error) {
-	value, ok := lookupEnv(EnvSyncedHandle)
+	value, ok := lookupEnv(env)
 	if !ok {
 		return otherwise, nil
 	}

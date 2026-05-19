@@ -36,15 +36,11 @@ func HandleAlbum(fn func(ctx context.Context, updates []*Update) error, cfg ...*
 
 		cache[upd.Message.MediaGroupId] = []*Update{upd}
 		cacheMutex.Unlock()
-		defer func() {
-			cacheMutex.Lock()
-			defer cacheMutex.Unlock()
-			delete(cache, upd.Message.MediaGroupId)
-		}()
 
 		time.Sleep(config.HandlingTimeout)
 		cacheMutex.Lock()
 		album := cache[upd.Message.MediaGroupId]
+		delete(cache, upd.Message.MediaGroupId)
 		slices.SortFunc(album, func(a, b *Update) int { return cmp.Compare(a.Message.MessageId, b.Message.MessageId) })
 		cacheMutex.Unlock()
 		return fn(ctx, album)

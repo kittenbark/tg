@@ -225,7 +225,12 @@ func (bot *Bot) longPollIteration(ctx context.Context) {
 }
 
 func (bot *Bot) handleUpdates(ctx context.Context, updates []*Update) {
-	ctx, ctxCancel := bot.ContextWithCancel()
+	var ctxCancel context.CancelFunc
+	if bot.contextTimeout == 0 {
+		ctx, ctxCancel = context.WithCancel(ctx)
+	} else {
+		ctx, ctxCancel = context.WithTimeout(ctx, bot.contextTimeout)
+	}
 	ctxCancelWg := &sync.WaitGroup{}
 	ctxCancelWg.Add(len(updates))
 	go func() {

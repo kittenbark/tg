@@ -3,6 +3,7 @@ package tgtesting
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/kittenbark/tg"
 	"net/http"
@@ -23,9 +24,10 @@ func NewTestingContext(t *testing.T, cfg *Config) context.Context {
 	for _, stub := range cfg.Stubs {
 		stub.RegisterTesting(t, cfg, mux)
 	}
+	server := &http.Server{Addr: fmt.Sprintf(":%d", cfg.Port), Handler: mux}
+	t.Cleanup(func() { _ = server.Shutdown(context.Background()) })
 	go func() {
-		server := &http.Server{Addr: fmt.Sprintf(":%d", cfg.Port), Handler: mux}
-		if err := server.ListenAndServe(); err != nil {
+		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			panic(err)
 		}
 	}()
@@ -45,9 +47,10 @@ func SetTestingEnv(t TestingEnv, cfg *Config) {
 	for _, stub := range cfg.Stubs {
 		stub.RegisterTesting(t, cfg, mux)
 	}
+	server := &http.Server{Addr: fmt.Sprintf(":%d", cfg.Port), Handler: mux}
+	t.Cleanup(func() { _ = server.Shutdown(context.Background()) })
 	go func() {
-		server := &http.Server{Addr: fmt.Sprintf(":%d", cfg.Port), Handler: mux}
-		if err := server.ListenAndServe(); err != nil {
+		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			panic(err)
 		}
 	}()
@@ -66,7 +69,7 @@ func NewTestingEnvLessStrict(cfg *Config) context.Context {
 	}
 	go func() {
 		server := &http.Server{Addr: fmt.Sprintf(":%d", cfg.Port), Handler: mux}
-		if err := server.ListenAndServe(); err != nil {
+		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			panic(err)
 		}
 	}()
@@ -115,6 +118,7 @@ type Stub struct {
 type TestingEnv interface {
 	Fatalf(format string, args ...any)
 	Setenv(key, value string)
+	Cleanup(func())
 }
 
 func (stub *Stub) RegisterTesting(t TestingEnv, cfg *Config, mux *http.ServeMux) {
