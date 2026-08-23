@@ -14,6 +14,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // InputFile is either:
@@ -93,40 +94,55 @@ func GenericRequestMultipart[Request any, Result any](ctx context.Context, metho
 	if err != nil {
 		return
 	}
+
+	prepared := defaults(request)
 	url := fmt.Sprintf("%s/bot%s/%s", getOrDefault(ctx, ContextApiUrl, DefaultTelegramApiUrl), token, method)
 
-	body, contentType := requestMultipartPreparePipes[Request](defaults(request))
-	httpRequest, err := http.NewRequestWithContext(ctx, http.MethodPost, url, body)
-	if err != nil {
-		_ = body.CloseWithError(err)
-		return
-	}
-	httpRequest.Header.Set("Content-Type", contentType)
+	for {
+		body, contentType := requestMultipartPreparePipes[Request](prepared)
+		httpRequest, err := http.NewRequestWithContext(ctx, http.MethodPost, url, body)
+		if err != nil {
+			_ = body.CloseWithError(err)
+			return result, err
+		}
+		httpRequest.Header.Set("Content-Type", contentType)
 
-	httpResponse, err := getOrDefault(ctx, ContextHttpClient, http.DefaultClient).Do(httpRequest)
-	if err != nil {
-		return
-	}
-	defer func() { _ = httpResponse.Body.Close() }()
+		httpResponse, err := getOrDefault(ctx, ContextHttpClient, http.DefaultClient).Do(httpRequest)
+		if err != nil {
+			return result, err
+		}
 
-	type HttpResult struct {
-		Ok          bool                   `json:"ok"`
-		ErrorCode   int                    `json:"error_code,omitempty"`
-		Description string                 `json:"description,omitempty"`
-		Parameters  map[string]interface{} `json:"parameters,omitempty"`
-		Result      Result                 `json:"result,omitempty"`
-	}
-	var httpResult HttpResult
+		type HttpResult struct {
+			Ok          bool                   `json:"ok"`
+			ErrorCode   int                    `json:"error_code,omitempty"`
+			Description string                 `json:"description,omitempty"`
+			Parameters  map[string]interface{} `json:"parameters,omitempty"`
+			Result      Result                 `json:"result,omitempty"`
+		}
+		var httpResult HttpResult
+		decodeErr := json.NewDecoder(httpResponse.Body).Decode(&httpResult)
+		_ = httpResponse.Body.Close()
+		if decodeErr != nil {
+			return result, decodeErr
+		}
 
-	if err = json.NewDecoder(httpResponse.Body).Decode(&httpResult); err != nil {
-		return
-	}
-	if !httpResult.Ok {
-		err = newTelegramError(httpResult.ErrorCode, httpResult.Description, httpResult.Parameters)
-		return
-	}
+		if !httpResult.Ok {
+			apiErr := newTelegramError(httpResult.ErrorCode, httpResult.Description, httpResult.Parameters)
+			var tooMany *ErrorTooManyRequests
+			if errors.As(apiErr, &tooMany) {
+				ContextScheduleThrottle(ctx, 0, tooMany.RetryAfter)
+				select {
+				case <-ctx.Done():
+					return result, ctx.Err()
+				case <-time.After(tooMany.RetryAfter):
+					continue
+				}
+			}
+			return result, apiErr
+		}
 
-	return httpResult.Result, nil
+		return httpResult.Result, nil
+	}
 }
 
 func multipartWritePipesInputMedia(media InputMedia, multipart *multipart.Writer) (string, error) {

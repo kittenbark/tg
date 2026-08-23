@@ -9,6 +9,7 @@ import (
 type Scheduler interface {
 	Schedule(ctx context.Context, chat int64, weight int)
 	Done(ctx context.Context, chat int64, weight int)
+	Throttle(chat int64, retryAfter time.Duration)
 }
 
 func NewScheduler(clauses ...SchedulerClause) Scheduler {
@@ -29,6 +30,7 @@ func NewSchedulerVerbose(pollingRate time.Duration, clauses ...SchedulerClause) 
 		clauses:     clauses,
 		pollingRate: pollingRate,
 		mutex:       &sync.Mutex{},
+		throttled:   map[int64]time.Time{},
 	}
 }
 
@@ -36,6 +38,7 @@ type clauseScheduler struct {
 	clauses     []SchedulerClause
 	pollingRate time.Duration
 	mutex       *sync.Mutex
+	throttled   map[int64]time.Time
 }
 
 func (scheduler *clauseScheduler) Schedule(ctx context.Context, chat int64, weight int) {
@@ -53,9 +56,25 @@ func (scheduler *clauseScheduler) Done(ctx context.Context, chat int64, weight i
 	}
 }
 
+func (scheduler *clauseScheduler) Throttle(chat int64, retryAfter time.Duration) {
+	scheduler.mutex.Lock()
+	defer scheduler.mutex.Unlock()
+	scheduler.throttled[chat] = time.Now().Add(retryAfter)
+}
+
 func (scheduler *clauseScheduler) trySchedule(chat int64, weight int) bool {
 	scheduler.mutex.Lock()
 	defer scheduler.mutex.Unlock()
+
+	now := time.Now()
+	if until, ok := scheduler.throttled[0]; ok && now.Before(until) {
+		return false
+	}
+	if chat != 0 {
+		if until, ok := scheduler.throttled[chat]; ok && now.Before(until) {
+			return false
+		}
+	}
 
 	for _, clause := range scheduler.clauses {
 		if !clause.TrySchedule(chat, weight) {
@@ -182,5 +201,11 @@ func ContextSchedule(ctx context.Context, chat int64, weight int) {
 func ContextScheduleDone(ctx context.Context, chat int64, weight int) {
 	if scheduler, ok := ctx.Value(ContextScheduler).(Scheduler); ok {
 		scheduler.Done(ctx, chat, weight)
+	}
+}
+
+func ContextScheduleThrottle(ctx context.Context, chat int64, retryAfter time.Duration) {
+	if scheduler, ok := ctx.Value(ContextScheduler).(Scheduler); ok {
+		scheduler.Throttle(chat, retryAfter)
 	}
 }

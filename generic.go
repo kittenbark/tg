@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -19,47 +20,63 @@ func GenericRequest[Request any, Result any](ctx context.Context, method string,
 	if err != nil {
 		return
 	}
-	var body bytes.Buffer
-	if err = json.NewEncoder(&body).Encode(defaults(request)); err != nil {
-		return
-	}
+
+	prepared := defaults(request)
 	url := fmt.Sprintf("%s/bot%s/%s", getOrDefault(ctx, ContextApiUrl, DefaultTelegramApiUrl), token, method)
 
-	httpRequest, err := http.NewRequestWithContext(ctx, http.MethodPost, url, &body)
-	if err != nil {
-		return
-	}
-	httpRequest.Header.Set("Content-Type", "application/json")
-	if headers := getOrDefault(ctx, ContextExtraHeaders, map[string]string{}); headers != nil {
-		for name, value := range headers {
-			httpRequest.Header.Add(name, value)
+	for {
+		var body bytes.Buffer
+		if err = json.NewEncoder(&body).Encode(prepared); err != nil {
+			return
 		}
-	}
 
-	httpResponse, err := getOrDefault(ctx, ContextHttpClient, http.DefaultClient).Do(httpRequest)
-	if err != nil {
-		return
-	}
-	defer func() { _ = httpResponse.Body.Close() }()
+		httpRequest, err := http.NewRequestWithContext(ctx, http.MethodPost, url, &body)
+		if err != nil {
+			return result, err
+		}
+		httpRequest.Header.Set("Content-Type", "application/json")
+		if headers := getOrDefault(ctx, ContextExtraHeaders, map[string]string{}); headers != nil {
+			for name, value := range headers {
+				httpRequest.Header.Add(name, value)
+			}
+		}
 
-	type HttpResult struct {
-		Ok          bool                   `json:"ok"`
-		ErrorCode   int                    `json:"error_code,omitempty"`
-		Description string                 `json:"description,omitempty"`
-		Parameters  map[string]interface{} `json:"parameters,omitempty"`
-		Result      Result                 `json:"result,omitempty"`
-	}
-	var httpResult HttpResult
-	if err = json.NewDecoder(httpResponse.Body).Decode(&httpResult); err != nil {
-		return
-	}
-	if !httpResult.Ok {
-		err = newTelegramError(httpResult.ErrorCode, httpResult.Description, httpResult.Parameters)
-		return
-	}
+		httpResponse, err := getOrDefault(ctx, ContextHttpClient, http.DefaultClient).Do(httpRequest)
+		if err != nil {
+			return result, err
+		}
 
-	result = httpResult.Result
-	return
+		type HttpResult struct {
+			Ok          bool                   `json:"ok"`
+			ErrorCode   int                    `json:"error_code,omitempty"`
+			Description string                 `json:"description,omitempty"`
+			Parameters  map[string]interface{} `json:"parameters,omitempty"`
+			Result      Result                 `json:"result,omitempty"`
+		}
+		var httpResult HttpResult
+		decodeErr := json.NewDecoder(httpResponse.Body).Decode(&httpResult)
+		_ = httpResponse.Body.Close()
+		if decodeErr != nil {
+			return result, decodeErr
+		}
+
+		if !httpResult.Ok {
+			apiErr := newTelegramError(httpResult.ErrorCode, httpResult.Description, httpResult.Parameters)
+			var tooMany *ErrorTooManyRequests
+			if errors.As(apiErr, &tooMany) {
+				ContextScheduleThrottle(ctx, 0, tooMany.RetryAfter)
+				select {
+				case <-ctx.Done():
+					return result, ctx.Err()
+				case <-time.After(tooMany.RetryAfter):
+					continue
+				}
+			}
+			return result, apiErr
+		}
+
+		return httpResult.Result, nil
+	}
 }
 
 func newTelegramError(code int, description string, parameters map[string]interface{}) error {
