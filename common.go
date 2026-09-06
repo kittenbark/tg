@@ -338,10 +338,24 @@ func OnChance(chance float64) FilterFunc {
 }
 
 func OnAddedToGroup(ctx context.Context, upd *Update) bool {
-	if upd == nil || upd.Message == nil {
+	if upd == nil {
 		return false
 	}
 
+	// Channels (and modern supergroups) send my_chat_member instead of a
+	// message with new_chat_members when a bot is added.
+	if upd.MyChatMember != nil {
+		switch upd.MyChatMember.NewChatMember.(type) {
+		case *ChatMemberLeft, *ChatMemberBanned:
+			return false
+		default:
+			return upd.MyChatMember.Chat != nil
+		}
+	}
+
+	if upd.Message == nil {
+		return false
+	}
 	msg := upd.Message
 	if msg.GroupChatCreated || msg.SupergroupChatCreated {
 		return true
