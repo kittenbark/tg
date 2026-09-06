@@ -1,6 +1,7 @@
 package tg
 
 import (
+	"fmt"
 	"strings"
 	"sync"
 )
@@ -77,4 +78,18 @@ func Md(text string) string {
 
 func HTML(text string) string {
 	return encodingsHTML().Replace(text)
+}
+
+// Mdf formats a MarkdownV2 string safely. The format string is taken as literal
+// markdown (caller's responsibility for static syntax like *bold* or `code`).
+// Each %s argument is automatically escaped, so user-provided strings can be
+// passed without manual Md/EscapeParseMode calls.
+//
+//	tg.Mdf("*Channel:* %s — %s posts queued", channelTitle, count)
+func Mdf(format string, args ...string) string {
+	escaped := make([]any, len(args))
+	for i, a := range args {
+		escaped[i] = Md(a)
+	}
+	return fmt.Sprintf(format, escaped...)
 }

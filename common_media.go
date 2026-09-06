@@ -15,35 +15,61 @@ var (
 )
 
 // HandleAlbum groups updates corresponding to the same MediaGroupId.
-// Note: handling is happening after a delay, which could be adjusted with ConfigHandleAlbum (500ms by default).
+//
+// Uses a sliding-window timer: the window resets on each new part that arrives,
+// so the handler fires as soon as the album is quiet for HandlingTimeout rather
+// than after a fixed worst-case sleep. The window defaults to 300ms.
+//
+// The first update's goroutine blocks until the window closes (context-aware),
+// which means errors from fn propagate normally through the bot's error hooks.
 func HandleAlbum(fn func(ctx context.Context, updates []*Update) error, cfg ...*ConfigHandleAlbum) HandlerFunc {
-	config := at(cfg, 0, &ConfigHandleAlbum{
-		HandlingTimeout: parseFromEnvDurationMust(EnvTimeoutPolling, defaultPollingTimeout*2+time.Millisecond*50),
-	})
-	cacheMutex := &sync.Mutex{}
-	cache := map[string][]*Update{}
+	config := at(cfg, 0, &ConfigHandleAlbum{HandlingTimeout: 300 * time.Millisecond})
+
+	type group struct {
+		updates []*Update
+		timer   *time.Timer
+		done    chan struct{}
+		err     error
+	}
+
+	var mu sync.Mutex
+	groups := map[string]*group{}
+
 	return func(ctx context.Context, upd *Update) error {
 		if upd == nil || upd.Message == nil || upd.Message.MediaGroupId == "" {
 			return fn(ctx, []*Update{upd})
 		}
+		id := upd.Message.MediaGroupId
 
-		cacheMutex.Lock()
-		if _, ok := cache[upd.Message.MediaGroupId]; ok {
-			cache[upd.Message.MediaGroupId] = append(cache[upd.Message.MediaGroupId], upd)
-			cacheMutex.Unlock()
+		mu.Lock()
+		g, exists := groups[id]
+		if exists {
+			g.updates = append(g.updates, upd)
+			g.timer.Reset(config.HandlingTimeout)
+			mu.Unlock()
 			return nil
 		}
 
-		cache[upd.Message.MediaGroupId] = []*Update{upd}
-		cacheMutex.Unlock()
+		done := make(chan struct{})
+		g = &group{updates: []*Update{upd}, done: done}
+		groups[id] = g
+		g.timer = time.AfterFunc(config.HandlingTimeout, func() {
+			mu.Lock()
+			album := g.updates
+			delete(groups, id)
+			mu.Unlock()
+			slices.SortFunc(album, func(a, b *Update) int { return cmp.Compare(a.Message.MessageId, b.Message.MessageId) })
+			g.err = fn(ctx, album)
+			close(done)
+		})
+		mu.Unlock()
 
-		time.Sleep(config.HandlingTimeout)
-		cacheMutex.Lock()
-		album := cache[upd.Message.MediaGroupId]
-		delete(cache, upd.Message.MediaGroupId)
-		slices.SortFunc(album, func(a, b *Update) int { return cmp.Compare(a.Message.MessageId, b.Message.MessageId) })
-		cacheMutex.Unlock()
-		return fn(ctx, album)
+		select {
+		case <-done:
+			return g.err
+		case <-ctx.Done():
+			return ctx.Err()
+		}
 	}
 }
 

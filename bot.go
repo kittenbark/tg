@@ -225,32 +225,34 @@ func (bot *Bot) longPollIteration(ctx context.Context) {
 }
 
 func (bot *Bot) handleUpdates(ctx context.Context, updates []*Update) {
-	var ctxCancel context.CancelFunc
-	if bot.contextTimeout == 0 {
-		ctx, ctxCancel = context.WithCancel(ctx)
-	} else {
-		ctx, ctxCancel = context.WithTimeout(ctx, bot.contextTimeout)
-	}
-	ctxCancelWg := &sync.WaitGroup{}
-	ctxCancelWg.Add(len(updates))
-	go func() {
-		ctxCancelWg.Wait()
-		ctxCancel()
-	}()
-
-	for _, update := range slices.Backward(updates) {
+	for _, update := range updates {
 		bot.pluginsHook(PluginHookOnUpdate, &PluginHookContextOnUpdate{ctx, bot, update})
+
+		// Each update gets its own independent timeout so a slow handler in one
+		// update does not eat into the timeout budget of subsequent updates.
+		updCtx, updCancel := bot.ContextWithCancel()
+
 		if bot.syncHandling {
-			bot.handle(ctxCancelWg, ctx, update)
+			bot.handle(updCtx, update)
+			updCancel()
 		} else {
-			go bot.handle(ctxCancelWg, ctx, update)
+			go func(u *Update, cancel context.CancelFunc) {
+				defer cancel()
+				bot.handle(updCtx, u)
+			}(update, updCancel)
 		}
 		bot.updatesOffset = max(bot.updatesOffset, update.UpdateId+1)
 	}
 }
 
-func (bot *Bot) handle(updatesCancelContextWg *sync.WaitGroup, ctx context.Context, update *Update) {
-	defer updatesCancelContextWg.Done()
+// ForcePoll performs one immediate poll iteration, fetching and dispatching any
+// pending updates from Telegram without waiting for the next scheduled poll cycle.
+// Useful when you need recent events to be visible before making a decision.
+func (bot *Bot) ForcePoll(ctx context.Context) {
+	bot.longPollIteration(ctx)
+}
+
+func (bot *Bot) handle(ctx context.Context, update *Update) {
 	defer func() {
 		if rec := recover(); rec != nil {
 			bot.pluginsHook(PluginHookOnError, &PluginHookContextOnError{ctx, bot, fmt.Errorf("panic: %v", rec)})
