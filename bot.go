@@ -245,13 +245,6 @@ func (bot *Bot) handleUpdates(ctx context.Context, updates []*Update) {
 	}
 }
 
-// ForcePoll performs one immediate poll iteration, fetching and dispatching any
-// pending updates from Telegram without waiting for the next scheduled poll cycle.
-// Useful when you need recent events to be visible before making a decision.
-func (bot *Bot) ForcePoll(ctx context.Context) {
-	bot.longPollIteration(ctx)
-}
-
 func (bot *Bot) handle(ctx context.Context, update *Update) {
 	defer func() {
 		if rec := recover(); rec != nil {
