@@ -1257,6 +1257,7 @@ func EditEphemeralMessageText(ctx context.Context, chatId int64, receiverUserId 
 		Entities           []*MessageEntity      `json:"entities,omitempty"`
 		LinkPreviewOptions *LinkPreviewOptions   `json:"link_preview_options,omitempty"`
 		ReplyMarkup        *InlineKeyboardMarkup `json:"reply_markup,omitempty"`
+		RichMessage        *InputRichMessage     `json:"rich_message,omitempty"`
 	}
 	request := &Request{
 		ChatId:             chatId,
@@ -1279,6 +1280,9 @@ func EditEphemeralMessageText(ctx context.Context, chatId int64, receiverUserId 
 		if opt.ReplyMarkup != nil {
 			request.ReplyMarkup = opt.ReplyMarkup
 		}
+		if opt.RichMessage != nil {
+			request.RichMessage = opt.RichMessage
+		}
 	}
 	return GenericRequest[Request, bool](ctx, "editEphemeralMessageText", request)
 }
@@ -1289,6 +1293,7 @@ type OptEditEphemeralMessageText struct {
 	Entities           []*MessageEntity
 	LinkPreviewOptions *LinkPreviewOptions
 	ReplyMarkup        *InlineKeyboardMarkup
+	RichMessage        *InputRichMessage
 }
 
 // EditForumTopic Use this method to edit name and icon of a topic in a forum supergroup chat or a private chat with a user.
@@ -1604,6 +1609,7 @@ func EditMessageText(ctx context.Context, text string, opts ...*OptEditMessageTe
 		Entities             []*MessageEntity      `json:"entities,omitempty"`
 		LinkPreviewOptions   *LinkPreviewOptions   `json:"link_preview_options,omitempty"`
 		ReplyMarkup          *InlineKeyboardMarkup `json:"reply_markup,omitempty"`
+		RichMessage          *InputRichMessage     `json:"rich_message,omitempty"`
 	}
 	request := &Request{
 		Text: text,
@@ -1633,6 +1639,9 @@ func EditMessageText(ctx context.Context, text string, opts ...*OptEditMessageTe
 		if opt.ReplyMarkup != nil {
 			request.ReplyMarkup = opt.ReplyMarkup
 		}
+		if opt.RichMessage != nil {
+			request.RichMessage = opt.RichMessage
+		}
 	}
 	return GenericRequest[Request, *Message](ctx, "editMessageText", request)
 }
@@ -1646,6 +1655,7 @@ type OptEditMessageText struct {
 	Entities             []*MessageEntity
 	LinkPreviewOptions   *LinkPreviewOptions
 	ReplyMarkup          *InlineKeyboardMarkup
+	RichMessage          *InputRichMessage
 }
 
 // EditStory Edits a story previously posted by the bot on behalf of a managed business account.
@@ -3384,72 +3394,6 @@ type OptSendAudio struct {
 	EphemeralMessageParameters *EphemeralMessageParameters
 }
 
-type VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply interface {
-	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup
-	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup
-	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove
-	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply
-}
-
-var (
-	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &InlineKeyboardMarkup{}
-	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ReplyKeyboardMarkup{}
-	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ReplyKeyboardRemove{}
-	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ForceReply{}
-)
-
-func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
-	return impl
-}
-func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
-	return nil
-}
-func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
-	return nil
-}
-func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
-	return nil
-}
-
-func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
-	return nil
-}
-func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
-	return impl
-}
-func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
-	return nil
-}
-func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
-	return nil
-}
-
-func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
-	return nil
-}
-func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
-	return nil
-}
-func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
-	return impl
-}
-func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
-	return nil
-}
-
-func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
-	return nil
-}
-func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
-	return nil
-}
-func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
-	return nil
-}
-func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
-	return impl
-}
-
 // SendChatAction Use this method when you need to tell the user that something is happening on the bot's side. The status is set for 5 seconds or less (when a message arrives from your bot, Telegram clients clear its typing status). Returns *True* on success.
 // Example: The [ImageBot](https://t.me/imagebot) needs some time to process a request and upload the image. Instead of sending a text message along the lines of “Retrieving image, please wait…”, the bot may use [sendChatAction](https://core.telegram.org/bots/api/#sendchataction) with *action* = *upload\_photo*. The user will see a “sending photo” status for the bot.
 // We only recommend using this method when a response from the bot will take a **noticeable** amount of time to arrive.
@@ -4851,6 +4795,187 @@ type OptSendPoll struct {
 	MessageEffectId        string
 	ReplyParameters        *ReplyParameters
 	ReplyMarkup            VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
+}
+
+// SendRichMessage Use this method to send rich messages. On success, the sent Message is returned.
+// If the message contains a block with a media element, then the bot must have the right to send the media to the chat.
+func SendRichMessage(ctx context.Context, chatId int64, richMessage *InputRichMessage, opts ...*OptSendRichMessage) (*Message, error) {
+	ContextSchedule(ctx, chatId, 1)
+	defer ContextScheduleDone(ctx, chatId, 1)
+	type Request struct {
+		BusinessConnectionId       string                                                                      `json:"business_connection_id,omitempty"`
+		ChatId                     int64                                                                       `json:"chat_id"`
+		MessageThreadId            int64                                                                       `json:"message_thread_id,omitempty"`
+		DirectMessagesTopicId      int64                                                                       `json:"direct_messages_topic_id,omitempty"`
+		EphemeralMessageParameters *EphemeralMessageParameters                                                 `json:"ephemeral_message_parameters,omitempty"`
+		RichMessage                *InputRichMessage                                                           `json:"rich_message"`
+		DisableNotification        bool                                                                        `json:"disable_notification,omitempty"`
+		ProtectContent             bool                                                                        `json:"protect_content,omitempty"`
+		AllowPaidBroadcast         bool                                                                        `json:"allow_paid_broadcast,omitempty"`
+		MessageEffectId            string                                                                      `json:"message_effect_id,omitempty"`
+		SuggestedPostParameters    *SuggestedPostParameters                                                    `json:"suggested_post_parameters,omitempty"`
+		ReplyParameters            *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
+		ReplyMarkup                VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
+	}
+	request := &Request{
+		ChatId:      chatId,
+		RichMessage: richMessage,
+	}
+	for _, opt := range opts {
+		if opt.BusinessConnectionId != "" {
+			request.BusinessConnectionId = opt.BusinessConnectionId
+		}
+		if opt.MessageThreadId != 0 {
+			request.MessageThreadId = opt.MessageThreadId
+		}
+		if opt.DirectMessagesTopicId != 0 {
+			request.DirectMessagesTopicId = opt.DirectMessagesTopicId
+		}
+		if opt.EphemeralMessageParameters != nil {
+			request.EphemeralMessageParameters = opt.EphemeralMessageParameters
+		}
+		if opt.DisableNotification {
+			request.DisableNotification = opt.DisableNotification
+		}
+		if opt.ProtectContent {
+			request.ProtectContent = opt.ProtectContent
+		}
+		if opt.AllowPaidBroadcast {
+			request.AllowPaidBroadcast = opt.AllowPaidBroadcast
+		}
+		if opt.MessageEffectId != "" {
+			request.MessageEffectId = opt.MessageEffectId
+		}
+		if opt.SuggestedPostParameters != nil {
+			request.SuggestedPostParameters = opt.SuggestedPostParameters
+		}
+		if opt.ReplyParameters != nil {
+			request.ReplyParameters = opt.ReplyParameters
+		}
+		if opt.ReplyMarkup != nil {
+			request.ReplyMarkup = opt.ReplyMarkup
+		}
+	}
+	return GenericRequest[Request, *Message](ctx, "sendRichMessage", request)
+}
+
+type OptSendRichMessage struct {
+	BusinessConnectionId       string
+	MessageThreadId            int64
+	DirectMessagesTopicId      int64
+	EphemeralMessageParameters *EphemeralMessageParameters
+	DisableNotification        bool
+	ProtectContent             bool
+	AllowPaidBroadcast         bool
+	MessageEffectId            string
+	SuggestedPostParameters    *SuggestedPostParameters
+	ReplyParameters            *ReplyParameters
+	ReplyMarkup                VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
+}
+
+type VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply interface {
+	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup
+	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup
+	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove
+	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply
+}
+
+var (
+	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &InlineKeyboardMarkup{}
+	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ReplyKeyboardMarkup{}
+	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ReplyKeyboardRemove{}
+	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ForceReply{}
+)
+
+func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
+	return impl
+}
+func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
+	return nil
+}
+func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
+	return nil
+}
+func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
+	return nil
+}
+
+func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
+	return nil
+}
+func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
+	return impl
+}
+func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
+	return nil
+}
+func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
+	return nil
+}
+
+func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
+	return nil
+}
+func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
+	return nil
+}
+func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
+	return impl
+}
+func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
+	return nil
+}
+
+func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
+	return nil
+}
+func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
+	return nil
+}
+func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
+	return nil
+}
+func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
+	return impl
+}
+
+// SendRichMessageDraft Use this method to stream a partial rich message to a user while the message is being generated.
+// Note that the streamed draft is ephemeral and acts as a temporary 30-second preview - once the output is finalized, you must call sendRichMessage with the complete message to persist it in the user's chat.
+// Returns True on success.
+func SendRichMessageDraft(ctx context.Context, chatId int64, draftId int64, richMessage *InputRichMessage, opts ...*OptSendRichMessageDraft) (*Message, error) {
+	ContextSchedule(ctx, chatId, 1)
+	defer ContextScheduleDone(ctx, chatId, 1)
+	type Request struct {
+		ChatId          int64             `json:"chat_id"`
+		MessageThreadId int64             `json:"message_thread_id,omitempty"`
+		DraftId         int64             `json:"draft_id"`
+		RichMessage     *InputRichMessage `json:"rich_message"`
+		CanStop         bool              `json:"can_stop,omitempty"`
+		KeepOnStop      bool              `json:"keep_on_stop,omitempty"`
+	}
+	request := &Request{
+		ChatId:      chatId,
+		DraftId:     draftId,
+		RichMessage: richMessage,
+	}
+	for _, opt := range opts {
+		if opt.MessageThreadId != 0 {
+			request.MessageThreadId = opt.MessageThreadId
+		}
+		if opt.CanStop {
+			request.CanStop = opt.CanStop
+		}
+		if opt.KeepOnStop {
+			request.KeepOnStop = opt.KeepOnStop
+		}
+	}
+	return GenericRequest[Request, *Message](ctx, "sendRichMessageDraft", request)
+}
+
+type OptSendRichMessageDraft struct {
+	MessageThreadId int64
+	CanStop         bool
+	KeepOnStop      bool
 }
 
 // SendSticker Use this method to send static .WEBP, [animated](https://telegram.org/blog/animated-stickers) .TGS, or [video](https://telegram.org/blog/video-stickers-better-reactions) .WEBM stickers.

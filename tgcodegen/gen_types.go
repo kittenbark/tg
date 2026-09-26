@@ -51,6 +51,7 @@ func NewFactory() *Factory2 {
 			"InaccessibleMessage":      "*Message",  // InaccessibleMessage is a subset of Message (field-wise).
 			"MaybeInaccessibleMessage": "*Message",  // MaybeInaccessibleMessage = Message | InaccessibleMessage.
 			"InputFile":                "InputFile", // This is how Telegram represents mutlipart file uploading.
+			"RichText":                 "any",       // RichText = String | Array of RichText | one of 26 struct variants; no single Go type fits, so we punt to `any`.
 		},
 		Renames: map[string]string{
 			"InputMediaVideo":     "Video",

@@ -3327,47 +3327,17 @@ var (
 	_ InputMedia = &Video{}
 )
 
-func (impl *Animation) OptAnimation() *Animation           { return impl }
-func (impl *Animation) OptAudio() *Audio                   { return nil }
-func (impl *Animation) OptDocument() *Document             { return nil }
 func (impl *Animation) OptLivePhoto() *InputMediaLivePhoto { return nil }
-func (impl *Animation) OptPhoto() *Photo                   { return nil }
-func (impl *Animation) OptVideo() *Video                   { return nil }
 
-func (impl *Audio) OptAnimation() *Animation           { return nil }
-func (impl *Audio) OptAudio() *Audio                   { return impl }
-func (impl *Audio) OptDocument() *Document             { return nil }
 func (impl *Audio) OptLivePhoto() *InputMediaLivePhoto { return nil }
-func (impl *Audio) OptPhoto() *Photo                   { return nil }
-func (impl *Audio) OptVideo() *Video                   { return nil }
 
-func (impl *Document) OptAnimation() *Animation           { return nil }
-func (impl *Document) OptAudio() *Audio                   { return nil }
-func (impl *Document) OptDocument() *Document             { return impl }
 func (impl *Document) OptLivePhoto() *InputMediaLivePhoto { return nil }
-func (impl *Document) OptPhoto() *Photo                   { return nil }
-func (impl *Document) OptVideo() *Video                   { return nil }
 
-func (impl *InputMediaLivePhoto) OptAnimation() *Animation           { return nil }
-func (impl *InputMediaLivePhoto) OptAudio() *Audio                   { return nil }
-func (impl *InputMediaLivePhoto) OptDocument() *Document             { return nil }
 func (impl *InputMediaLivePhoto) OptLivePhoto() *InputMediaLivePhoto { return impl }
-func (impl *InputMediaLivePhoto) OptPhoto() *Photo                   { return nil }
-func (impl *InputMediaLivePhoto) OptVideo() *Video                   { return nil }
 
-func (impl *Photo) OptAnimation() *Animation           { return nil }
-func (impl *Photo) OptAudio() *Audio                   { return nil }
-func (impl *Photo) OptDocument() *Document             { return nil }
 func (impl *Photo) OptLivePhoto() *InputMediaLivePhoto { return nil }
-func (impl *Photo) OptPhoto() *Photo                   { return impl }
-func (impl *Photo) OptVideo() *Video                   { return nil }
 
-func (impl *Video) OptAnimation() *Animation           { return nil }
-func (impl *Video) OptAudio() *Audio                   { return nil }
-func (impl *Video) OptDocument() *Document             { return nil }
 func (impl *Video) OptLivePhoto() *InputMediaLivePhoto { return nil }
-func (impl *Video) OptPhoto() *Photo                   { return nil }
-func (impl *Video) OptVideo() *Video                   { return impl }
 
 // InputMediaLink Represents an HTTP link to be sent.
 type InputMediaLink struct {
@@ -3459,6 +3429,25 @@ type InputMediaVenue struct {
 	InputFile InputFile `json:"-"`
 }
 
+// InputMediaVoiceNote Represents a voice message file to be sent.
+type InputMediaVoiceNote struct {
+	// Type of the media, must be voice_note
+	Type string `json:"type"`
+	// File to send. More information on Sending Files »
+	// Pass a file_id to send a file that exists on the Telegram servers (recommended), pass an HTTP URL for Telegram to get a file from the Internet, or pass "attach://<file_attach_name>" to upload a new one using multipart/form-data under <file_attach_name> name.
+	Media InputFile `json:"media"`
+	// Optional. Caption of the voice message to be sent, 0-1024 characters after entities parsing
+	Caption string `json:"caption,omitempty"`
+	// Optional. Mode for parsing entities in the voice message caption. See formatting options for more details.
+	ParseMode string `json:"parse_mode,omitempty"`
+	// Optional. List of special entities that appear in the caption, which can be specified instead of parse_mode
+	CaptionEntities []*MessageEntity `json:"caption_entities,omitempty"`
+	// Optional. Duration of the voice message in seconds
+	Duration int64 `json:"duration,omitempty"`
+	// Used for uploading media.
+	InputFile InputFile `json:"-"`
+}
+
 // InputMessageContent This object represents the content of a message to be sent as a result of an inline query. Telegram clients currently support the following 5 types:
 // * [InputTextMessageContent](https://core.telegram.org/bots/api/#inputtextmessagecontent)
 // * [InputLocationMessageContent](https://core.telegram.org/bots/api/#inputlocationmessagecontent)
@@ -3471,6 +3460,7 @@ type InputMessageContent interface {
 	OptInputVenueMessageContent() *InputVenueMessageContent
 	OptInputContactMessageContent() *InputContactMessageContent
 	OptInputInvoiceMessageContent() *InputInvoiceMessageContent
+	OptInputRichMessageContent() *InputRichMessageContent
 }
 
 var (
@@ -3479,6 +3469,7 @@ var (
 	_ InputMessageContent = &InputVenueMessageContent{}
 	_ InputMessageContent = &InputContactMessageContent{}
 	_ InputMessageContent = &InputInvoiceMessageContent{}
+	_ InputMessageContent = &InputRichMessageContent{}
 )
 
 func (impl *InputTextMessageContent) OptInputTextMessageContent() *InputTextMessageContent {
@@ -3494,6 +3485,9 @@ func (impl *InputTextMessageContent) OptInputContactMessageContent() *InputConta
 	return nil
 }
 func (impl *InputTextMessageContent) OptInputInvoiceMessageContent() *InputInvoiceMessageContent {
+	return nil
+}
+func (impl *InputTextMessageContent) OptInputRichMessageContent() *InputRichMessageContent {
 	return nil
 }
 
@@ -3512,6 +3506,9 @@ func (impl *InputLocationMessageContent) OptInputContactMessageContent() *InputC
 func (impl *InputLocationMessageContent) OptInputInvoiceMessageContent() *InputInvoiceMessageContent {
 	return nil
 }
+func (impl *InputLocationMessageContent) OptInputRichMessageContent() *InputRichMessageContent {
+	return nil
+}
 
 func (impl *InputVenueMessageContent) OptInputTextMessageContent() *InputTextMessageContent {
 	return nil
@@ -3526,6 +3523,9 @@ func (impl *InputVenueMessageContent) OptInputContactMessageContent() *InputCont
 	return nil
 }
 func (impl *InputVenueMessageContent) OptInputInvoiceMessageContent() *InputInvoiceMessageContent {
+	return nil
+}
+func (impl *InputVenueMessageContent) OptInputRichMessageContent() *InputRichMessageContent {
 	return nil
 }
 
@@ -3544,6 +3544,9 @@ func (impl *InputContactMessageContent) OptInputContactMessageContent() *InputCo
 func (impl *InputContactMessageContent) OptInputInvoiceMessageContent() *InputInvoiceMessageContent {
 	return nil
 }
+func (impl *InputContactMessageContent) OptInputRichMessageContent() *InputRichMessageContent {
+	return nil
+}
 
 func (impl *InputInvoiceMessageContent) OptInputTextMessageContent() *InputTextMessageContent {
 	return nil
@@ -3558,6 +3561,28 @@ func (impl *InputInvoiceMessageContent) OptInputContactMessageContent() *InputCo
 	return nil
 }
 func (impl *InputInvoiceMessageContent) OptInputInvoiceMessageContent() *InputInvoiceMessageContent {
+	return impl
+}
+func (impl *InputInvoiceMessageContent) OptInputRichMessageContent() *InputRichMessageContent {
+	return nil
+}
+
+func (impl *InputRichMessageContent) OptInputTextMessageContent() *InputTextMessageContent {
+	return nil
+}
+func (impl *InputRichMessageContent) OptInputLocationMessageContent() *InputLocationMessageContent {
+	return nil
+}
+func (impl *InputRichMessageContent) OptInputVenueMessageContent() *InputVenueMessageContent {
+	return nil
+}
+func (impl *InputRichMessageContent) OptInputContactMessageContent() *InputContactMessageContent {
+	return nil
+}
+func (impl *InputRichMessageContent) OptInputInvoiceMessageContent() *InputInvoiceMessageContent {
+	return nil
+}
+func (impl *InputRichMessageContent) OptInputRichMessageContent() *InputRichMessageContent {
 	return impl
 }
 
@@ -3674,19 +3699,77 @@ var (
 	_ InputPollMedia = &Video{}
 )
 
+func (impl *Animation) OptAnimation() *Animation                     { return impl }
+func (impl *Animation) OptAudio() *Audio                             { return nil }
+func (impl *Animation) OptDocument() *Document                       { return nil }
+func (impl *Animation) OptInputMediaLivePhoto() *InputMediaLivePhoto { return nil }
+func (impl *Animation) OptInputMediaLocation() *InputMediaLocation   { return nil }
+func (impl *Animation) OptPhoto() *Photo                             { return nil }
+func (impl *Animation) OptInputMediaVenue() *InputMediaVenue         { return nil }
+func (impl *Animation) OptVideo() *Video                             { return nil }
+
+func (impl *Audio) OptAnimation() *Animation                     { return nil }
+func (impl *Audio) OptAudio() *Audio                             { return impl }
+func (impl *Audio) OptDocument() *Document                       { return nil }
 func (impl *Audio) OptInputMediaLivePhoto() *InputMediaLivePhoto { return nil }
 func (impl *Audio) OptInputMediaLocation() *InputMediaLocation   { return nil }
+func (impl *Audio) OptPhoto() *Photo                             { return nil }
 func (impl *Audio) OptInputMediaVenue() *InputMediaVenue         { return nil }
+func (impl *Audio) OptVideo() *Video                             { return nil }
 
+func (impl *Document) OptAnimation() *Animation                     { return nil }
+func (impl *Document) OptAudio() *Audio                             { return nil }
+func (impl *Document) OptDocument() *Document                       { return impl }
 func (impl *Document) OptInputMediaLivePhoto() *InputMediaLivePhoto { return nil }
 func (impl *Document) OptInputMediaLocation() *InputMediaLocation   { return nil }
+func (impl *Document) OptPhoto() *Photo                             { return nil }
 func (impl *Document) OptInputMediaVenue() *InputMediaVenue         { return nil }
+func (impl *Document) OptVideo() *Video                             { return nil }
 
-func (impl *InputMediaLocation) OptAudio() *Audio       { return nil }
-func (impl *InputMediaLocation) OptDocument() *Document { return nil }
+func (impl *InputMediaLivePhoto) OptAnimation() *Animation                     { return nil }
+func (impl *InputMediaLivePhoto) OptAudio() *Audio                             { return nil }
+func (impl *InputMediaLivePhoto) OptDocument() *Document                       { return nil }
+func (impl *InputMediaLivePhoto) OptInputMediaLivePhoto() *InputMediaLivePhoto { return impl }
+func (impl *InputMediaLivePhoto) OptInputMediaLocation() *InputMediaLocation   { return nil }
+func (impl *InputMediaLivePhoto) OptPhoto() *Photo                             { return nil }
+func (impl *InputMediaLivePhoto) OptInputMediaVenue() *InputMediaVenue         { return nil }
+func (impl *InputMediaLivePhoto) OptVideo() *Video                             { return nil }
 
-func (impl *InputMediaVenue) OptAudio() *Audio       { return nil }
-func (impl *InputMediaVenue) OptDocument() *Document { return nil }
+func (impl *InputMediaLocation) OptAnimation() *Animation                     { return nil }
+func (impl *InputMediaLocation) OptAudio() *Audio                             { return nil }
+func (impl *InputMediaLocation) OptDocument() *Document                       { return nil }
+func (impl *InputMediaLocation) OptInputMediaLivePhoto() *InputMediaLivePhoto { return nil }
+func (impl *InputMediaLocation) OptInputMediaLocation() *InputMediaLocation   { return impl }
+func (impl *InputMediaLocation) OptPhoto() *Photo                             { return nil }
+func (impl *InputMediaLocation) OptInputMediaVenue() *InputMediaVenue         { return nil }
+func (impl *InputMediaLocation) OptVideo() *Video                             { return nil }
+
+func (impl *Photo) OptAnimation() *Animation                     { return nil }
+func (impl *Photo) OptAudio() *Audio                             { return nil }
+func (impl *Photo) OptDocument() *Document                       { return nil }
+func (impl *Photo) OptInputMediaLivePhoto() *InputMediaLivePhoto { return nil }
+func (impl *Photo) OptInputMediaLocation() *InputMediaLocation   { return nil }
+func (impl *Photo) OptPhoto() *Photo                             { return impl }
+func (impl *Photo) OptInputMediaVenue() *InputMediaVenue         { return nil }
+func (impl *Photo) OptVideo() *Video                             { return nil }
+
+func (impl *InputMediaVenue) OptAnimation() *Animation                     { return nil }
+func (impl *InputMediaVenue) OptAudio() *Audio                             { return nil }
+func (impl *InputMediaVenue) OptDocument() *Document                       { return nil }
+func (impl *InputMediaVenue) OptInputMediaLivePhoto() *InputMediaLivePhoto { return nil }
+func (impl *InputMediaVenue) OptInputMediaLocation() *InputMediaLocation   { return nil }
+func (impl *InputMediaVenue) OptPhoto() *Photo                             { return nil }
+func (impl *InputMediaVenue) OptInputMediaVenue() *InputMediaVenue         { return impl }
+func (impl *InputMediaVenue) OptVideo() *Video                             { return nil }
+
+func (impl *Video) OptAnimation() *Animation                     { return nil }
+func (impl *Video) OptAudio() *Audio                             { return nil }
+func (impl *Video) OptDocument() *Document                       { return nil }
+func (impl *Video) OptInputMediaLivePhoto() *InputMediaLivePhoto { return nil }
+func (impl *Video) OptInputMediaLocation() *InputMediaLocation   { return nil }
+func (impl *Video) OptPhoto() *Photo                             { return nil }
+func (impl *Video) OptInputMediaVenue() *InputMediaVenue         { return nil }
+func (impl *Video) OptVideo() *Video                             { return impl }
 
 // InputPollOption This object contains information about one answer option in a poll to be sent.
 type InputPollOption struct {
@@ -3732,32 +3815,17 @@ var (
 	_ InputPollOptionMedia = &InputMediaLink{}
 )
 
-func (impl *Animation) OptInputMediaLivePhoto() *InputMediaLivePhoto { return nil }
-func (impl *Animation) OptInputMediaLocation() *InputMediaLocation   { return nil }
-func (impl *Animation) OptInputMediaSticker() *InputMediaSticker     { return nil }
-func (impl *Animation) OptInputMediaVenue() *InputMediaVenue         { return nil }
-func (impl *Animation) OptInputMediaLink() *InputMediaLink           { return nil }
+func (impl *Animation) OptInputMediaSticker() *InputMediaSticker { return nil }
+func (impl *Animation) OptInputMediaLink() *InputMediaLink       { return nil }
 
-func (impl *InputMediaLivePhoto) OptInputMediaLivePhoto() *InputMediaLivePhoto { return impl }
-func (impl *InputMediaLivePhoto) OptInputMediaLocation() *InputMediaLocation   { return nil }
-func (impl *InputMediaLivePhoto) OptInputMediaSticker() *InputMediaSticker     { return nil }
-func (impl *InputMediaLivePhoto) OptInputMediaVenue() *InputMediaVenue         { return nil }
-func (impl *InputMediaLivePhoto) OptInputMediaLink() *InputMediaLink           { return nil }
+func (impl *InputMediaLivePhoto) OptInputMediaSticker() *InputMediaSticker { return nil }
+func (impl *InputMediaLivePhoto) OptInputMediaLink() *InputMediaLink       { return nil }
 
-func (impl *InputMediaLocation) OptAnimation() *Animation                     { return nil }
-func (impl *InputMediaLocation) OptInputMediaLivePhoto() *InputMediaLivePhoto { return nil }
-func (impl *InputMediaLocation) OptInputMediaLocation() *InputMediaLocation   { return impl }
-func (impl *InputMediaLocation) OptPhoto() *Photo                             { return nil }
-func (impl *InputMediaLocation) OptInputMediaSticker() *InputMediaSticker     { return nil }
-func (impl *InputMediaLocation) OptInputMediaVenue() *InputMediaVenue         { return nil }
-func (impl *InputMediaLocation) OptVideo() *Video                             { return nil }
-func (impl *InputMediaLocation) OptInputMediaLink() *InputMediaLink           { return nil }
+func (impl *InputMediaLocation) OptInputMediaSticker() *InputMediaSticker { return nil }
+func (impl *InputMediaLocation) OptInputMediaLink() *InputMediaLink       { return nil }
 
-func (impl *Photo) OptInputMediaLivePhoto() *InputMediaLivePhoto { return nil }
-func (impl *Photo) OptInputMediaLocation() *InputMediaLocation   { return nil }
-func (impl *Photo) OptInputMediaSticker() *InputMediaSticker     { return nil }
-func (impl *Photo) OptInputMediaVenue() *InputMediaVenue         { return nil }
-func (impl *Photo) OptInputMediaLink() *InputMediaLink           { return nil }
+func (impl *Photo) OptInputMediaSticker() *InputMediaSticker { return nil }
+func (impl *Photo) OptInputMediaLink() *InputMediaLink       { return nil }
 
 func (impl *InputMediaSticker) OptAnimation() *Animation                     { return nil }
 func (impl *InputMediaSticker) OptInputMediaLivePhoto() *InputMediaLivePhoto { return nil }
@@ -3768,20 +3836,11 @@ func (impl *InputMediaSticker) OptInputMediaVenue() *InputMediaVenue         { r
 func (impl *InputMediaSticker) OptVideo() *Video                             { return nil }
 func (impl *InputMediaSticker) OptInputMediaLink() *InputMediaLink           { return nil }
 
-func (impl *InputMediaVenue) OptAnimation() *Animation                     { return nil }
-func (impl *InputMediaVenue) OptInputMediaLivePhoto() *InputMediaLivePhoto { return nil }
-func (impl *InputMediaVenue) OptInputMediaLocation() *InputMediaLocation   { return nil }
-func (impl *InputMediaVenue) OptPhoto() *Photo                             { return nil }
-func (impl *InputMediaVenue) OptInputMediaSticker() *InputMediaSticker     { return nil }
-func (impl *InputMediaVenue) OptInputMediaVenue() *InputMediaVenue         { return impl }
-func (impl *InputMediaVenue) OptVideo() *Video                             { return nil }
-func (impl *InputMediaVenue) OptInputMediaLink() *InputMediaLink           { return nil }
+func (impl *InputMediaVenue) OptInputMediaSticker() *InputMediaSticker { return nil }
+func (impl *InputMediaVenue) OptInputMediaLink() *InputMediaLink       { return nil }
 
-func (impl *Video) OptInputMediaLivePhoto() *InputMediaLivePhoto { return nil }
-func (impl *Video) OptInputMediaLocation() *InputMediaLocation   { return nil }
-func (impl *Video) OptInputMediaSticker() *InputMediaSticker     { return nil }
-func (impl *Video) OptInputMediaVenue() *InputMediaVenue         { return nil }
-func (impl *Video) OptInputMediaLink() *InputMediaLink           { return nil }
+func (impl *Video) OptInputMediaSticker() *InputMediaSticker { return nil }
+func (impl *Video) OptInputMediaLink() *InputMediaLink       { return nil }
 
 func (impl *InputMediaLink) OptAnimation() *Animation                     { return nil }
 func (impl *InputMediaLink) OptInputMediaLivePhoto() *InputMediaLivePhoto { return nil }
@@ -3830,6 +3889,1087 @@ type InputProfilePhotoStatic struct {
 	// The static profile photo. [More information on Sending Files »](https://core.telegram.org/bots/api/#sending-files)
 	// Profile photos can't be reused and can only be uploaded as a new file, so you can pass “attach://\<file\_attach\_name\>” if the photo was uploaded using multipart/form-data under \<file\_attach\_name\>.
 	Photo string `json:"photo"`
+}
+
+// InputRichBlock This object represents a block in a rich formatted message to be sent.
+type InputRichBlock interface {
+	OptAnchor() *InputRichBlockAnchor
+	OptAnimation() *InputRichBlockAnimation
+	OptAudio() *InputRichBlockAudio
+	OptBlockQuotation() *InputRichBlockBlockQuotation
+	OptButtons() *InputRichBlockButtons
+	OptCollage() *InputRichBlockCollage
+	OptDetails() *InputRichBlockDetails
+	OptDivider() *InputRichBlockDivider
+	OptDocument() *InputRichBlockDocument
+	OptExpandableBlockQuotation() *InputRichBlockExpandableBlockQuotation
+	OptFooter() *InputRichBlockFooter
+	OptList() *InputRichBlockList
+	OptMap() *InputRichBlockMap
+	OptMathematicalExpression() *InputRichBlockMathematicalExpression
+	OptParagraph() *InputRichBlockParagraph
+	OptPhoto() *InputRichBlockPhoto
+	OptPreformatted() *InputRichBlockPreformatted
+	OptPullQuotation() *InputRichBlockPullQuotation
+	OptSectionHeading() *InputRichBlockSectionHeading
+	OptSlideshow() *InputRichBlockSlideshow
+	OptTable() *InputRichBlockTable
+	OptThinking() *InputRichBlockThinking
+	OptVideo() *InputRichBlockVideo
+	OptVoiceNote() *InputRichBlockVoiceNote
+}
+
+var (
+	_ InputRichBlock = &InputRichBlockAnchor{}
+	_ InputRichBlock = &InputRichBlockAnimation{}
+	_ InputRichBlock = &InputRichBlockAudio{}
+	_ InputRichBlock = &InputRichBlockBlockQuotation{}
+	_ InputRichBlock = &InputRichBlockButtons{}
+	_ InputRichBlock = &InputRichBlockCollage{}
+	_ InputRichBlock = &InputRichBlockDetails{}
+	_ InputRichBlock = &InputRichBlockDivider{}
+	_ InputRichBlock = &InputRichBlockDocument{}
+	_ InputRichBlock = &InputRichBlockExpandableBlockQuotation{}
+	_ InputRichBlock = &InputRichBlockFooter{}
+	_ InputRichBlock = &InputRichBlockList{}
+	_ InputRichBlock = &InputRichBlockMap{}
+	_ InputRichBlock = &InputRichBlockMathematicalExpression{}
+	_ InputRichBlock = &InputRichBlockParagraph{}
+	_ InputRichBlock = &InputRichBlockPhoto{}
+	_ InputRichBlock = &InputRichBlockPreformatted{}
+	_ InputRichBlock = &InputRichBlockPullQuotation{}
+	_ InputRichBlock = &InputRichBlockSectionHeading{}
+	_ InputRichBlock = &InputRichBlockSlideshow{}
+	_ InputRichBlock = &InputRichBlockTable{}
+	_ InputRichBlock = &InputRichBlockThinking{}
+	_ InputRichBlock = &InputRichBlockVideo{}
+	_ InputRichBlock = &InputRichBlockVoiceNote{}
+)
+
+func (impl *InputRichBlockAnchor) OptAnchor() *InputRichBlockAnchor                 { return impl }
+func (impl *InputRichBlockAnchor) OptAnimation() *InputRichBlockAnimation           { return nil }
+func (impl *InputRichBlockAnchor) OptAudio() *InputRichBlockAudio                   { return nil }
+func (impl *InputRichBlockAnchor) OptBlockQuotation() *InputRichBlockBlockQuotation { return nil }
+func (impl *InputRichBlockAnchor) OptButtons() *InputRichBlockButtons               { return nil }
+func (impl *InputRichBlockAnchor) OptCollage() *InputRichBlockCollage               { return nil }
+func (impl *InputRichBlockAnchor) OptDetails() *InputRichBlockDetails               { return nil }
+func (impl *InputRichBlockAnchor) OptDivider() *InputRichBlockDivider               { return nil }
+func (impl *InputRichBlockAnchor) OptDocument() *InputRichBlockDocument             { return nil }
+func (impl *InputRichBlockAnchor) OptExpandableBlockQuotation() *InputRichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *InputRichBlockAnchor) OptFooter() *InputRichBlockFooter { return nil }
+func (impl *InputRichBlockAnchor) OptList() *InputRichBlockList     { return nil }
+func (impl *InputRichBlockAnchor) OptMap() *InputRichBlockMap       { return nil }
+func (impl *InputRichBlockAnchor) OptMathematicalExpression() *InputRichBlockMathematicalExpression {
+	return nil
+}
+func (impl *InputRichBlockAnchor) OptParagraph() *InputRichBlockParagraph           { return nil }
+func (impl *InputRichBlockAnchor) OptPhoto() *InputRichBlockPhoto                   { return nil }
+func (impl *InputRichBlockAnchor) OptPreformatted() *InputRichBlockPreformatted     { return nil }
+func (impl *InputRichBlockAnchor) OptPullQuotation() *InputRichBlockPullQuotation   { return nil }
+func (impl *InputRichBlockAnchor) OptSectionHeading() *InputRichBlockSectionHeading { return nil }
+func (impl *InputRichBlockAnchor) OptSlideshow() *InputRichBlockSlideshow           { return nil }
+func (impl *InputRichBlockAnchor) OptTable() *InputRichBlockTable                   { return nil }
+func (impl *InputRichBlockAnchor) OptThinking() *InputRichBlockThinking             { return nil }
+func (impl *InputRichBlockAnchor) OptVideo() *InputRichBlockVideo                   { return nil }
+func (impl *InputRichBlockAnchor) OptVoiceNote() *InputRichBlockVoiceNote           { return nil }
+
+func (impl *InputRichBlockAnimation) OptAnchor() *InputRichBlockAnchor                 { return nil }
+func (impl *InputRichBlockAnimation) OptAnimation() *InputRichBlockAnimation           { return impl }
+func (impl *InputRichBlockAnimation) OptAudio() *InputRichBlockAudio                   { return nil }
+func (impl *InputRichBlockAnimation) OptBlockQuotation() *InputRichBlockBlockQuotation { return nil }
+func (impl *InputRichBlockAnimation) OptButtons() *InputRichBlockButtons               { return nil }
+func (impl *InputRichBlockAnimation) OptCollage() *InputRichBlockCollage               { return nil }
+func (impl *InputRichBlockAnimation) OptDetails() *InputRichBlockDetails               { return nil }
+func (impl *InputRichBlockAnimation) OptDivider() *InputRichBlockDivider               { return nil }
+func (impl *InputRichBlockAnimation) OptDocument() *InputRichBlockDocument             { return nil }
+func (impl *InputRichBlockAnimation) OptExpandableBlockQuotation() *InputRichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *InputRichBlockAnimation) OptFooter() *InputRichBlockFooter { return nil }
+func (impl *InputRichBlockAnimation) OptList() *InputRichBlockList     { return nil }
+func (impl *InputRichBlockAnimation) OptMap() *InputRichBlockMap       { return nil }
+func (impl *InputRichBlockAnimation) OptMathematicalExpression() *InputRichBlockMathematicalExpression {
+	return nil
+}
+func (impl *InputRichBlockAnimation) OptParagraph() *InputRichBlockParagraph           { return nil }
+func (impl *InputRichBlockAnimation) OptPhoto() *InputRichBlockPhoto                   { return nil }
+func (impl *InputRichBlockAnimation) OptPreformatted() *InputRichBlockPreformatted     { return nil }
+func (impl *InputRichBlockAnimation) OptPullQuotation() *InputRichBlockPullQuotation   { return nil }
+func (impl *InputRichBlockAnimation) OptSectionHeading() *InputRichBlockSectionHeading { return nil }
+func (impl *InputRichBlockAnimation) OptSlideshow() *InputRichBlockSlideshow           { return nil }
+func (impl *InputRichBlockAnimation) OptTable() *InputRichBlockTable                   { return nil }
+func (impl *InputRichBlockAnimation) OptThinking() *InputRichBlockThinking             { return nil }
+func (impl *InputRichBlockAnimation) OptVideo() *InputRichBlockVideo                   { return nil }
+func (impl *InputRichBlockAnimation) OptVoiceNote() *InputRichBlockVoiceNote           { return nil }
+
+func (impl *InputRichBlockAudio) OptAnchor() *InputRichBlockAnchor                 { return nil }
+func (impl *InputRichBlockAudio) OptAnimation() *InputRichBlockAnimation           { return nil }
+func (impl *InputRichBlockAudio) OptAudio() *InputRichBlockAudio                   { return impl }
+func (impl *InputRichBlockAudio) OptBlockQuotation() *InputRichBlockBlockQuotation { return nil }
+func (impl *InputRichBlockAudio) OptButtons() *InputRichBlockButtons               { return nil }
+func (impl *InputRichBlockAudio) OptCollage() *InputRichBlockCollage               { return nil }
+func (impl *InputRichBlockAudio) OptDetails() *InputRichBlockDetails               { return nil }
+func (impl *InputRichBlockAudio) OptDivider() *InputRichBlockDivider               { return nil }
+func (impl *InputRichBlockAudio) OptDocument() *InputRichBlockDocument             { return nil }
+func (impl *InputRichBlockAudio) OptExpandableBlockQuotation() *InputRichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *InputRichBlockAudio) OptFooter() *InputRichBlockFooter { return nil }
+func (impl *InputRichBlockAudio) OptList() *InputRichBlockList     { return nil }
+func (impl *InputRichBlockAudio) OptMap() *InputRichBlockMap       { return nil }
+func (impl *InputRichBlockAudio) OptMathematicalExpression() *InputRichBlockMathematicalExpression {
+	return nil
+}
+func (impl *InputRichBlockAudio) OptParagraph() *InputRichBlockParagraph           { return nil }
+func (impl *InputRichBlockAudio) OptPhoto() *InputRichBlockPhoto                   { return nil }
+func (impl *InputRichBlockAudio) OptPreformatted() *InputRichBlockPreformatted     { return nil }
+func (impl *InputRichBlockAudio) OptPullQuotation() *InputRichBlockPullQuotation   { return nil }
+func (impl *InputRichBlockAudio) OptSectionHeading() *InputRichBlockSectionHeading { return nil }
+func (impl *InputRichBlockAudio) OptSlideshow() *InputRichBlockSlideshow           { return nil }
+func (impl *InputRichBlockAudio) OptTable() *InputRichBlockTable                   { return nil }
+func (impl *InputRichBlockAudio) OptThinking() *InputRichBlockThinking             { return nil }
+func (impl *InputRichBlockAudio) OptVideo() *InputRichBlockVideo                   { return nil }
+func (impl *InputRichBlockAudio) OptVoiceNote() *InputRichBlockVoiceNote           { return nil }
+
+func (impl *InputRichBlockBlockQuotation) OptAnchor() *InputRichBlockAnchor       { return nil }
+func (impl *InputRichBlockBlockQuotation) OptAnimation() *InputRichBlockAnimation { return nil }
+func (impl *InputRichBlockBlockQuotation) OptAudio() *InputRichBlockAudio         { return nil }
+func (impl *InputRichBlockBlockQuotation) OptBlockQuotation() *InputRichBlockBlockQuotation {
+	return impl
+}
+func (impl *InputRichBlockBlockQuotation) OptButtons() *InputRichBlockButtons   { return nil }
+func (impl *InputRichBlockBlockQuotation) OptCollage() *InputRichBlockCollage   { return nil }
+func (impl *InputRichBlockBlockQuotation) OptDetails() *InputRichBlockDetails   { return nil }
+func (impl *InputRichBlockBlockQuotation) OptDivider() *InputRichBlockDivider   { return nil }
+func (impl *InputRichBlockBlockQuotation) OptDocument() *InputRichBlockDocument { return nil }
+func (impl *InputRichBlockBlockQuotation) OptExpandableBlockQuotation() *InputRichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *InputRichBlockBlockQuotation) OptFooter() *InputRichBlockFooter { return nil }
+func (impl *InputRichBlockBlockQuotation) OptList() *InputRichBlockList     { return nil }
+func (impl *InputRichBlockBlockQuotation) OptMap() *InputRichBlockMap       { return nil }
+func (impl *InputRichBlockBlockQuotation) OptMathematicalExpression() *InputRichBlockMathematicalExpression {
+	return nil
+}
+func (impl *InputRichBlockBlockQuotation) OptParagraph() *InputRichBlockParagraph         { return nil }
+func (impl *InputRichBlockBlockQuotation) OptPhoto() *InputRichBlockPhoto                 { return nil }
+func (impl *InputRichBlockBlockQuotation) OptPreformatted() *InputRichBlockPreformatted   { return nil }
+func (impl *InputRichBlockBlockQuotation) OptPullQuotation() *InputRichBlockPullQuotation { return nil }
+func (impl *InputRichBlockBlockQuotation) OptSectionHeading() *InputRichBlockSectionHeading {
+	return nil
+}
+func (impl *InputRichBlockBlockQuotation) OptSlideshow() *InputRichBlockSlideshow { return nil }
+func (impl *InputRichBlockBlockQuotation) OptTable() *InputRichBlockTable         { return nil }
+func (impl *InputRichBlockBlockQuotation) OptThinking() *InputRichBlockThinking   { return nil }
+func (impl *InputRichBlockBlockQuotation) OptVideo() *InputRichBlockVideo         { return nil }
+func (impl *InputRichBlockBlockQuotation) OptVoiceNote() *InputRichBlockVoiceNote { return nil }
+
+func (impl *InputRichBlockButtons) OptAnchor() *InputRichBlockAnchor                 { return nil }
+func (impl *InputRichBlockButtons) OptAnimation() *InputRichBlockAnimation           { return nil }
+func (impl *InputRichBlockButtons) OptAudio() *InputRichBlockAudio                   { return nil }
+func (impl *InputRichBlockButtons) OptBlockQuotation() *InputRichBlockBlockQuotation { return nil }
+func (impl *InputRichBlockButtons) OptButtons() *InputRichBlockButtons               { return impl }
+func (impl *InputRichBlockButtons) OptCollage() *InputRichBlockCollage               { return nil }
+func (impl *InputRichBlockButtons) OptDetails() *InputRichBlockDetails               { return nil }
+func (impl *InputRichBlockButtons) OptDivider() *InputRichBlockDivider               { return nil }
+func (impl *InputRichBlockButtons) OptDocument() *InputRichBlockDocument             { return nil }
+func (impl *InputRichBlockButtons) OptExpandableBlockQuotation() *InputRichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *InputRichBlockButtons) OptFooter() *InputRichBlockFooter { return nil }
+func (impl *InputRichBlockButtons) OptList() *InputRichBlockList     { return nil }
+func (impl *InputRichBlockButtons) OptMap() *InputRichBlockMap       { return nil }
+func (impl *InputRichBlockButtons) OptMathematicalExpression() *InputRichBlockMathematicalExpression {
+	return nil
+}
+func (impl *InputRichBlockButtons) OptParagraph() *InputRichBlockParagraph           { return nil }
+func (impl *InputRichBlockButtons) OptPhoto() *InputRichBlockPhoto                   { return nil }
+func (impl *InputRichBlockButtons) OptPreformatted() *InputRichBlockPreformatted     { return nil }
+func (impl *InputRichBlockButtons) OptPullQuotation() *InputRichBlockPullQuotation   { return nil }
+func (impl *InputRichBlockButtons) OptSectionHeading() *InputRichBlockSectionHeading { return nil }
+func (impl *InputRichBlockButtons) OptSlideshow() *InputRichBlockSlideshow           { return nil }
+func (impl *InputRichBlockButtons) OptTable() *InputRichBlockTable                   { return nil }
+func (impl *InputRichBlockButtons) OptThinking() *InputRichBlockThinking             { return nil }
+func (impl *InputRichBlockButtons) OptVideo() *InputRichBlockVideo                   { return nil }
+func (impl *InputRichBlockButtons) OptVoiceNote() *InputRichBlockVoiceNote           { return nil }
+
+func (impl *InputRichBlockCollage) OptAnchor() *InputRichBlockAnchor                 { return nil }
+func (impl *InputRichBlockCollage) OptAnimation() *InputRichBlockAnimation           { return nil }
+func (impl *InputRichBlockCollage) OptAudio() *InputRichBlockAudio                   { return nil }
+func (impl *InputRichBlockCollage) OptBlockQuotation() *InputRichBlockBlockQuotation { return nil }
+func (impl *InputRichBlockCollage) OptButtons() *InputRichBlockButtons               { return nil }
+func (impl *InputRichBlockCollage) OptCollage() *InputRichBlockCollage               { return impl }
+func (impl *InputRichBlockCollage) OptDetails() *InputRichBlockDetails               { return nil }
+func (impl *InputRichBlockCollage) OptDivider() *InputRichBlockDivider               { return nil }
+func (impl *InputRichBlockCollage) OptDocument() *InputRichBlockDocument             { return nil }
+func (impl *InputRichBlockCollage) OptExpandableBlockQuotation() *InputRichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *InputRichBlockCollage) OptFooter() *InputRichBlockFooter { return nil }
+func (impl *InputRichBlockCollage) OptList() *InputRichBlockList     { return nil }
+func (impl *InputRichBlockCollage) OptMap() *InputRichBlockMap       { return nil }
+func (impl *InputRichBlockCollage) OptMathematicalExpression() *InputRichBlockMathematicalExpression {
+	return nil
+}
+func (impl *InputRichBlockCollage) OptParagraph() *InputRichBlockParagraph           { return nil }
+func (impl *InputRichBlockCollage) OptPhoto() *InputRichBlockPhoto                   { return nil }
+func (impl *InputRichBlockCollage) OptPreformatted() *InputRichBlockPreformatted     { return nil }
+func (impl *InputRichBlockCollage) OptPullQuotation() *InputRichBlockPullQuotation   { return nil }
+func (impl *InputRichBlockCollage) OptSectionHeading() *InputRichBlockSectionHeading { return nil }
+func (impl *InputRichBlockCollage) OptSlideshow() *InputRichBlockSlideshow           { return nil }
+func (impl *InputRichBlockCollage) OptTable() *InputRichBlockTable                   { return nil }
+func (impl *InputRichBlockCollage) OptThinking() *InputRichBlockThinking             { return nil }
+func (impl *InputRichBlockCollage) OptVideo() *InputRichBlockVideo                   { return nil }
+func (impl *InputRichBlockCollage) OptVoiceNote() *InputRichBlockVoiceNote           { return nil }
+
+func (impl *InputRichBlockDetails) OptAnchor() *InputRichBlockAnchor                 { return nil }
+func (impl *InputRichBlockDetails) OptAnimation() *InputRichBlockAnimation           { return nil }
+func (impl *InputRichBlockDetails) OptAudio() *InputRichBlockAudio                   { return nil }
+func (impl *InputRichBlockDetails) OptBlockQuotation() *InputRichBlockBlockQuotation { return nil }
+func (impl *InputRichBlockDetails) OptButtons() *InputRichBlockButtons               { return nil }
+func (impl *InputRichBlockDetails) OptCollage() *InputRichBlockCollage               { return nil }
+func (impl *InputRichBlockDetails) OptDetails() *InputRichBlockDetails               { return impl }
+func (impl *InputRichBlockDetails) OptDivider() *InputRichBlockDivider               { return nil }
+func (impl *InputRichBlockDetails) OptDocument() *InputRichBlockDocument             { return nil }
+func (impl *InputRichBlockDetails) OptExpandableBlockQuotation() *InputRichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *InputRichBlockDetails) OptFooter() *InputRichBlockFooter { return nil }
+func (impl *InputRichBlockDetails) OptList() *InputRichBlockList     { return nil }
+func (impl *InputRichBlockDetails) OptMap() *InputRichBlockMap       { return nil }
+func (impl *InputRichBlockDetails) OptMathematicalExpression() *InputRichBlockMathematicalExpression {
+	return nil
+}
+func (impl *InputRichBlockDetails) OptParagraph() *InputRichBlockParagraph           { return nil }
+func (impl *InputRichBlockDetails) OptPhoto() *InputRichBlockPhoto                   { return nil }
+func (impl *InputRichBlockDetails) OptPreformatted() *InputRichBlockPreformatted     { return nil }
+func (impl *InputRichBlockDetails) OptPullQuotation() *InputRichBlockPullQuotation   { return nil }
+func (impl *InputRichBlockDetails) OptSectionHeading() *InputRichBlockSectionHeading { return nil }
+func (impl *InputRichBlockDetails) OptSlideshow() *InputRichBlockSlideshow           { return nil }
+func (impl *InputRichBlockDetails) OptTable() *InputRichBlockTable                   { return nil }
+func (impl *InputRichBlockDetails) OptThinking() *InputRichBlockThinking             { return nil }
+func (impl *InputRichBlockDetails) OptVideo() *InputRichBlockVideo                   { return nil }
+func (impl *InputRichBlockDetails) OptVoiceNote() *InputRichBlockVoiceNote           { return nil }
+
+func (impl *InputRichBlockDivider) OptAnchor() *InputRichBlockAnchor                 { return nil }
+func (impl *InputRichBlockDivider) OptAnimation() *InputRichBlockAnimation           { return nil }
+func (impl *InputRichBlockDivider) OptAudio() *InputRichBlockAudio                   { return nil }
+func (impl *InputRichBlockDivider) OptBlockQuotation() *InputRichBlockBlockQuotation { return nil }
+func (impl *InputRichBlockDivider) OptButtons() *InputRichBlockButtons               { return nil }
+func (impl *InputRichBlockDivider) OptCollage() *InputRichBlockCollage               { return nil }
+func (impl *InputRichBlockDivider) OptDetails() *InputRichBlockDetails               { return nil }
+func (impl *InputRichBlockDivider) OptDivider() *InputRichBlockDivider               { return impl }
+func (impl *InputRichBlockDivider) OptDocument() *InputRichBlockDocument             { return nil }
+func (impl *InputRichBlockDivider) OptExpandableBlockQuotation() *InputRichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *InputRichBlockDivider) OptFooter() *InputRichBlockFooter { return nil }
+func (impl *InputRichBlockDivider) OptList() *InputRichBlockList     { return nil }
+func (impl *InputRichBlockDivider) OptMap() *InputRichBlockMap       { return nil }
+func (impl *InputRichBlockDivider) OptMathematicalExpression() *InputRichBlockMathematicalExpression {
+	return nil
+}
+func (impl *InputRichBlockDivider) OptParagraph() *InputRichBlockParagraph           { return nil }
+func (impl *InputRichBlockDivider) OptPhoto() *InputRichBlockPhoto                   { return nil }
+func (impl *InputRichBlockDivider) OptPreformatted() *InputRichBlockPreformatted     { return nil }
+func (impl *InputRichBlockDivider) OptPullQuotation() *InputRichBlockPullQuotation   { return nil }
+func (impl *InputRichBlockDivider) OptSectionHeading() *InputRichBlockSectionHeading { return nil }
+func (impl *InputRichBlockDivider) OptSlideshow() *InputRichBlockSlideshow           { return nil }
+func (impl *InputRichBlockDivider) OptTable() *InputRichBlockTable                   { return nil }
+func (impl *InputRichBlockDivider) OptThinking() *InputRichBlockThinking             { return nil }
+func (impl *InputRichBlockDivider) OptVideo() *InputRichBlockVideo                   { return nil }
+func (impl *InputRichBlockDivider) OptVoiceNote() *InputRichBlockVoiceNote           { return nil }
+
+func (impl *InputRichBlockDocument) OptAnchor() *InputRichBlockAnchor                 { return nil }
+func (impl *InputRichBlockDocument) OptAnimation() *InputRichBlockAnimation           { return nil }
+func (impl *InputRichBlockDocument) OptAudio() *InputRichBlockAudio                   { return nil }
+func (impl *InputRichBlockDocument) OptBlockQuotation() *InputRichBlockBlockQuotation { return nil }
+func (impl *InputRichBlockDocument) OptButtons() *InputRichBlockButtons               { return nil }
+func (impl *InputRichBlockDocument) OptCollage() *InputRichBlockCollage               { return nil }
+func (impl *InputRichBlockDocument) OptDetails() *InputRichBlockDetails               { return nil }
+func (impl *InputRichBlockDocument) OptDivider() *InputRichBlockDivider               { return nil }
+func (impl *InputRichBlockDocument) OptDocument() *InputRichBlockDocument             { return impl }
+func (impl *InputRichBlockDocument) OptExpandableBlockQuotation() *InputRichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *InputRichBlockDocument) OptFooter() *InputRichBlockFooter { return nil }
+func (impl *InputRichBlockDocument) OptList() *InputRichBlockList     { return nil }
+func (impl *InputRichBlockDocument) OptMap() *InputRichBlockMap       { return nil }
+func (impl *InputRichBlockDocument) OptMathematicalExpression() *InputRichBlockMathematicalExpression {
+	return nil
+}
+func (impl *InputRichBlockDocument) OptParagraph() *InputRichBlockParagraph           { return nil }
+func (impl *InputRichBlockDocument) OptPhoto() *InputRichBlockPhoto                   { return nil }
+func (impl *InputRichBlockDocument) OptPreformatted() *InputRichBlockPreformatted     { return nil }
+func (impl *InputRichBlockDocument) OptPullQuotation() *InputRichBlockPullQuotation   { return nil }
+func (impl *InputRichBlockDocument) OptSectionHeading() *InputRichBlockSectionHeading { return nil }
+func (impl *InputRichBlockDocument) OptSlideshow() *InputRichBlockSlideshow           { return nil }
+func (impl *InputRichBlockDocument) OptTable() *InputRichBlockTable                   { return nil }
+func (impl *InputRichBlockDocument) OptThinking() *InputRichBlockThinking             { return nil }
+func (impl *InputRichBlockDocument) OptVideo() *InputRichBlockVideo                   { return nil }
+func (impl *InputRichBlockDocument) OptVoiceNote() *InputRichBlockVoiceNote           { return nil }
+
+func (impl *InputRichBlockExpandableBlockQuotation) OptAnchor() *InputRichBlockAnchor { return nil }
+func (impl *InputRichBlockExpandableBlockQuotation) OptAnimation() *InputRichBlockAnimation {
+	return nil
+}
+func (impl *InputRichBlockExpandableBlockQuotation) OptAudio() *InputRichBlockAudio { return nil }
+func (impl *InputRichBlockExpandableBlockQuotation) OptBlockQuotation() *InputRichBlockBlockQuotation {
+	return nil
+}
+func (impl *InputRichBlockExpandableBlockQuotation) OptButtons() *InputRichBlockButtons   { return nil }
+func (impl *InputRichBlockExpandableBlockQuotation) OptCollage() *InputRichBlockCollage   { return nil }
+func (impl *InputRichBlockExpandableBlockQuotation) OptDetails() *InputRichBlockDetails   { return nil }
+func (impl *InputRichBlockExpandableBlockQuotation) OptDivider() *InputRichBlockDivider   { return nil }
+func (impl *InputRichBlockExpandableBlockQuotation) OptDocument() *InputRichBlockDocument { return nil }
+func (impl *InputRichBlockExpandableBlockQuotation) OptExpandableBlockQuotation() *InputRichBlockExpandableBlockQuotation {
+	return impl
+}
+func (impl *InputRichBlockExpandableBlockQuotation) OptFooter() *InputRichBlockFooter { return nil }
+func (impl *InputRichBlockExpandableBlockQuotation) OptList() *InputRichBlockList     { return nil }
+func (impl *InputRichBlockExpandableBlockQuotation) OptMap() *InputRichBlockMap       { return nil }
+func (impl *InputRichBlockExpandableBlockQuotation) OptMathematicalExpression() *InputRichBlockMathematicalExpression {
+	return nil
+}
+func (impl *InputRichBlockExpandableBlockQuotation) OptParagraph() *InputRichBlockParagraph {
+	return nil
+}
+func (impl *InputRichBlockExpandableBlockQuotation) OptPhoto() *InputRichBlockPhoto { return nil }
+func (impl *InputRichBlockExpandableBlockQuotation) OptPreformatted() *InputRichBlockPreformatted {
+	return nil
+}
+func (impl *InputRichBlockExpandableBlockQuotation) OptPullQuotation() *InputRichBlockPullQuotation {
+	return nil
+}
+func (impl *InputRichBlockExpandableBlockQuotation) OptSectionHeading() *InputRichBlockSectionHeading {
+	return nil
+}
+func (impl *InputRichBlockExpandableBlockQuotation) OptSlideshow() *InputRichBlockSlideshow {
+	return nil
+}
+func (impl *InputRichBlockExpandableBlockQuotation) OptTable() *InputRichBlockTable       { return nil }
+func (impl *InputRichBlockExpandableBlockQuotation) OptThinking() *InputRichBlockThinking { return nil }
+func (impl *InputRichBlockExpandableBlockQuotation) OptVideo() *InputRichBlockVideo       { return nil }
+func (impl *InputRichBlockExpandableBlockQuotation) OptVoiceNote() *InputRichBlockVoiceNote {
+	return nil
+}
+
+func (impl *InputRichBlockFooter) OptAnchor() *InputRichBlockAnchor                 { return nil }
+func (impl *InputRichBlockFooter) OptAnimation() *InputRichBlockAnimation           { return nil }
+func (impl *InputRichBlockFooter) OptAudio() *InputRichBlockAudio                   { return nil }
+func (impl *InputRichBlockFooter) OptBlockQuotation() *InputRichBlockBlockQuotation { return nil }
+func (impl *InputRichBlockFooter) OptButtons() *InputRichBlockButtons               { return nil }
+func (impl *InputRichBlockFooter) OptCollage() *InputRichBlockCollage               { return nil }
+func (impl *InputRichBlockFooter) OptDetails() *InputRichBlockDetails               { return nil }
+func (impl *InputRichBlockFooter) OptDivider() *InputRichBlockDivider               { return nil }
+func (impl *InputRichBlockFooter) OptDocument() *InputRichBlockDocument             { return nil }
+func (impl *InputRichBlockFooter) OptExpandableBlockQuotation() *InputRichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *InputRichBlockFooter) OptFooter() *InputRichBlockFooter { return impl }
+func (impl *InputRichBlockFooter) OptList() *InputRichBlockList     { return nil }
+func (impl *InputRichBlockFooter) OptMap() *InputRichBlockMap       { return nil }
+func (impl *InputRichBlockFooter) OptMathematicalExpression() *InputRichBlockMathematicalExpression {
+	return nil
+}
+func (impl *InputRichBlockFooter) OptParagraph() *InputRichBlockParagraph           { return nil }
+func (impl *InputRichBlockFooter) OptPhoto() *InputRichBlockPhoto                   { return nil }
+func (impl *InputRichBlockFooter) OptPreformatted() *InputRichBlockPreformatted     { return nil }
+func (impl *InputRichBlockFooter) OptPullQuotation() *InputRichBlockPullQuotation   { return nil }
+func (impl *InputRichBlockFooter) OptSectionHeading() *InputRichBlockSectionHeading { return nil }
+func (impl *InputRichBlockFooter) OptSlideshow() *InputRichBlockSlideshow           { return nil }
+func (impl *InputRichBlockFooter) OptTable() *InputRichBlockTable                   { return nil }
+func (impl *InputRichBlockFooter) OptThinking() *InputRichBlockThinking             { return nil }
+func (impl *InputRichBlockFooter) OptVideo() *InputRichBlockVideo                   { return nil }
+func (impl *InputRichBlockFooter) OptVoiceNote() *InputRichBlockVoiceNote           { return nil }
+
+func (impl *InputRichBlockList) OptAnchor() *InputRichBlockAnchor                 { return nil }
+func (impl *InputRichBlockList) OptAnimation() *InputRichBlockAnimation           { return nil }
+func (impl *InputRichBlockList) OptAudio() *InputRichBlockAudio                   { return nil }
+func (impl *InputRichBlockList) OptBlockQuotation() *InputRichBlockBlockQuotation { return nil }
+func (impl *InputRichBlockList) OptButtons() *InputRichBlockButtons               { return nil }
+func (impl *InputRichBlockList) OptCollage() *InputRichBlockCollage               { return nil }
+func (impl *InputRichBlockList) OptDetails() *InputRichBlockDetails               { return nil }
+func (impl *InputRichBlockList) OptDivider() *InputRichBlockDivider               { return nil }
+func (impl *InputRichBlockList) OptDocument() *InputRichBlockDocument             { return nil }
+func (impl *InputRichBlockList) OptExpandableBlockQuotation() *InputRichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *InputRichBlockList) OptFooter() *InputRichBlockFooter { return nil }
+func (impl *InputRichBlockList) OptList() *InputRichBlockList     { return impl }
+func (impl *InputRichBlockList) OptMap() *InputRichBlockMap       { return nil }
+func (impl *InputRichBlockList) OptMathematicalExpression() *InputRichBlockMathematicalExpression {
+	return nil
+}
+func (impl *InputRichBlockList) OptParagraph() *InputRichBlockParagraph           { return nil }
+func (impl *InputRichBlockList) OptPhoto() *InputRichBlockPhoto                   { return nil }
+func (impl *InputRichBlockList) OptPreformatted() *InputRichBlockPreformatted     { return nil }
+func (impl *InputRichBlockList) OptPullQuotation() *InputRichBlockPullQuotation   { return nil }
+func (impl *InputRichBlockList) OptSectionHeading() *InputRichBlockSectionHeading { return nil }
+func (impl *InputRichBlockList) OptSlideshow() *InputRichBlockSlideshow           { return nil }
+func (impl *InputRichBlockList) OptTable() *InputRichBlockTable                   { return nil }
+func (impl *InputRichBlockList) OptThinking() *InputRichBlockThinking             { return nil }
+func (impl *InputRichBlockList) OptVideo() *InputRichBlockVideo                   { return nil }
+func (impl *InputRichBlockList) OptVoiceNote() *InputRichBlockVoiceNote           { return nil }
+
+func (impl *InputRichBlockMap) OptAnchor() *InputRichBlockAnchor                 { return nil }
+func (impl *InputRichBlockMap) OptAnimation() *InputRichBlockAnimation           { return nil }
+func (impl *InputRichBlockMap) OptAudio() *InputRichBlockAudio                   { return nil }
+func (impl *InputRichBlockMap) OptBlockQuotation() *InputRichBlockBlockQuotation { return nil }
+func (impl *InputRichBlockMap) OptButtons() *InputRichBlockButtons               { return nil }
+func (impl *InputRichBlockMap) OptCollage() *InputRichBlockCollage               { return nil }
+func (impl *InputRichBlockMap) OptDetails() *InputRichBlockDetails               { return nil }
+func (impl *InputRichBlockMap) OptDivider() *InputRichBlockDivider               { return nil }
+func (impl *InputRichBlockMap) OptDocument() *InputRichBlockDocument             { return nil }
+func (impl *InputRichBlockMap) OptExpandableBlockQuotation() *InputRichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *InputRichBlockMap) OptFooter() *InputRichBlockFooter { return nil }
+func (impl *InputRichBlockMap) OptList() *InputRichBlockList     { return nil }
+func (impl *InputRichBlockMap) OptMap() *InputRichBlockMap       { return impl }
+func (impl *InputRichBlockMap) OptMathematicalExpression() *InputRichBlockMathematicalExpression {
+	return nil
+}
+func (impl *InputRichBlockMap) OptParagraph() *InputRichBlockParagraph           { return nil }
+func (impl *InputRichBlockMap) OptPhoto() *InputRichBlockPhoto                   { return nil }
+func (impl *InputRichBlockMap) OptPreformatted() *InputRichBlockPreformatted     { return nil }
+func (impl *InputRichBlockMap) OptPullQuotation() *InputRichBlockPullQuotation   { return nil }
+func (impl *InputRichBlockMap) OptSectionHeading() *InputRichBlockSectionHeading { return nil }
+func (impl *InputRichBlockMap) OptSlideshow() *InputRichBlockSlideshow           { return nil }
+func (impl *InputRichBlockMap) OptTable() *InputRichBlockTable                   { return nil }
+func (impl *InputRichBlockMap) OptThinking() *InputRichBlockThinking             { return nil }
+func (impl *InputRichBlockMap) OptVideo() *InputRichBlockVideo                   { return nil }
+func (impl *InputRichBlockMap) OptVoiceNote() *InputRichBlockVoiceNote           { return nil }
+
+func (impl *InputRichBlockMathematicalExpression) OptAnchor() *InputRichBlockAnchor       { return nil }
+func (impl *InputRichBlockMathematicalExpression) OptAnimation() *InputRichBlockAnimation { return nil }
+func (impl *InputRichBlockMathematicalExpression) OptAudio() *InputRichBlockAudio         { return nil }
+func (impl *InputRichBlockMathematicalExpression) OptBlockQuotation() *InputRichBlockBlockQuotation {
+	return nil
+}
+func (impl *InputRichBlockMathematicalExpression) OptButtons() *InputRichBlockButtons   { return nil }
+func (impl *InputRichBlockMathematicalExpression) OptCollage() *InputRichBlockCollage   { return nil }
+func (impl *InputRichBlockMathematicalExpression) OptDetails() *InputRichBlockDetails   { return nil }
+func (impl *InputRichBlockMathematicalExpression) OptDivider() *InputRichBlockDivider   { return nil }
+func (impl *InputRichBlockMathematicalExpression) OptDocument() *InputRichBlockDocument { return nil }
+func (impl *InputRichBlockMathematicalExpression) OptExpandableBlockQuotation() *InputRichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *InputRichBlockMathematicalExpression) OptFooter() *InputRichBlockFooter { return nil }
+func (impl *InputRichBlockMathematicalExpression) OptList() *InputRichBlockList     { return nil }
+func (impl *InputRichBlockMathematicalExpression) OptMap() *InputRichBlockMap       { return nil }
+func (impl *InputRichBlockMathematicalExpression) OptMathematicalExpression() *InputRichBlockMathematicalExpression {
+	return impl
+}
+func (impl *InputRichBlockMathematicalExpression) OptParagraph() *InputRichBlockParagraph { return nil }
+func (impl *InputRichBlockMathematicalExpression) OptPhoto() *InputRichBlockPhoto         { return nil }
+func (impl *InputRichBlockMathematicalExpression) OptPreformatted() *InputRichBlockPreformatted {
+	return nil
+}
+func (impl *InputRichBlockMathematicalExpression) OptPullQuotation() *InputRichBlockPullQuotation {
+	return nil
+}
+func (impl *InputRichBlockMathematicalExpression) OptSectionHeading() *InputRichBlockSectionHeading {
+	return nil
+}
+func (impl *InputRichBlockMathematicalExpression) OptSlideshow() *InputRichBlockSlideshow { return nil }
+func (impl *InputRichBlockMathematicalExpression) OptTable() *InputRichBlockTable         { return nil }
+func (impl *InputRichBlockMathematicalExpression) OptThinking() *InputRichBlockThinking   { return nil }
+func (impl *InputRichBlockMathematicalExpression) OptVideo() *InputRichBlockVideo         { return nil }
+func (impl *InputRichBlockMathematicalExpression) OptVoiceNote() *InputRichBlockVoiceNote { return nil }
+
+func (impl *InputRichBlockParagraph) OptAnchor() *InputRichBlockAnchor                 { return nil }
+func (impl *InputRichBlockParagraph) OptAnimation() *InputRichBlockAnimation           { return nil }
+func (impl *InputRichBlockParagraph) OptAudio() *InputRichBlockAudio                   { return nil }
+func (impl *InputRichBlockParagraph) OptBlockQuotation() *InputRichBlockBlockQuotation { return nil }
+func (impl *InputRichBlockParagraph) OptButtons() *InputRichBlockButtons               { return nil }
+func (impl *InputRichBlockParagraph) OptCollage() *InputRichBlockCollage               { return nil }
+func (impl *InputRichBlockParagraph) OptDetails() *InputRichBlockDetails               { return nil }
+func (impl *InputRichBlockParagraph) OptDivider() *InputRichBlockDivider               { return nil }
+func (impl *InputRichBlockParagraph) OptDocument() *InputRichBlockDocument             { return nil }
+func (impl *InputRichBlockParagraph) OptExpandableBlockQuotation() *InputRichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *InputRichBlockParagraph) OptFooter() *InputRichBlockFooter { return nil }
+func (impl *InputRichBlockParagraph) OptList() *InputRichBlockList     { return nil }
+func (impl *InputRichBlockParagraph) OptMap() *InputRichBlockMap       { return nil }
+func (impl *InputRichBlockParagraph) OptMathematicalExpression() *InputRichBlockMathematicalExpression {
+	return nil
+}
+func (impl *InputRichBlockParagraph) OptParagraph() *InputRichBlockParagraph           { return impl }
+func (impl *InputRichBlockParagraph) OptPhoto() *InputRichBlockPhoto                   { return nil }
+func (impl *InputRichBlockParagraph) OptPreformatted() *InputRichBlockPreformatted     { return nil }
+func (impl *InputRichBlockParagraph) OptPullQuotation() *InputRichBlockPullQuotation   { return nil }
+func (impl *InputRichBlockParagraph) OptSectionHeading() *InputRichBlockSectionHeading { return nil }
+func (impl *InputRichBlockParagraph) OptSlideshow() *InputRichBlockSlideshow           { return nil }
+func (impl *InputRichBlockParagraph) OptTable() *InputRichBlockTable                   { return nil }
+func (impl *InputRichBlockParagraph) OptThinking() *InputRichBlockThinking             { return nil }
+func (impl *InputRichBlockParagraph) OptVideo() *InputRichBlockVideo                   { return nil }
+func (impl *InputRichBlockParagraph) OptVoiceNote() *InputRichBlockVoiceNote           { return nil }
+
+func (impl *InputRichBlockPhoto) OptAnchor() *InputRichBlockAnchor                 { return nil }
+func (impl *InputRichBlockPhoto) OptAnimation() *InputRichBlockAnimation           { return nil }
+func (impl *InputRichBlockPhoto) OptAudio() *InputRichBlockAudio                   { return nil }
+func (impl *InputRichBlockPhoto) OptBlockQuotation() *InputRichBlockBlockQuotation { return nil }
+func (impl *InputRichBlockPhoto) OptButtons() *InputRichBlockButtons               { return nil }
+func (impl *InputRichBlockPhoto) OptCollage() *InputRichBlockCollage               { return nil }
+func (impl *InputRichBlockPhoto) OptDetails() *InputRichBlockDetails               { return nil }
+func (impl *InputRichBlockPhoto) OptDivider() *InputRichBlockDivider               { return nil }
+func (impl *InputRichBlockPhoto) OptDocument() *InputRichBlockDocument             { return nil }
+func (impl *InputRichBlockPhoto) OptExpandableBlockQuotation() *InputRichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *InputRichBlockPhoto) OptFooter() *InputRichBlockFooter { return nil }
+func (impl *InputRichBlockPhoto) OptList() *InputRichBlockList     { return nil }
+func (impl *InputRichBlockPhoto) OptMap() *InputRichBlockMap       { return nil }
+func (impl *InputRichBlockPhoto) OptMathematicalExpression() *InputRichBlockMathematicalExpression {
+	return nil
+}
+func (impl *InputRichBlockPhoto) OptParagraph() *InputRichBlockParagraph           { return nil }
+func (impl *InputRichBlockPhoto) OptPhoto() *InputRichBlockPhoto                   { return impl }
+func (impl *InputRichBlockPhoto) OptPreformatted() *InputRichBlockPreformatted     { return nil }
+func (impl *InputRichBlockPhoto) OptPullQuotation() *InputRichBlockPullQuotation   { return nil }
+func (impl *InputRichBlockPhoto) OptSectionHeading() *InputRichBlockSectionHeading { return nil }
+func (impl *InputRichBlockPhoto) OptSlideshow() *InputRichBlockSlideshow           { return nil }
+func (impl *InputRichBlockPhoto) OptTable() *InputRichBlockTable                   { return nil }
+func (impl *InputRichBlockPhoto) OptThinking() *InputRichBlockThinking             { return nil }
+func (impl *InputRichBlockPhoto) OptVideo() *InputRichBlockVideo                   { return nil }
+func (impl *InputRichBlockPhoto) OptVoiceNote() *InputRichBlockVoiceNote           { return nil }
+
+func (impl *InputRichBlockPreformatted) OptAnchor() *InputRichBlockAnchor                 { return nil }
+func (impl *InputRichBlockPreformatted) OptAnimation() *InputRichBlockAnimation           { return nil }
+func (impl *InputRichBlockPreformatted) OptAudio() *InputRichBlockAudio                   { return nil }
+func (impl *InputRichBlockPreformatted) OptBlockQuotation() *InputRichBlockBlockQuotation { return nil }
+func (impl *InputRichBlockPreformatted) OptButtons() *InputRichBlockButtons               { return nil }
+func (impl *InputRichBlockPreformatted) OptCollage() *InputRichBlockCollage               { return nil }
+func (impl *InputRichBlockPreformatted) OptDetails() *InputRichBlockDetails               { return nil }
+func (impl *InputRichBlockPreformatted) OptDivider() *InputRichBlockDivider               { return nil }
+func (impl *InputRichBlockPreformatted) OptDocument() *InputRichBlockDocument             { return nil }
+func (impl *InputRichBlockPreformatted) OptExpandableBlockQuotation() *InputRichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *InputRichBlockPreformatted) OptFooter() *InputRichBlockFooter { return nil }
+func (impl *InputRichBlockPreformatted) OptList() *InputRichBlockList     { return nil }
+func (impl *InputRichBlockPreformatted) OptMap() *InputRichBlockMap       { return nil }
+func (impl *InputRichBlockPreformatted) OptMathematicalExpression() *InputRichBlockMathematicalExpression {
+	return nil
+}
+func (impl *InputRichBlockPreformatted) OptParagraph() *InputRichBlockParagraph           { return nil }
+func (impl *InputRichBlockPreformatted) OptPhoto() *InputRichBlockPhoto                   { return nil }
+func (impl *InputRichBlockPreformatted) OptPreformatted() *InputRichBlockPreformatted     { return impl }
+func (impl *InputRichBlockPreformatted) OptPullQuotation() *InputRichBlockPullQuotation   { return nil }
+func (impl *InputRichBlockPreformatted) OptSectionHeading() *InputRichBlockSectionHeading { return nil }
+func (impl *InputRichBlockPreformatted) OptSlideshow() *InputRichBlockSlideshow           { return nil }
+func (impl *InputRichBlockPreformatted) OptTable() *InputRichBlockTable                   { return nil }
+func (impl *InputRichBlockPreformatted) OptThinking() *InputRichBlockThinking             { return nil }
+func (impl *InputRichBlockPreformatted) OptVideo() *InputRichBlockVideo                   { return nil }
+func (impl *InputRichBlockPreformatted) OptVoiceNote() *InputRichBlockVoiceNote           { return nil }
+
+func (impl *InputRichBlockPullQuotation) OptAnchor() *InputRichBlockAnchor       { return nil }
+func (impl *InputRichBlockPullQuotation) OptAnimation() *InputRichBlockAnimation { return nil }
+func (impl *InputRichBlockPullQuotation) OptAudio() *InputRichBlockAudio         { return nil }
+func (impl *InputRichBlockPullQuotation) OptBlockQuotation() *InputRichBlockBlockQuotation {
+	return nil
+}
+func (impl *InputRichBlockPullQuotation) OptButtons() *InputRichBlockButtons   { return nil }
+func (impl *InputRichBlockPullQuotation) OptCollage() *InputRichBlockCollage   { return nil }
+func (impl *InputRichBlockPullQuotation) OptDetails() *InputRichBlockDetails   { return nil }
+func (impl *InputRichBlockPullQuotation) OptDivider() *InputRichBlockDivider   { return nil }
+func (impl *InputRichBlockPullQuotation) OptDocument() *InputRichBlockDocument { return nil }
+func (impl *InputRichBlockPullQuotation) OptExpandableBlockQuotation() *InputRichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *InputRichBlockPullQuotation) OptFooter() *InputRichBlockFooter { return nil }
+func (impl *InputRichBlockPullQuotation) OptList() *InputRichBlockList     { return nil }
+func (impl *InputRichBlockPullQuotation) OptMap() *InputRichBlockMap       { return nil }
+func (impl *InputRichBlockPullQuotation) OptMathematicalExpression() *InputRichBlockMathematicalExpression {
+	return nil
+}
+func (impl *InputRichBlockPullQuotation) OptParagraph() *InputRichBlockParagraph         { return nil }
+func (impl *InputRichBlockPullQuotation) OptPhoto() *InputRichBlockPhoto                 { return nil }
+func (impl *InputRichBlockPullQuotation) OptPreformatted() *InputRichBlockPreformatted   { return nil }
+func (impl *InputRichBlockPullQuotation) OptPullQuotation() *InputRichBlockPullQuotation { return impl }
+func (impl *InputRichBlockPullQuotation) OptSectionHeading() *InputRichBlockSectionHeading {
+	return nil
+}
+func (impl *InputRichBlockPullQuotation) OptSlideshow() *InputRichBlockSlideshow { return nil }
+func (impl *InputRichBlockPullQuotation) OptTable() *InputRichBlockTable         { return nil }
+func (impl *InputRichBlockPullQuotation) OptThinking() *InputRichBlockThinking   { return nil }
+func (impl *InputRichBlockPullQuotation) OptVideo() *InputRichBlockVideo         { return nil }
+func (impl *InputRichBlockPullQuotation) OptVoiceNote() *InputRichBlockVoiceNote { return nil }
+
+func (impl *InputRichBlockSectionHeading) OptAnchor() *InputRichBlockAnchor       { return nil }
+func (impl *InputRichBlockSectionHeading) OptAnimation() *InputRichBlockAnimation { return nil }
+func (impl *InputRichBlockSectionHeading) OptAudio() *InputRichBlockAudio         { return nil }
+func (impl *InputRichBlockSectionHeading) OptBlockQuotation() *InputRichBlockBlockQuotation {
+	return nil
+}
+func (impl *InputRichBlockSectionHeading) OptButtons() *InputRichBlockButtons   { return nil }
+func (impl *InputRichBlockSectionHeading) OptCollage() *InputRichBlockCollage   { return nil }
+func (impl *InputRichBlockSectionHeading) OptDetails() *InputRichBlockDetails   { return nil }
+func (impl *InputRichBlockSectionHeading) OptDivider() *InputRichBlockDivider   { return nil }
+func (impl *InputRichBlockSectionHeading) OptDocument() *InputRichBlockDocument { return nil }
+func (impl *InputRichBlockSectionHeading) OptExpandableBlockQuotation() *InputRichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *InputRichBlockSectionHeading) OptFooter() *InputRichBlockFooter { return nil }
+func (impl *InputRichBlockSectionHeading) OptList() *InputRichBlockList     { return nil }
+func (impl *InputRichBlockSectionHeading) OptMap() *InputRichBlockMap       { return nil }
+func (impl *InputRichBlockSectionHeading) OptMathematicalExpression() *InputRichBlockMathematicalExpression {
+	return nil
+}
+func (impl *InputRichBlockSectionHeading) OptParagraph() *InputRichBlockParagraph         { return nil }
+func (impl *InputRichBlockSectionHeading) OptPhoto() *InputRichBlockPhoto                 { return nil }
+func (impl *InputRichBlockSectionHeading) OptPreformatted() *InputRichBlockPreformatted   { return nil }
+func (impl *InputRichBlockSectionHeading) OptPullQuotation() *InputRichBlockPullQuotation { return nil }
+func (impl *InputRichBlockSectionHeading) OptSectionHeading() *InputRichBlockSectionHeading {
+	return impl
+}
+func (impl *InputRichBlockSectionHeading) OptSlideshow() *InputRichBlockSlideshow { return nil }
+func (impl *InputRichBlockSectionHeading) OptTable() *InputRichBlockTable         { return nil }
+func (impl *InputRichBlockSectionHeading) OptThinking() *InputRichBlockThinking   { return nil }
+func (impl *InputRichBlockSectionHeading) OptVideo() *InputRichBlockVideo         { return nil }
+func (impl *InputRichBlockSectionHeading) OptVoiceNote() *InputRichBlockVoiceNote { return nil }
+
+func (impl *InputRichBlockSlideshow) OptAnchor() *InputRichBlockAnchor                 { return nil }
+func (impl *InputRichBlockSlideshow) OptAnimation() *InputRichBlockAnimation           { return nil }
+func (impl *InputRichBlockSlideshow) OptAudio() *InputRichBlockAudio                   { return nil }
+func (impl *InputRichBlockSlideshow) OptBlockQuotation() *InputRichBlockBlockQuotation { return nil }
+func (impl *InputRichBlockSlideshow) OptButtons() *InputRichBlockButtons               { return nil }
+func (impl *InputRichBlockSlideshow) OptCollage() *InputRichBlockCollage               { return nil }
+func (impl *InputRichBlockSlideshow) OptDetails() *InputRichBlockDetails               { return nil }
+func (impl *InputRichBlockSlideshow) OptDivider() *InputRichBlockDivider               { return nil }
+func (impl *InputRichBlockSlideshow) OptDocument() *InputRichBlockDocument             { return nil }
+func (impl *InputRichBlockSlideshow) OptExpandableBlockQuotation() *InputRichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *InputRichBlockSlideshow) OptFooter() *InputRichBlockFooter { return nil }
+func (impl *InputRichBlockSlideshow) OptList() *InputRichBlockList     { return nil }
+func (impl *InputRichBlockSlideshow) OptMap() *InputRichBlockMap       { return nil }
+func (impl *InputRichBlockSlideshow) OptMathematicalExpression() *InputRichBlockMathematicalExpression {
+	return nil
+}
+func (impl *InputRichBlockSlideshow) OptParagraph() *InputRichBlockParagraph           { return nil }
+func (impl *InputRichBlockSlideshow) OptPhoto() *InputRichBlockPhoto                   { return nil }
+func (impl *InputRichBlockSlideshow) OptPreformatted() *InputRichBlockPreformatted     { return nil }
+func (impl *InputRichBlockSlideshow) OptPullQuotation() *InputRichBlockPullQuotation   { return nil }
+func (impl *InputRichBlockSlideshow) OptSectionHeading() *InputRichBlockSectionHeading { return nil }
+func (impl *InputRichBlockSlideshow) OptSlideshow() *InputRichBlockSlideshow           { return impl }
+func (impl *InputRichBlockSlideshow) OptTable() *InputRichBlockTable                   { return nil }
+func (impl *InputRichBlockSlideshow) OptThinking() *InputRichBlockThinking             { return nil }
+func (impl *InputRichBlockSlideshow) OptVideo() *InputRichBlockVideo                   { return nil }
+func (impl *InputRichBlockSlideshow) OptVoiceNote() *InputRichBlockVoiceNote           { return nil }
+
+func (impl *InputRichBlockTable) OptAnchor() *InputRichBlockAnchor                 { return nil }
+func (impl *InputRichBlockTable) OptAnimation() *InputRichBlockAnimation           { return nil }
+func (impl *InputRichBlockTable) OptAudio() *InputRichBlockAudio                   { return nil }
+func (impl *InputRichBlockTable) OptBlockQuotation() *InputRichBlockBlockQuotation { return nil }
+func (impl *InputRichBlockTable) OptButtons() *InputRichBlockButtons               { return nil }
+func (impl *InputRichBlockTable) OptCollage() *InputRichBlockCollage               { return nil }
+func (impl *InputRichBlockTable) OptDetails() *InputRichBlockDetails               { return nil }
+func (impl *InputRichBlockTable) OptDivider() *InputRichBlockDivider               { return nil }
+func (impl *InputRichBlockTable) OptDocument() *InputRichBlockDocument             { return nil }
+func (impl *InputRichBlockTable) OptExpandableBlockQuotation() *InputRichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *InputRichBlockTable) OptFooter() *InputRichBlockFooter { return nil }
+func (impl *InputRichBlockTable) OptList() *InputRichBlockList     { return nil }
+func (impl *InputRichBlockTable) OptMap() *InputRichBlockMap       { return nil }
+func (impl *InputRichBlockTable) OptMathematicalExpression() *InputRichBlockMathematicalExpression {
+	return nil
+}
+func (impl *InputRichBlockTable) OptParagraph() *InputRichBlockParagraph           { return nil }
+func (impl *InputRichBlockTable) OptPhoto() *InputRichBlockPhoto                   { return nil }
+func (impl *InputRichBlockTable) OptPreformatted() *InputRichBlockPreformatted     { return nil }
+func (impl *InputRichBlockTable) OptPullQuotation() *InputRichBlockPullQuotation   { return nil }
+func (impl *InputRichBlockTable) OptSectionHeading() *InputRichBlockSectionHeading { return nil }
+func (impl *InputRichBlockTable) OptSlideshow() *InputRichBlockSlideshow           { return nil }
+func (impl *InputRichBlockTable) OptTable() *InputRichBlockTable                   { return impl }
+func (impl *InputRichBlockTable) OptThinking() *InputRichBlockThinking             { return nil }
+func (impl *InputRichBlockTable) OptVideo() *InputRichBlockVideo                   { return nil }
+func (impl *InputRichBlockTable) OptVoiceNote() *InputRichBlockVoiceNote           { return nil }
+
+func (impl *InputRichBlockThinking) OptAnchor() *InputRichBlockAnchor                 { return nil }
+func (impl *InputRichBlockThinking) OptAnimation() *InputRichBlockAnimation           { return nil }
+func (impl *InputRichBlockThinking) OptAudio() *InputRichBlockAudio                   { return nil }
+func (impl *InputRichBlockThinking) OptBlockQuotation() *InputRichBlockBlockQuotation { return nil }
+func (impl *InputRichBlockThinking) OptButtons() *InputRichBlockButtons               { return nil }
+func (impl *InputRichBlockThinking) OptCollage() *InputRichBlockCollage               { return nil }
+func (impl *InputRichBlockThinking) OptDetails() *InputRichBlockDetails               { return nil }
+func (impl *InputRichBlockThinking) OptDivider() *InputRichBlockDivider               { return nil }
+func (impl *InputRichBlockThinking) OptDocument() *InputRichBlockDocument             { return nil }
+func (impl *InputRichBlockThinking) OptExpandableBlockQuotation() *InputRichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *InputRichBlockThinking) OptFooter() *InputRichBlockFooter { return nil }
+func (impl *InputRichBlockThinking) OptList() *InputRichBlockList     { return nil }
+func (impl *InputRichBlockThinking) OptMap() *InputRichBlockMap       { return nil }
+func (impl *InputRichBlockThinking) OptMathematicalExpression() *InputRichBlockMathematicalExpression {
+	return nil
+}
+func (impl *InputRichBlockThinking) OptParagraph() *InputRichBlockParagraph           { return nil }
+func (impl *InputRichBlockThinking) OptPhoto() *InputRichBlockPhoto                   { return nil }
+func (impl *InputRichBlockThinking) OptPreformatted() *InputRichBlockPreformatted     { return nil }
+func (impl *InputRichBlockThinking) OptPullQuotation() *InputRichBlockPullQuotation   { return nil }
+func (impl *InputRichBlockThinking) OptSectionHeading() *InputRichBlockSectionHeading { return nil }
+func (impl *InputRichBlockThinking) OptSlideshow() *InputRichBlockSlideshow           { return nil }
+func (impl *InputRichBlockThinking) OptTable() *InputRichBlockTable                   { return nil }
+func (impl *InputRichBlockThinking) OptThinking() *InputRichBlockThinking             { return impl }
+func (impl *InputRichBlockThinking) OptVideo() *InputRichBlockVideo                   { return nil }
+func (impl *InputRichBlockThinking) OptVoiceNote() *InputRichBlockVoiceNote           { return nil }
+
+func (impl *InputRichBlockVideo) OptAnchor() *InputRichBlockAnchor                 { return nil }
+func (impl *InputRichBlockVideo) OptAnimation() *InputRichBlockAnimation           { return nil }
+func (impl *InputRichBlockVideo) OptAudio() *InputRichBlockAudio                   { return nil }
+func (impl *InputRichBlockVideo) OptBlockQuotation() *InputRichBlockBlockQuotation { return nil }
+func (impl *InputRichBlockVideo) OptButtons() *InputRichBlockButtons               { return nil }
+func (impl *InputRichBlockVideo) OptCollage() *InputRichBlockCollage               { return nil }
+func (impl *InputRichBlockVideo) OptDetails() *InputRichBlockDetails               { return nil }
+func (impl *InputRichBlockVideo) OptDivider() *InputRichBlockDivider               { return nil }
+func (impl *InputRichBlockVideo) OptDocument() *InputRichBlockDocument             { return nil }
+func (impl *InputRichBlockVideo) OptExpandableBlockQuotation() *InputRichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *InputRichBlockVideo) OptFooter() *InputRichBlockFooter { return nil }
+func (impl *InputRichBlockVideo) OptList() *InputRichBlockList     { return nil }
+func (impl *InputRichBlockVideo) OptMap() *InputRichBlockMap       { return nil }
+func (impl *InputRichBlockVideo) OptMathematicalExpression() *InputRichBlockMathematicalExpression {
+	return nil
+}
+func (impl *InputRichBlockVideo) OptParagraph() *InputRichBlockParagraph           { return nil }
+func (impl *InputRichBlockVideo) OptPhoto() *InputRichBlockPhoto                   { return nil }
+func (impl *InputRichBlockVideo) OptPreformatted() *InputRichBlockPreformatted     { return nil }
+func (impl *InputRichBlockVideo) OptPullQuotation() *InputRichBlockPullQuotation   { return nil }
+func (impl *InputRichBlockVideo) OptSectionHeading() *InputRichBlockSectionHeading { return nil }
+func (impl *InputRichBlockVideo) OptSlideshow() *InputRichBlockSlideshow           { return nil }
+func (impl *InputRichBlockVideo) OptTable() *InputRichBlockTable                   { return nil }
+func (impl *InputRichBlockVideo) OptThinking() *InputRichBlockThinking             { return nil }
+func (impl *InputRichBlockVideo) OptVideo() *InputRichBlockVideo                   { return impl }
+func (impl *InputRichBlockVideo) OptVoiceNote() *InputRichBlockVoiceNote           { return nil }
+
+func (impl *InputRichBlockVoiceNote) OptAnchor() *InputRichBlockAnchor                 { return nil }
+func (impl *InputRichBlockVoiceNote) OptAnimation() *InputRichBlockAnimation           { return nil }
+func (impl *InputRichBlockVoiceNote) OptAudio() *InputRichBlockAudio                   { return nil }
+func (impl *InputRichBlockVoiceNote) OptBlockQuotation() *InputRichBlockBlockQuotation { return nil }
+func (impl *InputRichBlockVoiceNote) OptButtons() *InputRichBlockButtons               { return nil }
+func (impl *InputRichBlockVoiceNote) OptCollage() *InputRichBlockCollage               { return nil }
+func (impl *InputRichBlockVoiceNote) OptDetails() *InputRichBlockDetails               { return nil }
+func (impl *InputRichBlockVoiceNote) OptDivider() *InputRichBlockDivider               { return nil }
+func (impl *InputRichBlockVoiceNote) OptDocument() *InputRichBlockDocument             { return nil }
+func (impl *InputRichBlockVoiceNote) OptExpandableBlockQuotation() *InputRichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *InputRichBlockVoiceNote) OptFooter() *InputRichBlockFooter { return nil }
+func (impl *InputRichBlockVoiceNote) OptList() *InputRichBlockList     { return nil }
+func (impl *InputRichBlockVoiceNote) OptMap() *InputRichBlockMap       { return nil }
+func (impl *InputRichBlockVoiceNote) OptMathematicalExpression() *InputRichBlockMathematicalExpression {
+	return nil
+}
+func (impl *InputRichBlockVoiceNote) OptParagraph() *InputRichBlockParagraph           { return nil }
+func (impl *InputRichBlockVoiceNote) OptPhoto() *InputRichBlockPhoto                   { return nil }
+func (impl *InputRichBlockVoiceNote) OptPreformatted() *InputRichBlockPreformatted     { return nil }
+func (impl *InputRichBlockVoiceNote) OptPullQuotation() *InputRichBlockPullQuotation   { return nil }
+func (impl *InputRichBlockVoiceNote) OptSectionHeading() *InputRichBlockSectionHeading { return nil }
+func (impl *InputRichBlockVoiceNote) OptSlideshow() *InputRichBlockSlideshow           { return nil }
+func (impl *InputRichBlockVoiceNote) OptTable() *InputRichBlockTable                   { return nil }
+func (impl *InputRichBlockVoiceNote) OptThinking() *InputRichBlockThinking             { return nil }
+func (impl *InputRichBlockVoiceNote) OptVideo() *InputRichBlockVideo                   { return nil }
+func (impl *InputRichBlockVoiceNote) OptVoiceNote() *InputRichBlockVoiceNote           { return impl }
+
+// InputRichBlockAnchor A block with an anchor, corresponding to the HTML tag <a> with the attribute name.
+type InputRichBlockAnchor struct {
+	// Type of the block, always “anchor”
+	Type string `json:"type" default:"anchor"`
+	// The name of the anchor
+	Name string `json:"name"`
+}
+
+// InputRichBlockAnimation A block with an animation, corresponding to the HTML tag <video>.
+type InputRichBlockAnimation struct {
+	// Type of the block, always “animation”
+	Type string `json:"type" default:"animation"`
+	// The animation. Caption is ignored.
+	Animation *Animation `json:"animation"`
+	// Optional. Caption of the block
+	Caption *RichBlockCaption `json:"caption,omitempty"`
+}
+
+// InputRichBlockAudio A block with a music file, corresponding to the HTML tag <audio>.
+type InputRichBlockAudio struct {
+	// Type of the block, always “audio”
+	Type string `json:"type" default:"audio"`
+	// The audio. Caption is ignored.
+	Audio *Audio `json:"audio"`
+	// Optional. Caption of the block
+	Caption *RichBlockCaption `json:"caption,omitempty"`
+}
+
+// InputRichBlockBlockQuotation A block quotation, corresponding to the HTML tag <blockquote>.
+type InputRichBlockBlockQuotation struct {
+	// Type of the block, always “blockquote”
+	Type string `json:"type" default:"blockquote"`
+	// Content of the block
+	Blocks []InputRichBlock `json:"blocks"`
+	// Optional. Credit of the block
+	Credit any `json:"credit,omitempty"`
+}
+
+// InputRichBlockButtons A block containing a list of buttons that are shown in one row, corresponding to the custom HTML tag <tg-button-row>.
+type InputRichBlockButtons struct {
+	// Type of the block, always “buttons”
+	Type string `json:"type" default:"buttons"`
+	// List of 1-8 buttons to send
+	Buttons []*RichMessageButton `json:"buttons"`
+	// Optional. Horizontal alignment of the buttons. Currently, must be one of “left”, “center”, or “right”.
+	Align string `json:"align,omitempty"`
+}
+
+// InputRichBlockCollage A collage, corresponding to the custom HTML tag <tg-collage>.
+type InputRichBlockCollage struct {
+	// Type of the block, always “collage”
+	Type string `json:"type" default:"collage"`
+	// Elements of the collage
+	Blocks []InputRichBlock `json:"blocks"`
+	// Optional. Caption of the block
+	Caption *RichBlockCaption `json:"caption,omitempty"`
+}
+
+// InputRichBlockDetails An expandable block for details disclosure, corresponding to the HTML tag <details>.
+type InputRichBlockDetails struct {
+	// Type of the block, always “details”
+	Type string `json:"type" default:"details"`
+	// Always shown summary of the block
+	Summary any `json:"summary"`
+	// Content of the block
+	Blocks []InputRichBlock `json:"blocks"`
+	// Optional. Pass True if the content of the block is visible by default
+	IsOpen bool `json:"is_open,omitempty"`
+}
+
+// InputRichBlockDivider A divider, corresponding to the HTML tag <hr/>.
+type InputRichBlockDivider struct {
+	// Type of the block, always “divider”
+	Type string `json:"type" default:"divider"`
+}
+
+// InputRichBlockDocument A block with a general file, corresponding to the custom HTML tag <tg-document>.
+type InputRichBlockDocument struct {
+	// Type of the block, always “document”
+	Type string `json:"type" default:"document"`
+	// The document. Caption is ignored.
+	Document *Document `json:"document"`
+	// Optional. Caption of the block
+	Caption *RichBlockCaption `json:"caption,omitempty"`
+}
+
+// InputRichBlockExpandableBlockQuotation A block quotation, corresponding to the HTML tag <blockquote> with custom attribute "expandable".
+type InputRichBlockExpandableBlockQuotation struct {
+	// Type of the block, always “expandable_blockquote”
+	Type string `json:"type" default:"expandable_blockquote"`
+	// Content of the block
+	Text any `json:"text"`
+	// Optional. Credit of the block
+	Credit any `json:"credit,omitempty"`
+}
+
+// InputRichBlockFooter A footer, corresponding to the HTML tag <footer>.
+type InputRichBlockFooter struct {
+	// Type of the block, always “footer”
+	Type string `json:"type" default:"footer"`
+	// Text of the block
+	Text any `json:"text"`
+}
+
+// InputRichBlockList A list of blocks, corresponding to the HTML tag <ul> or <ol> with multiple nested tags <li>.
+type InputRichBlockList struct {
+	// Type of the block, always “list”
+	Type string `json:"type" default:"list"`
+	// Items of the list
+	Items []*InputRichBlockListItem `json:"items"`
+}
+
+// InputRichBlockListItem An item of a list to be sent.
+type InputRichBlockListItem struct {
+	// The content of the item
+	Blocks []InputRichBlock `json:"blocks"`
+	// Optional. Pass True if the item has a checkbox
+	HasCheckbox bool `json:"has_checkbox,omitempty"`
+	// Optional. Pass True if the item has a checked checkbox
+	IsChecked bool `json:"is_checked,omitempty"`
+	// Optional. For ordered lists, the numeric value of the item label
+	Value int64 `json:"value,omitempty"`
+	// Optional.
+	// For ordered lists, the type of the item label; must be one of “a” for lowercase letters, “A” for uppercase letters, “i” for lowercase Roman numerals, “I” for uppercase Roman numerals, or “1” for decimal numbers
+	Type string `json:"type,omitempty"`
+}
+
+// InputRichBlockMap A block with a map, corresponding to the custom HTML tag <tg-map>. The width and height ratio must be at most 20.
+// The map's width and height must not exceed 10000 in total.
+type InputRichBlockMap struct {
+	// Type of the block, always “map”
+	Type string `json:"type" default:"map"`
+	// Location of the center of the map
+	Location *Location `json:"location"`
+	// Optional. Map zoom level; 0-24
+	Zoom int64 `json:"zoom,omitempty"`
+	// Optional. Map width; 0-10000
+	Width int64 `json:"width,omitempty"`
+	// Optional. Map height; 0-10000
+	Height int64 `json:"height,omitempty"`
+	// Optional. Caption of the block
+	Caption *RichBlockCaption `json:"caption,omitempty"`
+}
+
+// InputRichBlockMathematicalExpression A block with a mathematical expression in LaTeX format, corresponding to the custom HTML tag <tg-math-block>.
+type InputRichBlockMathematicalExpression struct {
+	// Type of the block, always “mathematical_expression”
+	Type string `json:"type" default:"mathematical_expression"`
+	// The mathematical expression in LaTeX format
+	Expression string `json:"expression"`
+}
+
+// InputRichBlockParagraph A text paragraph, corresponding to the HTML tag <p>.
+type InputRichBlockParagraph struct {
+	// Type of the block, always “paragraph”
+	Type string `json:"type" default:"paragraph"`
+	// Text of the block
+	Text any `json:"text"`
+}
+
+// InputRichBlockPhoto A block with a photo, corresponding to the HTML tag <img>.
+type InputRichBlockPhoto struct {
+	// Type of the block, always “photo”
+	Type string `json:"type" default:"photo"`
+	// The photo. Caption is ignored.
+	Photo *Photo `json:"photo"`
+	// Optional. Caption of the block
+	Caption *RichBlockCaption `json:"caption,omitempty"`
+}
+
+// InputRichBlockPreformatted A preformatted text block, corresponding to the nested HTML tags <pre> and <code>.
+type InputRichBlockPreformatted struct {
+	// Type of the block, always “pre”
+	Type string `json:"type" default:"pre"`
+	// Text of the block
+	Text any `json:"text"`
+	// Optional. The programming language of the text
+	Language string `json:"language,omitempty"`
+}
+
+// InputRichBlockPullQuotation A quotation with centered text, loosely corresponding to the HTML tag <aside>.
+type InputRichBlockPullQuotation struct {
+	// Type of the block, always “pullquote”
+	Type string `json:"type" default:"pullquote"`
+	// Text of the block
+	Text any `json:"text"`
+	// Optional. Credit of the block
+	Credit any `json:"credit,omitempty"`
+}
+
+// InputRichBlockSectionHeading A section heading, corresponding to the HTML tags <h1>, <h2>, <h3>, <h4>, <h5>, or <h6>.
+type InputRichBlockSectionHeading struct {
+	// Type of the block, always “heading”
+	Type string `json:"type" default:"heading"`
+	// Text of the block
+	Text any `json:"text"`
+	// Relative size of the text font; 1-6, 1 is the largest, 6 is the smallest
+	Size int64 `json:"size"`
+}
+
+// InputRichBlockSlideshow A slideshow, corresponding to the custom HTML tag <tg-slideshow>.
+type InputRichBlockSlideshow struct {
+	// Type of the block, always “slideshow”
+	Type string `json:"type" default:"slideshow"`
+	// Elements of the slideshow
+	Blocks []InputRichBlock `json:"blocks"`
+	// Optional. Caption of the block
+	Caption *RichBlockCaption `json:"caption,omitempty"`
+}
+
+// InputRichBlockTable A table, corresponding to the HTML tag <table>.
+type InputRichBlockTable struct {
+	// Type of the block, always “table”
+	Type string `json:"type" default:"table"`
+	// Cells of the table
+	Cells [][]*RichBlockTableCell `json:"cells"`
+	// Optional. Pass True if the table has borders
+	IsBordered bool `json:"is_bordered,omitempty"`
+	// Optional. Pass True if the table is striped
+	IsStriped bool `json:"is_striped,omitempty"`
+	// Optional. Pass True if table cells must have smaller indents
+	IsCompact bool `json:"is_compact,omitempty"`
+	// Optional. Caption of the table
+	Caption any `json:"caption,omitempty"`
+}
+
+// InputRichBlockThinking A block with a “Thinking…” placeholder, corresponding to the custom HTML tag <tg-thinking>.
+// The block may be used only in sendRichMessageDraft, therefore it can't be received in messages.
+// See https://t.me/addemoji/AIActions for examples of custom emoji that are recommended for usage in the block.
+type InputRichBlockThinking struct {
+	// Type of the block, always “thinking”
+	Type string `json:"type" default:"thinking"`
+	// Text of the block.
+	// See https://t.me/addemoji/AIActions for examples of custom emoji that are recommended for usage in the block.
+	Text any `json:"text"`
+}
+
+// InputRichBlockVideo A block with a video, corresponding to the HTML tag <video>.
+type InputRichBlockVideo struct {
+	// Type of the block, always “video”
+	Type string `json:"type" default:"video"`
+	// The video. Caption is ignored.
+	Video *Video `json:"video"`
+	// Optional. Caption of the block
+	Caption *RichBlockCaption `json:"caption,omitempty"`
+}
+
+// InputRichBlockVoiceNote A block with a voice note, corresponding to the HTML tag <audio>.
+type InputRichBlockVoiceNote struct {
+	// Type of the block, always “voice_note”
+	Type string `json:"type" default:"voice_note"`
+	// The voice note. Caption is ignored.
+	VoiceNote *InputMediaVoiceNote `json:"voice_note"`
+	// Optional. Caption of the block
+	Caption *RichBlockCaption `json:"caption,omitempty"`
+}
+
+// InputRichMessage Describes a rich message to be sent. Exactly one of the fields html, markdown, or blocks must be used.
+type InputRichMessage struct {
+	// Optional. Content of the rich message to send described as a list of blocks
+	Blocks []InputRichBlock `json:"blocks,omitempty"`
+	// Optional. Content of the rich message to send described using HTML formatting.
+	// See rich message formatting options for more details.
+	// Use media field to specify the media used in the message.
+	Html string `json:"html,omitempty"`
+	// Optional. Content of the rich message to send described using Markdown formatting.
+	// See rich message formatting options for more details. Use media field to specify the media used in the message.
+	Markdown string `json:"markdown,omitempty"`
+	// Optional.
+	// List of media that are specified in the markdown or html fields using tg://photo?id=, tg://video?id=, tg://document?id=, and tg://audio?id= links
+	Media []*InputRichMessageMedia `json:"media,omitempty"`
+	// Optional. Pass True if the rich message must be shown right-to-left
+	IsRtl bool `json:"is_rtl,omitempty"`
+	// Optional.
+	// Pass True to skip automatic detection of entities (e.g., URLs, email addresses, username mentions, hashtags, cashtags, bot commands, or phone numbers) in the text
+	SkipEntityDetection bool `json:"skip_entity_detection,omitempty"`
+}
+
+// InputRichMessageContent Represents the content of a rich message to be sent as the result of an inline query.
+type InputRichMessageContent struct {
+	// The message to be sent. Only previously uploaded files may be used in the message.
+	RichMessage *InputRichMessage `json:"rich_message"`
+}
+
+// InputRichMessageMedia Describes a media element embedded in an outgoing rich message.
+type InputRichMessageMedia struct {
+	// Unique identifier of the media used in a tg://photo?id=, tg://video?id=, tg://document?id=, or tg://audio?id= link.
+	// 1-64 characters, only A-Z, a-z, 0-9, _ and - are allowed.
+	Id string `json:"id"`
+	// The media to be sent. Everything except the media itself and its properties is ignored.
+	// >> either: InputMediaAudio, InputMediaDocument, InputMediaPhoto, InputMediaVideo, InputMediaVoiceNote
+	Media *Animation `json:"media"`
 }
 
 // InputSticker This object describes a sticker to be added to a sticker set.
@@ -4547,6 +5687,8 @@ type Message struct {
 	// Optional. For ephemeral messages, identifier of the ephemeral message inside this chat.
 	// The identifier may be reused for another ephemeral message after the message is deleted or expires.
 	EphemeralMessageId int64 `json:"ephemeral_message_id,omitempty"`
+	// Optional. Message is a rich message, information about the rich message
+	RichMessage *RichMessage `json:"rich_message,omitempty"`
 }
 
 // MessageAutoDeleteTimerChanged This object represents a service message about a change in auto-delete timer settings.
@@ -5705,6 +6847,1318 @@ type RevenueWithdrawalStateSucceeded struct {
 	// Date the withdrawal was completed in Unix time
 	Date int64 `json:"date"`
 	// An HTTPS URL that can be used to see transaction details
+	Url string `json:"url"`
+}
+
+// RichBlock This object represents a block in a rich formatted message.
+type RichBlock interface {
+	OptAnchor() *RichBlockAnchor
+	OptAnimation() *RichBlockAnimation
+	OptAudio() *RichBlockAudio
+	OptBlockQuotation() *RichBlockBlockQuotation
+	OptButtons() *RichBlockButtons
+	OptCollage() *RichBlockCollage
+	OptDetails() *RichBlockDetails
+	OptDivider() *RichBlockDivider
+	OptDocument() *RichBlockDocument
+	OptExpandableBlockQuotation() *RichBlockExpandableBlockQuotation
+	OptFooter() *RichBlockFooter
+	OptList() *RichBlockList
+	OptMap() *RichBlockMap
+	OptMathematicalExpression() *RichBlockMathematicalExpression
+	OptParagraph() *RichBlockParagraph
+	OptPhoto() *RichBlockPhoto
+	OptPreformatted() *RichBlockPreformatted
+	OptPullQuotation() *RichBlockPullQuotation
+	OptSectionHeading() *RichBlockSectionHeading
+	OptSlideshow() *RichBlockSlideshow
+	OptTable() *RichBlockTable
+	OptThinking() *RichBlockThinking
+	OptVideo() *RichBlockVideo
+	OptVoiceNote() *RichBlockVoiceNote
+}
+
+var (
+	_ RichBlock = &RichBlockAnchor{}
+	_ RichBlock = &RichBlockAnimation{}
+	_ RichBlock = &RichBlockAudio{}
+	_ RichBlock = &RichBlockBlockQuotation{}
+	_ RichBlock = &RichBlockButtons{}
+	_ RichBlock = &RichBlockCollage{}
+	_ RichBlock = &RichBlockDetails{}
+	_ RichBlock = &RichBlockDivider{}
+	_ RichBlock = &RichBlockDocument{}
+	_ RichBlock = &RichBlockExpandableBlockQuotation{}
+	_ RichBlock = &RichBlockFooter{}
+	_ RichBlock = &RichBlockList{}
+	_ RichBlock = &RichBlockMap{}
+	_ RichBlock = &RichBlockMathematicalExpression{}
+	_ RichBlock = &RichBlockParagraph{}
+	_ RichBlock = &RichBlockPhoto{}
+	_ RichBlock = &RichBlockPreformatted{}
+	_ RichBlock = &RichBlockPullQuotation{}
+	_ RichBlock = &RichBlockSectionHeading{}
+	_ RichBlock = &RichBlockSlideshow{}
+	_ RichBlock = &RichBlockTable{}
+	_ RichBlock = &RichBlockThinking{}
+	_ RichBlock = &RichBlockVideo{}
+	_ RichBlock = &RichBlockVoiceNote{}
+)
+
+func (impl *RichBlockAnchor) OptAnchor() *RichBlockAnchor                 { return impl }
+func (impl *RichBlockAnchor) OptAnimation() *RichBlockAnimation           { return nil }
+func (impl *RichBlockAnchor) OptAudio() *RichBlockAudio                   { return nil }
+func (impl *RichBlockAnchor) OptBlockQuotation() *RichBlockBlockQuotation { return nil }
+func (impl *RichBlockAnchor) OptButtons() *RichBlockButtons               { return nil }
+func (impl *RichBlockAnchor) OptCollage() *RichBlockCollage               { return nil }
+func (impl *RichBlockAnchor) OptDetails() *RichBlockDetails               { return nil }
+func (impl *RichBlockAnchor) OptDivider() *RichBlockDivider               { return nil }
+func (impl *RichBlockAnchor) OptDocument() *RichBlockDocument             { return nil }
+func (impl *RichBlockAnchor) OptExpandableBlockQuotation() *RichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *RichBlockAnchor) OptFooter() *RichBlockFooter                                 { return nil }
+func (impl *RichBlockAnchor) OptList() *RichBlockList                                     { return nil }
+func (impl *RichBlockAnchor) OptMap() *RichBlockMap                                       { return nil }
+func (impl *RichBlockAnchor) OptMathematicalExpression() *RichBlockMathematicalExpression { return nil }
+func (impl *RichBlockAnchor) OptParagraph() *RichBlockParagraph                           { return nil }
+func (impl *RichBlockAnchor) OptPhoto() *RichBlockPhoto                                   { return nil }
+func (impl *RichBlockAnchor) OptPreformatted() *RichBlockPreformatted                     { return nil }
+func (impl *RichBlockAnchor) OptPullQuotation() *RichBlockPullQuotation                   { return nil }
+func (impl *RichBlockAnchor) OptSectionHeading() *RichBlockSectionHeading                 { return nil }
+func (impl *RichBlockAnchor) OptSlideshow() *RichBlockSlideshow                           { return nil }
+func (impl *RichBlockAnchor) OptTable() *RichBlockTable                                   { return nil }
+func (impl *RichBlockAnchor) OptThinking() *RichBlockThinking                             { return nil }
+func (impl *RichBlockAnchor) OptVideo() *RichBlockVideo                                   { return nil }
+func (impl *RichBlockAnchor) OptVoiceNote() *RichBlockVoiceNote                           { return nil }
+
+func (impl *RichBlockAnimation) OptAnchor() *RichBlockAnchor                 { return nil }
+func (impl *RichBlockAnimation) OptAnimation() *RichBlockAnimation           { return impl }
+func (impl *RichBlockAnimation) OptAudio() *RichBlockAudio                   { return nil }
+func (impl *RichBlockAnimation) OptBlockQuotation() *RichBlockBlockQuotation { return nil }
+func (impl *RichBlockAnimation) OptButtons() *RichBlockButtons               { return nil }
+func (impl *RichBlockAnimation) OptCollage() *RichBlockCollage               { return nil }
+func (impl *RichBlockAnimation) OptDetails() *RichBlockDetails               { return nil }
+func (impl *RichBlockAnimation) OptDivider() *RichBlockDivider               { return nil }
+func (impl *RichBlockAnimation) OptDocument() *RichBlockDocument             { return nil }
+func (impl *RichBlockAnimation) OptExpandableBlockQuotation() *RichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *RichBlockAnimation) OptFooter() *RichBlockFooter { return nil }
+func (impl *RichBlockAnimation) OptList() *RichBlockList     { return nil }
+func (impl *RichBlockAnimation) OptMap() *RichBlockMap       { return nil }
+func (impl *RichBlockAnimation) OptMathematicalExpression() *RichBlockMathematicalExpression {
+	return nil
+}
+func (impl *RichBlockAnimation) OptParagraph() *RichBlockParagraph           { return nil }
+func (impl *RichBlockAnimation) OptPhoto() *RichBlockPhoto                   { return nil }
+func (impl *RichBlockAnimation) OptPreformatted() *RichBlockPreformatted     { return nil }
+func (impl *RichBlockAnimation) OptPullQuotation() *RichBlockPullQuotation   { return nil }
+func (impl *RichBlockAnimation) OptSectionHeading() *RichBlockSectionHeading { return nil }
+func (impl *RichBlockAnimation) OptSlideshow() *RichBlockSlideshow           { return nil }
+func (impl *RichBlockAnimation) OptTable() *RichBlockTable                   { return nil }
+func (impl *RichBlockAnimation) OptThinking() *RichBlockThinking             { return nil }
+func (impl *RichBlockAnimation) OptVideo() *RichBlockVideo                   { return nil }
+func (impl *RichBlockAnimation) OptVoiceNote() *RichBlockVoiceNote           { return nil }
+
+func (impl *RichBlockAudio) OptAnchor() *RichBlockAnchor                 { return nil }
+func (impl *RichBlockAudio) OptAnimation() *RichBlockAnimation           { return nil }
+func (impl *RichBlockAudio) OptAudio() *RichBlockAudio                   { return impl }
+func (impl *RichBlockAudio) OptBlockQuotation() *RichBlockBlockQuotation { return nil }
+func (impl *RichBlockAudio) OptButtons() *RichBlockButtons               { return nil }
+func (impl *RichBlockAudio) OptCollage() *RichBlockCollage               { return nil }
+func (impl *RichBlockAudio) OptDetails() *RichBlockDetails               { return nil }
+func (impl *RichBlockAudio) OptDivider() *RichBlockDivider               { return nil }
+func (impl *RichBlockAudio) OptDocument() *RichBlockDocument             { return nil }
+func (impl *RichBlockAudio) OptExpandableBlockQuotation() *RichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *RichBlockAudio) OptFooter() *RichBlockFooter                                 { return nil }
+func (impl *RichBlockAudio) OptList() *RichBlockList                                     { return nil }
+func (impl *RichBlockAudio) OptMap() *RichBlockMap                                       { return nil }
+func (impl *RichBlockAudio) OptMathematicalExpression() *RichBlockMathematicalExpression { return nil }
+func (impl *RichBlockAudio) OptParagraph() *RichBlockParagraph                           { return nil }
+func (impl *RichBlockAudio) OptPhoto() *RichBlockPhoto                                   { return nil }
+func (impl *RichBlockAudio) OptPreformatted() *RichBlockPreformatted                     { return nil }
+func (impl *RichBlockAudio) OptPullQuotation() *RichBlockPullQuotation                   { return nil }
+func (impl *RichBlockAudio) OptSectionHeading() *RichBlockSectionHeading                 { return nil }
+func (impl *RichBlockAudio) OptSlideshow() *RichBlockSlideshow                           { return nil }
+func (impl *RichBlockAudio) OptTable() *RichBlockTable                                   { return nil }
+func (impl *RichBlockAudio) OptThinking() *RichBlockThinking                             { return nil }
+func (impl *RichBlockAudio) OptVideo() *RichBlockVideo                                   { return nil }
+func (impl *RichBlockAudio) OptVoiceNote() *RichBlockVoiceNote                           { return nil }
+
+func (impl *RichBlockBlockQuotation) OptAnchor() *RichBlockAnchor                 { return nil }
+func (impl *RichBlockBlockQuotation) OptAnimation() *RichBlockAnimation           { return nil }
+func (impl *RichBlockBlockQuotation) OptAudio() *RichBlockAudio                   { return nil }
+func (impl *RichBlockBlockQuotation) OptBlockQuotation() *RichBlockBlockQuotation { return impl }
+func (impl *RichBlockBlockQuotation) OptButtons() *RichBlockButtons               { return nil }
+func (impl *RichBlockBlockQuotation) OptCollage() *RichBlockCollage               { return nil }
+func (impl *RichBlockBlockQuotation) OptDetails() *RichBlockDetails               { return nil }
+func (impl *RichBlockBlockQuotation) OptDivider() *RichBlockDivider               { return nil }
+func (impl *RichBlockBlockQuotation) OptDocument() *RichBlockDocument             { return nil }
+func (impl *RichBlockBlockQuotation) OptExpandableBlockQuotation() *RichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *RichBlockBlockQuotation) OptFooter() *RichBlockFooter { return nil }
+func (impl *RichBlockBlockQuotation) OptList() *RichBlockList     { return nil }
+func (impl *RichBlockBlockQuotation) OptMap() *RichBlockMap       { return nil }
+func (impl *RichBlockBlockQuotation) OptMathematicalExpression() *RichBlockMathematicalExpression {
+	return nil
+}
+func (impl *RichBlockBlockQuotation) OptParagraph() *RichBlockParagraph           { return nil }
+func (impl *RichBlockBlockQuotation) OptPhoto() *RichBlockPhoto                   { return nil }
+func (impl *RichBlockBlockQuotation) OptPreformatted() *RichBlockPreformatted     { return nil }
+func (impl *RichBlockBlockQuotation) OptPullQuotation() *RichBlockPullQuotation   { return nil }
+func (impl *RichBlockBlockQuotation) OptSectionHeading() *RichBlockSectionHeading { return nil }
+func (impl *RichBlockBlockQuotation) OptSlideshow() *RichBlockSlideshow           { return nil }
+func (impl *RichBlockBlockQuotation) OptTable() *RichBlockTable                   { return nil }
+func (impl *RichBlockBlockQuotation) OptThinking() *RichBlockThinking             { return nil }
+func (impl *RichBlockBlockQuotation) OptVideo() *RichBlockVideo                   { return nil }
+func (impl *RichBlockBlockQuotation) OptVoiceNote() *RichBlockVoiceNote           { return nil }
+
+func (impl *RichBlockButtons) OptAnchor() *RichBlockAnchor                 { return nil }
+func (impl *RichBlockButtons) OptAnimation() *RichBlockAnimation           { return nil }
+func (impl *RichBlockButtons) OptAudio() *RichBlockAudio                   { return nil }
+func (impl *RichBlockButtons) OptBlockQuotation() *RichBlockBlockQuotation { return nil }
+func (impl *RichBlockButtons) OptButtons() *RichBlockButtons               { return impl }
+func (impl *RichBlockButtons) OptCollage() *RichBlockCollage               { return nil }
+func (impl *RichBlockButtons) OptDetails() *RichBlockDetails               { return nil }
+func (impl *RichBlockButtons) OptDivider() *RichBlockDivider               { return nil }
+func (impl *RichBlockButtons) OptDocument() *RichBlockDocument             { return nil }
+func (impl *RichBlockButtons) OptExpandableBlockQuotation() *RichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *RichBlockButtons) OptFooter() *RichBlockFooter { return nil }
+func (impl *RichBlockButtons) OptList() *RichBlockList     { return nil }
+func (impl *RichBlockButtons) OptMap() *RichBlockMap       { return nil }
+func (impl *RichBlockButtons) OptMathematicalExpression() *RichBlockMathematicalExpression {
+	return nil
+}
+func (impl *RichBlockButtons) OptParagraph() *RichBlockParagraph           { return nil }
+func (impl *RichBlockButtons) OptPhoto() *RichBlockPhoto                   { return nil }
+func (impl *RichBlockButtons) OptPreformatted() *RichBlockPreformatted     { return nil }
+func (impl *RichBlockButtons) OptPullQuotation() *RichBlockPullQuotation   { return nil }
+func (impl *RichBlockButtons) OptSectionHeading() *RichBlockSectionHeading { return nil }
+func (impl *RichBlockButtons) OptSlideshow() *RichBlockSlideshow           { return nil }
+func (impl *RichBlockButtons) OptTable() *RichBlockTable                   { return nil }
+func (impl *RichBlockButtons) OptThinking() *RichBlockThinking             { return nil }
+func (impl *RichBlockButtons) OptVideo() *RichBlockVideo                   { return nil }
+func (impl *RichBlockButtons) OptVoiceNote() *RichBlockVoiceNote           { return nil }
+
+func (impl *RichBlockCollage) OptAnchor() *RichBlockAnchor                 { return nil }
+func (impl *RichBlockCollage) OptAnimation() *RichBlockAnimation           { return nil }
+func (impl *RichBlockCollage) OptAudio() *RichBlockAudio                   { return nil }
+func (impl *RichBlockCollage) OptBlockQuotation() *RichBlockBlockQuotation { return nil }
+func (impl *RichBlockCollage) OptButtons() *RichBlockButtons               { return nil }
+func (impl *RichBlockCollage) OptCollage() *RichBlockCollage               { return impl }
+func (impl *RichBlockCollage) OptDetails() *RichBlockDetails               { return nil }
+func (impl *RichBlockCollage) OptDivider() *RichBlockDivider               { return nil }
+func (impl *RichBlockCollage) OptDocument() *RichBlockDocument             { return nil }
+func (impl *RichBlockCollage) OptExpandableBlockQuotation() *RichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *RichBlockCollage) OptFooter() *RichBlockFooter { return nil }
+func (impl *RichBlockCollage) OptList() *RichBlockList     { return nil }
+func (impl *RichBlockCollage) OptMap() *RichBlockMap       { return nil }
+func (impl *RichBlockCollage) OptMathematicalExpression() *RichBlockMathematicalExpression {
+	return nil
+}
+func (impl *RichBlockCollage) OptParagraph() *RichBlockParagraph           { return nil }
+func (impl *RichBlockCollage) OptPhoto() *RichBlockPhoto                   { return nil }
+func (impl *RichBlockCollage) OptPreformatted() *RichBlockPreformatted     { return nil }
+func (impl *RichBlockCollage) OptPullQuotation() *RichBlockPullQuotation   { return nil }
+func (impl *RichBlockCollage) OptSectionHeading() *RichBlockSectionHeading { return nil }
+func (impl *RichBlockCollage) OptSlideshow() *RichBlockSlideshow           { return nil }
+func (impl *RichBlockCollage) OptTable() *RichBlockTable                   { return nil }
+func (impl *RichBlockCollage) OptThinking() *RichBlockThinking             { return nil }
+func (impl *RichBlockCollage) OptVideo() *RichBlockVideo                   { return nil }
+func (impl *RichBlockCollage) OptVoiceNote() *RichBlockVoiceNote           { return nil }
+
+func (impl *RichBlockDetails) OptAnchor() *RichBlockAnchor                 { return nil }
+func (impl *RichBlockDetails) OptAnimation() *RichBlockAnimation           { return nil }
+func (impl *RichBlockDetails) OptAudio() *RichBlockAudio                   { return nil }
+func (impl *RichBlockDetails) OptBlockQuotation() *RichBlockBlockQuotation { return nil }
+func (impl *RichBlockDetails) OptButtons() *RichBlockButtons               { return nil }
+func (impl *RichBlockDetails) OptCollage() *RichBlockCollage               { return nil }
+func (impl *RichBlockDetails) OptDetails() *RichBlockDetails               { return impl }
+func (impl *RichBlockDetails) OptDivider() *RichBlockDivider               { return nil }
+func (impl *RichBlockDetails) OptDocument() *RichBlockDocument             { return nil }
+func (impl *RichBlockDetails) OptExpandableBlockQuotation() *RichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *RichBlockDetails) OptFooter() *RichBlockFooter { return nil }
+func (impl *RichBlockDetails) OptList() *RichBlockList     { return nil }
+func (impl *RichBlockDetails) OptMap() *RichBlockMap       { return nil }
+func (impl *RichBlockDetails) OptMathematicalExpression() *RichBlockMathematicalExpression {
+	return nil
+}
+func (impl *RichBlockDetails) OptParagraph() *RichBlockParagraph           { return nil }
+func (impl *RichBlockDetails) OptPhoto() *RichBlockPhoto                   { return nil }
+func (impl *RichBlockDetails) OptPreformatted() *RichBlockPreformatted     { return nil }
+func (impl *RichBlockDetails) OptPullQuotation() *RichBlockPullQuotation   { return nil }
+func (impl *RichBlockDetails) OptSectionHeading() *RichBlockSectionHeading { return nil }
+func (impl *RichBlockDetails) OptSlideshow() *RichBlockSlideshow           { return nil }
+func (impl *RichBlockDetails) OptTable() *RichBlockTable                   { return nil }
+func (impl *RichBlockDetails) OptThinking() *RichBlockThinking             { return nil }
+func (impl *RichBlockDetails) OptVideo() *RichBlockVideo                   { return nil }
+func (impl *RichBlockDetails) OptVoiceNote() *RichBlockVoiceNote           { return nil }
+
+func (impl *RichBlockDivider) OptAnchor() *RichBlockAnchor                 { return nil }
+func (impl *RichBlockDivider) OptAnimation() *RichBlockAnimation           { return nil }
+func (impl *RichBlockDivider) OptAudio() *RichBlockAudio                   { return nil }
+func (impl *RichBlockDivider) OptBlockQuotation() *RichBlockBlockQuotation { return nil }
+func (impl *RichBlockDivider) OptButtons() *RichBlockButtons               { return nil }
+func (impl *RichBlockDivider) OptCollage() *RichBlockCollage               { return nil }
+func (impl *RichBlockDivider) OptDetails() *RichBlockDetails               { return nil }
+func (impl *RichBlockDivider) OptDivider() *RichBlockDivider               { return impl }
+func (impl *RichBlockDivider) OptDocument() *RichBlockDocument             { return nil }
+func (impl *RichBlockDivider) OptExpandableBlockQuotation() *RichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *RichBlockDivider) OptFooter() *RichBlockFooter { return nil }
+func (impl *RichBlockDivider) OptList() *RichBlockList     { return nil }
+func (impl *RichBlockDivider) OptMap() *RichBlockMap       { return nil }
+func (impl *RichBlockDivider) OptMathematicalExpression() *RichBlockMathematicalExpression {
+	return nil
+}
+func (impl *RichBlockDivider) OptParagraph() *RichBlockParagraph           { return nil }
+func (impl *RichBlockDivider) OptPhoto() *RichBlockPhoto                   { return nil }
+func (impl *RichBlockDivider) OptPreformatted() *RichBlockPreformatted     { return nil }
+func (impl *RichBlockDivider) OptPullQuotation() *RichBlockPullQuotation   { return nil }
+func (impl *RichBlockDivider) OptSectionHeading() *RichBlockSectionHeading { return nil }
+func (impl *RichBlockDivider) OptSlideshow() *RichBlockSlideshow           { return nil }
+func (impl *RichBlockDivider) OptTable() *RichBlockTable                   { return nil }
+func (impl *RichBlockDivider) OptThinking() *RichBlockThinking             { return nil }
+func (impl *RichBlockDivider) OptVideo() *RichBlockVideo                   { return nil }
+func (impl *RichBlockDivider) OptVoiceNote() *RichBlockVoiceNote           { return nil }
+
+func (impl *RichBlockDocument) OptAnchor() *RichBlockAnchor                 { return nil }
+func (impl *RichBlockDocument) OptAnimation() *RichBlockAnimation           { return nil }
+func (impl *RichBlockDocument) OptAudio() *RichBlockAudio                   { return nil }
+func (impl *RichBlockDocument) OptBlockQuotation() *RichBlockBlockQuotation { return nil }
+func (impl *RichBlockDocument) OptButtons() *RichBlockButtons               { return nil }
+func (impl *RichBlockDocument) OptCollage() *RichBlockCollage               { return nil }
+func (impl *RichBlockDocument) OptDetails() *RichBlockDetails               { return nil }
+func (impl *RichBlockDocument) OptDivider() *RichBlockDivider               { return nil }
+func (impl *RichBlockDocument) OptDocument() *RichBlockDocument             { return impl }
+func (impl *RichBlockDocument) OptExpandableBlockQuotation() *RichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *RichBlockDocument) OptFooter() *RichBlockFooter { return nil }
+func (impl *RichBlockDocument) OptList() *RichBlockList     { return nil }
+func (impl *RichBlockDocument) OptMap() *RichBlockMap       { return nil }
+func (impl *RichBlockDocument) OptMathematicalExpression() *RichBlockMathematicalExpression {
+	return nil
+}
+func (impl *RichBlockDocument) OptParagraph() *RichBlockParagraph           { return nil }
+func (impl *RichBlockDocument) OptPhoto() *RichBlockPhoto                   { return nil }
+func (impl *RichBlockDocument) OptPreformatted() *RichBlockPreformatted     { return nil }
+func (impl *RichBlockDocument) OptPullQuotation() *RichBlockPullQuotation   { return nil }
+func (impl *RichBlockDocument) OptSectionHeading() *RichBlockSectionHeading { return nil }
+func (impl *RichBlockDocument) OptSlideshow() *RichBlockSlideshow           { return nil }
+func (impl *RichBlockDocument) OptTable() *RichBlockTable                   { return nil }
+func (impl *RichBlockDocument) OptThinking() *RichBlockThinking             { return nil }
+func (impl *RichBlockDocument) OptVideo() *RichBlockVideo                   { return nil }
+func (impl *RichBlockDocument) OptVoiceNote() *RichBlockVoiceNote           { return nil }
+
+func (impl *RichBlockExpandableBlockQuotation) OptAnchor() *RichBlockAnchor       { return nil }
+func (impl *RichBlockExpandableBlockQuotation) OptAnimation() *RichBlockAnimation { return nil }
+func (impl *RichBlockExpandableBlockQuotation) OptAudio() *RichBlockAudio         { return nil }
+func (impl *RichBlockExpandableBlockQuotation) OptBlockQuotation() *RichBlockBlockQuotation {
+	return nil
+}
+func (impl *RichBlockExpandableBlockQuotation) OptButtons() *RichBlockButtons   { return nil }
+func (impl *RichBlockExpandableBlockQuotation) OptCollage() *RichBlockCollage   { return nil }
+func (impl *RichBlockExpandableBlockQuotation) OptDetails() *RichBlockDetails   { return nil }
+func (impl *RichBlockExpandableBlockQuotation) OptDivider() *RichBlockDivider   { return nil }
+func (impl *RichBlockExpandableBlockQuotation) OptDocument() *RichBlockDocument { return nil }
+func (impl *RichBlockExpandableBlockQuotation) OptExpandableBlockQuotation() *RichBlockExpandableBlockQuotation {
+	return impl
+}
+func (impl *RichBlockExpandableBlockQuotation) OptFooter() *RichBlockFooter { return nil }
+func (impl *RichBlockExpandableBlockQuotation) OptList() *RichBlockList     { return nil }
+func (impl *RichBlockExpandableBlockQuotation) OptMap() *RichBlockMap       { return nil }
+func (impl *RichBlockExpandableBlockQuotation) OptMathematicalExpression() *RichBlockMathematicalExpression {
+	return nil
+}
+func (impl *RichBlockExpandableBlockQuotation) OptParagraph() *RichBlockParagraph         { return nil }
+func (impl *RichBlockExpandableBlockQuotation) OptPhoto() *RichBlockPhoto                 { return nil }
+func (impl *RichBlockExpandableBlockQuotation) OptPreformatted() *RichBlockPreformatted   { return nil }
+func (impl *RichBlockExpandableBlockQuotation) OptPullQuotation() *RichBlockPullQuotation { return nil }
+func (impl *RichBlockExpandableBlockQuotation) OptSectionHeading() *RichBlockSectionHeading {
+	return nil
+}
+func (impl *RichBlockExpandableBlockQuotation) OptSlideshow() *RichBlockSlideshow { return nil }
+func (impl *RichBlockExpandableBlockQuotation) OptTable() *RichBlockTable         { return nil }
+func (impl *RichBlockExpandableBlockQuotation) OptThinking() *RichBlockThinking   { return nil }
+func (impl *RichBlockExpandableBlockQuotation) OptVideo() *RichBlockVideo         { return nil }
+func (impl *RichBlockExpandableBlockQuotation) OptVoiceNote() *RichBlockVoiceNote { return nil }
+
+func (impl *RichBlockFooter) OptAnchor() *RichBlockAnchor                 { return nil }
+func (impl *RichBlockFooter) OptAnimation() *RichBlockAnimation           { return nil }
+func (impl *RichBlockFooter) OptAudio() *RichBlockAudio                   { return nil }
+func (impl *RichBlockFooter) OptBlockQuotation() *RichBlockBlockQuotation { return nil }
+func (impl *RichBlockFooter) OptButtons() *RichBlockButtons               { return nil }
+func (impl *RichBlockFooter) OptCollage() *RichBlockCollage               { return nil }
+func (impl *RichBlockFooter) OptDetails() *RichBlockDetails               { return nil }
+func (impl *RichBlockFooter) OptDivider() *RichBlockDivider               { return nil }
+func (impl *RichBlockFooter) OptDocument() *RichBlockDocument             { return nil }
+func (impl *RichBlockFooter) OptExpandableBlockQuotation() *RichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *RichBlockFooter) OptFooter() *RichBlockFooter                                 { return impl }
+func (impl *RichBlockFooter) OptList() *RichBlockList                                     { return nil }
+func (impl *RichBlockFooter) OptMap() *RichBlockMap                                       { return nil }
+func (impl *RichBlockFooter) OptMathematicalExpression() *RichBlockMathematicalExpression { return nil }
+func (impl *RichBlockFooter) OptParagraph() *RichBlockParagraph                           { return nil }
+func (impl *RichBlockFooter) OptPhoto() *RichBlockPhoto                                   { return nil }
+func (impl *RichBlockFooter) OptPreformatted() *RichBlockPreformatted                     { return nil }
+func (impl *RichBlockFooter) OptPullQuotation() *RichBlockPullQuotation                   { return nil }
+func (impl *RichBlockFooter) OptSectionHeading() *RichBlockSectionHeading                 { return nil }
+func (impl *RichBlockFooter) OptSlideshow() *RichBlockSlideshow                           { return nil }
+func (impl *RichBlockFooter) OptTable() *RichBlockTable                                   { return nil }
+func (impl *RichBlockFooter) OptThinking() *RichBlockThinking                             { return nil }
+func (impl *RichBlockFooter) OptVideo() *RichBlockVideo                                   { return nil }
+func (impl *RichBlockFooter) OptVoiceNote() *RichBlockVoiceNote                           { return nil }
+
+func (impl *RichBlockList) OptAnchor() *RichBlockAnchor                 { return nil }
+func (impl *RichBlockList) OptAnimation() *RichBlockAnimation           { return nil }
+func (impl *RichBlockList) OptAudio() *RichBlockAudio                   { return nil }
+func (impl *RichBlockList) OptBlockQuotation() *RichBlockBlockQuotation { return nil }
+func (impl *RichBlockList) OptButtons() *RichBlockButtons               { return nil }
+func (impl *RichBlockList) OptCollage() *RichBlockCollage               { return nil }
+func (impl *RichBlockList) OptDetails() *RichBlockDetails               { return nil }
+func (impl *RichBlockList) OptDivider() *RichBlockDivider               { return nil }
+func (impl *RichBlockList) OptDocument() *RichBlockDocument             { return nil }
+func (impl *RichBlockList) OptExpandableBlockQuotation() *RichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *RichBlockList) OptFooter() *RichBlockFooter                                 { return nil }
+func (impl *RichBlockList) OptList() *RichBlockList                                     { return impl }
+func (impl *RichBlockList) OptMap() *RichBlockMap                                       { return nil }
+func (impl *RichBlockList) OptMathematicalExpression() *RichBlockMathematicalExpression { return nil }
+func (impl *RichBlockList) OptParagraph() *RichBlockParagraph                           { return nil }
+func (impl *RichBlockList) OptPhoto() *RichBlockPhoto                                   { return nil }
+func (impl *RichBlockList) OptPreformatted() *RichBlockPreformatted                     { return nil }
+func (impl *RichBlockList) OptPullQuotation() *RichBlockPullQuotation                   { return nil }
+func (impl *RichBlockList) OptSectionHeading() *RichBlockSectionHeading                 { return nil }
+func (impl *RichBlockList) OptSlideshow() *RichBlockSlideshow                           { return nil }
+func (impl *RichBlockList) OptTable() *RichBlockTable                                   { return nil }
+func (impl *RichBlockList) OptThinking() *RichBlockThinking                             { return nil }
+func (impl *RichBlockList) OptVideo() *RichBlockVideo                                   { return nil }
+func (impl *RichBlockList) OptVoiceNote() *RichBlockVoiceNote                           { return nil }
+
+func (impl *RichBlockMap) OptAnchor() *RichBlockAnchor                 { return nil }
+func (impl *RichBlockMap) OptAnimation() *RichBlockAnimation           { return nil }
+func (impl *RichBlockMap) OptAudio() *RichBlockAudio                   { return nil }
+func (impl *RichBlockMap) OptBlockQuotation() *RichBlockBlockQuotation { return nil }
+func (impl *RichBlockMap) OptButtons() *RichBlockButtons               { return nil }
+func (impl *RichBlockMap) OptCollage() *RichBlockCollage               { return nil }
+func (impl *RichBlockMap) OptDetails() *RichBlockDetails               { return nil }
+func (impl *RichBlockMap) OptDivider() *RichBlockDivider               { return nil }
+func (impl *RichBlockMap) OptDocument() *RichBlockDocument             { return nil }
+func (impl *RichBlockMap) OptExpandableBlockQuotation() *RichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *RichBlockMap) OptFooter() *RichBlockFooter                                 { return nil }
+func (impl *RichBlockMap) OptList() *RichBlockList                                     { return nil }
+func (impl *RichBlockMap) OptMap() *RichBlockMap                                       { return impl }
+func (impl *RichBlockMap) OptMathematicalExpression() *RichBlockMathematicalExpression { return nil }
+func (impl *RichBlockMap) OptParagraph() *RichBlockParagraph                           { return nil }
+func (impl *RichBlockMap) OptPhoto() *RichBlockPhoto                                   { return nil }
+func (impl *RichBlockMap) OptPreformatted() *RichBlockPreformatted                     { return nil }
+func (impl *RichBlockMap) OptPullQuotation() *RichBlockPullQuotation                   { return nil }
+func (impl *RichBlockMap) OptSectionHeading() *RichBlockSectionHeading                 { return nil }
+func (impl *RichBlockMap) OptSlideshow() *RichBlockSlideshow                           { return nil }
+func (impl *RichBlockMap) OptTable() *RichBlockTable                                   { return nil }
+func (impl *RichBlockMap) OptThinking() *RichBlockThinking                             { return nil }
+func (impl *RichBlockMap) OptVideo() *RichBlockVideo                                   { return nil }
+func (impl *RichBlockMap) OptVoiceNote() *RichBlockVoiceNote                           { return nil }
+
+func (impl *RichBlockMathematicalExpression) OptAnchor() *RichBlockAnchor                 { return nil }
+func (impl *RichBlockMathematicalExpression) OptAnimation() *RichBlockAnimation           { return nil }
+func (impl *RichBlockMathematicalExpression) OptAudio() *RichBlockAudio                   { return nil }
+func (impl *RichBlockMathematicalExpression) OptBlockQuotation() *RichBlockBlockQuotation { return nil }
+func (impl *RichBlockMathematicalExpression) OptButtons() *RichBlockButtons               { return nil }
+func (impl *RichBlockMathematicalExpression) OptCollage() *RichBlockCollage               { return nil }
+func (impl *RichBlockMathematicalExpression) OptDetails() *RichBlockDetails               { return nil }
+func (impl *RichBlockMathematicalExpression) OptDivider() *RichBlockDivider               { return nil }
+func (impl *RichBlockMathematicalExpression) OptDocument() *RichBlockDocument             { return nil }
+func (impl *RichBlockMathematicalExpression) OptExpandableBlockQuotation() *RichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *RichBlockMathematicalExpression) OptFooter() *RichBlockFooter { return nil }
+func (impl *RichBlockMathematicalExpression) OptList() *RichBlockList     { return nil }
+func (impl *RichBlockMathematicalExpression) OptMap() *RichBlockMap       { return nil }
+func (impl *RichBlockMathematicalExpression) OptMathematicalExpression() *RichBlockMathematicalExpression {
+	return impl
+}
+func (impl *RichBlockMathematicalExpression) OptParagraph() *RichBlockParagraph           { return nil }
+func (impl *RichBlockMathematicalExpression) OptPhoto() *RichBlockPhoto                   { return nil }
+func (impl *RichBlockMathematicalExpression) OptPreformatted() *RichBlockPreformatted     { return nil }
+func (impl *RichBlockMathematicalExpression) OptPullQuotation() *RichBlockPullQuotation   { return nil }
+func (impl *RichBlockMathematicalExpression) OptSectionHeading() *RichBlockSectionHeading { return nil }
+func (impl *RichBlockMathematicalExpression) OptSlideshow() *RichBlockSlideshow           { return nil }
+func (impl *RichBlockMathematicalExpression) OptTable() *RichBlockTable                   { return nil }
+func (impl *RichBlockMathematicalExpression) OptThinking() *RichBlockThinking             { return nil }
+func (impl *RichBlockMathematicalExpression) OptVideo() *RichBlockVideo                   { return nil }
+func (impl *RichBlockMathematicalExpression) OptVoiceNote() *RichBlockVoiceNote           { return nil }
+
+func (impl *RichBlockParagraph) OptAnchor() *RichBlockAnchor                 { return nil }
+func (impl *RichBlockParagraph) OptAnimation() *RichBlockAnimation           { return nil }
+func (impl *RichBlockParagraph) OptAudio() *RichBlockAudio                   { return nil }
+func (impl *RichBlockParagraph) OptBlockQuotation() *RichBlockBlockQuotation { return nil }
+func (impl *RichBlockParagraph) OptButtons() *RichBlockButtons               { return nil }
+func (impl *RichBlockParagraph) OptCollage() *RichBlockCollage               { return nil }
+func (impl *RichBlockParagraph) OptDetails() *RichBlockDetails               { return nil }
+func (impl *RichBlockParagraph) OptDivider() *RichBlockDivider               { return nil }
+func (impl *RichBlockParagraph) OptDocument() *RichBlockDocument             { return nil }
+func (impl *RichBlockParagraph) OptExpandableBlockQuotation() *RichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *RichBlockParagraph) OptFooter() *RichBlockFooter { return nil }
+func (impl *RichBlockParagraph) OptList() *RichBlockList     { return nil }
+func (impl *RichBlockParagraph) OptMap() *RichBlockMap       { return nil }
+func (impl *RichBlockParagraph) OptMathematicalExpression() *RichBlockMathematicalExpression {
+	return nil
+}
+func (impl *RichBlockParagraph) OptParagraph() *RichBlockParagraph           { return impl }
+func (impl *RichBlockParagraph) OptPhoto() *RichBlockPhoto                   { return nil }
+func (impl *RichBlockParagraph) OptPreformatted() *RichBlockPreformatted     { return nil }
+func (impl *RichBlockParagraph) OptPullQuotation() *RichBlockPullQuotation   { return nil }
+func (impl *RichBlockParagraph) OptSectionHeading() *RichBlockSectionHeading { return nil }
+func (impl *RichBlockParagraph) OptSlideshow() *RichBlockSlideshow           { return nil }
+func (impl *RichBlockParagraph) OptTable() *RichBlockTable                   { return nil }
+func (impl *RichBlockParagraph) OptThinking() *RichBlockThinking             { return nil }
+func (impl *RichBlockParagraph) OptVideo() *RichBlockVideo                   { return nil }
+func (impl *RichBlockParagraph) OptVoiceNote() *RichBlockVoiceNote           { return nil }
+
+func (impl *RichBlockPhoto) OptAnchor() *RichBlockAnchor                 { return nil }
+func (impl *RichBlockPhoto) OptAnimation() *RichBlockAnimation           { return nil }
+func (impl *RichBlockPhoto) OptAudio() *RichBlockAudio                   { return nil }
+func (impl *RichBlockPhoto) OptBlockQuotation() *RichBlockBlockQuotation { return nil }
+func (impl *RichBlockPhoto) OptButtons() *RichBlockButtons               { return nil }
+func (impl *RichBlockPhoto) OptCollage() *RichBlockCollage               { return nil }
+func (impl *RichBlockPhoto) OptDetails() *RichBlockDetails               { return nil }
+func (impl *RichBlockPhoto) OptDivider() *RichBlockDivider               { return nil }
+func (impl *RichBlockPhoto) OptDocument() *RichBlockDocument             { return nil }
+func (impl *RichBlockPhoto) OptExpandableBlockQuotation() *RichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *RichBlockPhoto) OptFooter() *RichBlockFooter                                 { return nil }
+func (impl *RichBlockPhoto) OptList() *RichBlockList                                     { return nil }
+func (impl *RichBlockPhoto) OptMap() *RichBlockMap                                       { return nil }
+func (impl *RichBlockPhoto) OptMathematicalExpression() *RichBlockMathematicalExpression { return nil }
+func (impl *RichBlockPhoto) OptParagraph() *RichBlockParagraph                           { return nil }
+func (impl *RichBlockPhoto) OptPhoto() *RichBlockPhoto                                   { return impl }
+func (impl *RichBlockPhoto) OptPreformatted() *RichBlockPreformatted                     { return nil }
+func (impl *RichBlockPhoto) OptPullQuotation() *RichBlockPullQuotation                   { return nil }
+func (impl *RichBlockPhoto) OptSectionHeading() *RichBlockSectionHeading                 { return nil }
+func (impl *RichBlockPhoto) OptSlideshow() *RichBlockSlideshow                           { return nil }
+func (impl *RichBlockPhoto) OptTable() *RichBlockTable                                   { return nil }
+func (impl *RichBlockPhoto) OptThinking() *RichBlockThinking                             { return nil }
+func (impl *RichBlockPhoto) OptVideo() *RichBlockVideo                                   { return nil }
+func (impl *RichBlockPhoto) OptVoiceNote() *RichBlockVoiceNote                           { return nil }
+
+func (impl *RichBlockPreformatted) OptAnchor() *RichBlockAnchor                 { return nil }
+func (impl *RichBlockPreformatted) OptAnimation() *RichBlockAnimation           { return nil }
+func (impl *RichBlockPreformatted) OptAudio() *RichBlockAudio                   { return nil }
+func (impl *RichBlockPreformatted) OptBlockQuotation() *RichBlockBlockQuotation { return nil }
+func (impl *RichBlockPreformatted) OptButtons() *RichBlockButtons               { return nil }
+func (impl *RichBlockPreformatted) OptCollage() *RichBlockCollage               { return nil }
+func (impl *RichBlockPreformatted) OptDetails() *RichBlockDetails               { return nil }
+func (impl *RichBlockPreformatted) OptDivider() *RichBlockDivider               { return nil }
+func (impl *RichBlockPreformatted) OptDocument() *RichBlockDocument             { return nil }
+func (impl *RichBlockPreformatted) OptExpandableBlockQuotation() *RichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *RichBlockPreformatted) OptFooter() *RichBlockFooter { return nil }
+func (impl *RichBlockPreformatted) OptList() *RichBlockList     { return nil }
+func (impl *RichBlockPreformatted) OptMap() *RichBlockMap       { return nil }
+func (impl *RichBlockPreformatted) OptMathematicalExpression() *RichBlockMathematicalExpression {
+	return nil
+}
+func (impl *RichBlockPreformatted) OptParagraph() *RichBlockParagraph           { return nil }
+func (impl *RichBlockPreformatted) OptPhoto() *RichBlockPhoto                   { return nil }
+func (impl *RichBlockPreformatted) OptPreformatted() *RichBlockPreformatted     { return impl }
+func (impl *RichBlockPreformatted) OptPullQuotation() *RichBlockPullQuotation   { return nil }
+func (impl *RichBlockPreformatted) OptSectionHeading() *RichBlockSectionHeading { return nil }
+func (impl *RichBlockPreformatted) OptSlideshow() *RichBlockSlideshow           { return nil }
+func (impl *RichBlockPreformatted) OptTable() *RichBlockTable                   { return nil }
+func (impl *RichBlockPreformatted) OptThinking() *RichBlockThinking             { return nil }
+func (impl *RichBlockPreformatted) OptVideo() *RichBlockVideo                   { return nil }
+func (impl *RichBlockPreformatted) OptVoiceNote() *RichBlockVoiceNote           { return nil }
+
+func (impl *RichBlockPullQuotation) OptAnchor() *RichBlockAnchor                 { return nil }
+func (impl *RichBlockPullQuotation) OptAnimation() *RichBlockAnimation           { return nil }
+func (impl *RichBlockPullQuotation) OptAudio() *RichBlockAudio                   { return nil }
+func (impl *RichBlockPullQuotation) OptBlockQuotation() *RichBlockBlockQuotation { return nil }
+func (impl *RichBlockPullQuotation) OptButtons() *RichBlockButtons               { return nil }
+func (impl *RichBlockPullQuotation) OptCollage() *RichBlockCollage               { return nil }
+func (impl *RichBlockPullQuotation) OptDetails() *RichBlockDetails               { return nil }
+func (impl *RichBlockPullQuotation) OptDivider() *RichBlockDivider               { return nil }
+func (impl *RichBlockPullQuotation) OptDocument() *RichBlockDocument             { return nil }
+func (impl *RichBlockPullQuotation) OptExpandableBlockQuotation() *RichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *RichBlockPullQuotation) OptFooter() *RichBlockFooter { return nil }
+func (impl *RichBlockPullQuotation) OptList() *RichBlockList     { return nil }
+func (impl *RichBlockPullQuotation) OptMap() *RichBlockMap       { return nil }
+func (impl *RichBlockPullQuotation) OptMathematicalExpression() *RichBlockMathematicalExpression {
+	return nil
+}
+func (impl *RichBlockPullQuotation) OptParagraph() *RichBlockParagraph           { return nil }
+func (impl *RichBlockPullQuotation) OptPhoto() *RichBlockPhoto                   { return nil }
+func (impl *RichBlockPullQuotation) OptPreformatted() *RichBlockPreformatted     { return nil }
+func (impl *RichBlockPullQuotation) OptPullQuotation() *RichBlockPullQuotation   { return impl }
+func (impl *RichBlockPullQuotation) OptSectionHeading() *RichBlockSectionHeading { return nil }
+func (impl *RichBlockPullQuotation) OptSlideshow() *RichBlockSlideshow           { return nil }
+func (impl *RichBlockPullQuotation) OptTable() *RichBlockTable                   { return nil }
+func (impl *RichBlockPullQuotation) OptThinking() *RichBlockThinking             { return nil }
+func (impl *RichBlockPullQuotation) OptVideo() *RichBlockVideo                   { return nil }
+func (impl *RichBlockPullQuotation) OptVoiceNote() *RichBlockVoiceNote           { return nil }
+
+func (impl *RichBlockSectionHeading) OptAnchor() *RichBlockAnchor                 { return nil }
+func (impl *RichBlockSectionHeading) OptAnimation() *RichBlockAnimation           { return nil }
+func (impl *RichBlockSectionHeading) OptAudio() *RichBlockAudio                   { return nil }
+func (impl *RichBlockSectionHeading) OptBlockQuotation() *RichBlockBlockQuotation { return nil }
+func (impl *RichBlockSectionHeading) OptButtons() *RichBlockButtons               { return nil }
+func (impl *RichBlockSectionHeading) OptCollage() *RichBlockCollage               { return nil }
+func (impl *RichBlockSectionHeading) OptDetails() *RichBlockDetails               { return nil }
+func (impl *RichBlockSectionHeading) OptDivider() *RichBlockDivider               { return nil }
+func (impl *RichBlockSectionHeading) OptDocument() *RichBlockDocument             { return nil }
+func (impl *RichBlockSectionHeading) OptExpandableBlockQuotation() *RichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *RichBlockSectionHeading) OptFooter() *RichBlockFooter { return nil }
+func (impl *RichBlockSectionHeading) OptList() *RichBlockList     { return nil }
+func (impl *RichBlockSectionHeading) OptMap() *RichBlockMap       { return nil }
+func (impl *RichBlockSectionHeading) OptMathematicalExpression() *RichBlockMathematicalExpression {
+	return nil
+}
+func (impl *RichBlockSectionHeading) OptParagraph() *RichBlockParagraph           { return nil }
+func (impl *RichBlockSectionHeading) OptPhoto() *RichBlockPhoto                   { return nil }
+func (impl *RichBlockSectionHeading) OptPreformatted() *RichBlockPreformatted     { return nil }
+func (impl *RichBlockSectionHeading) OptPullQuotation() *RichBlockPullQuotation   { return nil }
+func (impl *RichBlockSectionHeading) OptSectionHeading() *RichBlockSectionHeading { return impl }
+func (impl *RichBlockSectionHeading) OptSlideshow() *RichBlockSlideshow           { return nil }
+func (impl *RichBlockSectionHeading) OptTable() *RichBlockTable                   { return nil }
+func (impl *RichBlockSectionHeading) OptThinking() *RichBlockThinking             { return nil }
+func (impl *RichBlockSectionHeading) OptVideo() *RichBlockVideo                   { return nil }
+func (impl *RichBlockSectionHeading) OptVoiceNote() *RichBlockVoiceNote           { return nil }
+
+func (impl *RichBlockSlideshow) OptAnchor() *RichBlockAnchor                 { return nil }
+func (impl *RichBlockSlideshow) OptAnimation() *RichBlockAnimation           { return nil }
+func (impl *RichBlockSlideshow) OptAudio() *RichBlockAudio                   { return nil }
+func (impl *RichBlockSlideshow) OptBlockQuotation() *RichBlockBlockQuotation { return nil }
+func (impl *RichBlockSlideshow) OptButtons() *RichBlockButtons               { return nil }
+func (impl *RichBlockSlideshow) OptCollage() *RichBlockCollage               { return nil }
+func (impl *RichBlockSlideshow) OptDetails() *RichBlockDetails               { return nil }
+func (impl *RichBlockSlideshow) OptDivider() *RichBlockDivider               { return nil }
+func (impl *RichBlockSlideshow) OptDocument() *RichBlockDocument             { return nil }
+func (impl *RichBlockSlideshow) OptExpandableBlockQuotation() *RichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *RichBlockSlideshow) OptFooter() *RichBlockFooter { return nil }
+func (impl *RichBlockSlideshow) OptList() *RichBlockList     { return nil }
+func (impl *RichBlockSlideshow) OptMap() *RichBlockMap       { return nil }
+func (impl *RichBlockSlideshow) OptMathematicalExpression() *RichBlockMathematicalExpression {
+	return nil
+}
+func (impl *RichBlockSlideshow) OptParagraph() *RichBlockParagraph           { return nil }
+func (impl *RichBlockSlideshow) OptPhoto() *RichBlockPhoto                   { return nil }
+func (impl *RichBlockSlideshow) OptPreformatted() *RichBlockPreformatted     { return nil }
+func (impl *RichBlockSlideshow) OptPullQuotation() *RichBlockPullQuotation   { return nil }
+func (impl *RichBlockSlideshow) OptSectionHeading() *RichBlockSectionHeading { return nil }
+func (impl *RichBlockSlideshow) OptSlideshow() *RichBlockSlideshow           { return impl }
+func (impl *RichBlockSlideshow) OptTable() *RichBlockTable                   { return nil }
+func (impl *RichBlockSlideshow) OptThinking() *RichBlockThinking             { return nil }
+func (impl *RichBlockSlideshow) OptVideo() *RichBlockVideo                   { return nil }
+func (impl *RichBlockSlideshow) OptVoiceNote() *RichBlockVoiceNote           { return nil }
+
+func (impl *RichBlockTable) OptAnchor() *RichBlockAnchor                 { return nil }
+func (impl *RichBlockTable) OptAnimation() *RichBlockAnimation           { return nil }
+func (impl *RichBlockTable) OptAudio() *RichBlockAudio                   { return nil }
+func (impl *RichBlockTable) OptBlockQuotation() *RichBlockBlockQuotation { return nil }
+func (impl *RichBlockTable) OptButtons() *RichBlockButtons               { return nil }
+func (impl *RichBlockTable) OptCollage() *RichBlockCollage               { return nil }
+func (impl *RichBlockTable) OptDetails() *RichBlockDetails               { return nil }
+func (impl *RichBlockTable) OptDivider() *RichBlockDivider               { return nil }
+func (impl *RichBlockTable) OptDocument() *RichBlockDocument             { return nil }
+func (impl *RichBlockTable) OptExpandableBlockQuotation() *RichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *RichBlockTable) OptFooter() *RichBlockFooter                                 { return nil }
+func (impl *RichBlockTable) OptList() *RichBlockList                                     { return nil }
+func (impl *RichBlockTable) OptMap() *RichBlockMap                                       { return nil }
+func (impl *RichBlockTable) OptMathematicalExpression() *RichBlockMathematicalExpression { return nil }
+func (impl *RichBlockTable) OptParagraph() *RichBlockParagraph                           { return nil }
+func (impl *RichBlockTable) OptPhoto() *RichBlockPhoto                                   { return nil }
+func (impl *RichBlockTable) OptPreformatted() *RichBlockPreformatted                     { return nil }
+func (impl *RichBlockTable) OptPullQuotation() *RichBlockPullQuotation                   { return nil }
+func (impl *RichBlockTable) OptSectionHeading() *RichBlockSectionHeading                 { return nil }
+func (impl *RichBlockTable) OptSlideshow() *RichBlockSlideshow                           { return nil }
+func (impl *RichBlockTable) OptTable() *RichBlockTable                                   { return impl }
+func (impl *RichBlockTable) OptThinking() *RichBlockThinking                             { return nil }
+func (impl *RichBlockTable) OptVideo() *RichBlockVideo                                   { return nil }
+func (impl *RichBlockTable) OptVoiceNote() *RichBlockVoiceNote                           { return nil }
+
+func (impl *RichBlockThinking) OptAnchor() *RichBlockAnchor                 { return nil }
+func (impl *RichBlockThinking) OptAnimation() *RichBlockAnimation           { return nil }
+func (impl *RichBlockThinking) OptAudio() *RichBlockAudio                   { return nil }
+func (impl *RichBlockThinking) OptBlockQuotation() *RichBlockBlockQuotation { return nil }
+func (impl *RichBlockThinking) OptButtons() *RichBlockButtons               { return nil }
+func (impl *RichBlockThinking) OptCollage() *RichBlockCollage               { return nil }
+func (impl *RichBlockThinking) OptDetails() *RichBlockDetails               { return nil }
+func (impl *RichBlockThinking) OptDivider() *RichBlockDivider               { return nil }
+func (impl *RichBlockThinking) OptDocument() *RichBlockDocument             { return nil }
+func (impl *RichBlockThinking) OptExpandableBlockQuotation() *RichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *RichBlockThinking) OptFooter() *RichBlockFooter { return nil }
+func (impl *RichBlockThinking) OptList() *RichBlockList     { return nil }
+func (impl *RichBlockThinking) OptMap() *RichBlockMap       { return nil }
+func (impl *RichBlockThinking) OptMathematicalExpression() *RichBlockMathematicalExpression {
+	return nil
+}
+func (impl *RichBlockThinking) OptParagraph() *RichBlockParagraph           { return nil }
+func (impl *RichBlockThinking) OptPhoto() *RichBlockPhoto                   { return nil }
+func (impl *RichBlockThinking) OptPreformatted() *RichBlockPreformatted     { return nil }
+func (impl *RichBlockThinking) OptPullQuotation() *RichBlockPullQuotation   { return nil }
+func (impl *RichBlockThinking) OptSectionHeading() *RichBlockSectionHeading { return nil }
+func (impl *RichBlockThinking) OptSlideshow() *RichBlockSlideshow           { return nil }
+func (impl *RichBlockThinking) OptTable() *RichBlockTable                   { return nil }
+func (impl *RichBlockThinking) OptThinking() *RichBlockThinking             { return impl }
+func (impl *RichBlockThinking) OptVideo() *RichBlockVideo                   { return nil }
+func (impl *RichBlockThinking) OptVoiceNote() *RichBlockVoiceNote           { return nil }
+
+func (impl *RichBlockVideo) OptAnchor() *RichBlockAnchor                 { return nil }
+func (impl *RichBlockVideo) OptAnimation() *RichBlockAnimation           { return nil }
+func (impl *RichBlockVideo) OptAudio() *RichBlockAudio                   { return nil }
+func (impl *RichBlockVideo) OptBlockQuotation() *RichBlockBlockQuotation { return nil }
+func (impl *RichBlockVideo) OptButtons() *RichBlockButtons               { return nil }
+func (impl *RichBlockVideo) OptCollage() *RichBlockCollage               { return nil }
+func (impl *RichBlockVideo) OptDetails() *RichBlockDetails               { return nil }
+func (impl *RichBlockVideo) OptDivider() *RichBlockDivider               { return nil }
+func (impl *RichBlockVideo) OptDocument() *RichBlockDocument             { return nil }
+func (impl *RichBlockVideo) OptExpandableBlockQuotation() *RichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *RichBlockVideo) OptFooter() *RichBlockFooter                                 { return nil }
+func (impl *RichBlockVideo) OptList() *RichBlockList                                     { return nil }
+func (impl *RichBlockVideo) OptMap() *RichBlockMap                                       { return nil }
+func (impl *RichBlockVideo) OptMathematicalExpression() *RichBlockMathematicalExpression { return nil }
+func (impl *RichBlockVideo) OptParagraph() *RichBlockParagraph                           { return nil }
+func (impl *RichBlockVideo) OptPhoto() *RichBlockPhoto                                   { return nil }
+func (impl *RichBlockVideo) OptPreformatted() *RichBlockPreformatted                     { return nil }
+func (impl *RichBlockVideo) OptPullQuotation() *RichBlockPullQuotation                   { return nil }
+func (impl *RichBlockVideo) OptSectionHeading() *RichBlockSectionHeading                 { return nil }
+func (impl *RichBlockVideo) OptSlideshow() *RichBlockSlideshow                           { return nil }
+func (impl *RichBlockVideo) OptTable() *RichBlockTable                                   { return nil }
+func (impl *RichBlockVideo) OptThinking() *RichBlockThinking                             { return nil }
+func (impl *RichBlockVideo) OptVideo() *RichBlockVideo                                   { return impl }
+func (impl *RichBlockVideo) OptVoiceNote() *RichBlockVoiceNote                           { return nil }
+
+func (impl *RichBlockVoiceNote) OptAnchor() *RichBlockAnchor                 { return nil }
+func (impl *RichBlockVoiceNote) OptAnimation() *RichBlockAnimation           { return nil }
+func (impl *RichBlockVoiceNote) OptAudio() *RichBlockAudio                   { return nil }
+func (impl *RichBlockVoiceNote) OptBlockQuotation() *RichBlockBlockQuotation { return nil }
+func (impl *RichBlockVoiceNote) OptButtons() *RichBlockButtons               { return nil }
+func (impl *RichBlockVoiceNote) OptCollage() *RichBlockCollage               { return nil }
+func (impl *RichBlockVoiceNote) OptDetails() *RichBlockDetails               { return nil }
+func (impl *RichBlockVoiceNote) OptDivider() *RichBlockDivider               { return nil }
+func (impl *RichBlockVoiceNote) OptDocument() *RichBlockDocument             { return nil }
+func (impl *RichBlockVoiceNote) OptExpandableBlockQuotation() *RichBlockExpandableBlockQuotation {
+	return nil
+}
+func (impl *RichBlockVoiceNote) OptFooter() *RichBlockFooter { return nil }
+func (impl *RichBlockVoiceNote) OptList() *RichBlockList     { return nil }
+func (impl *RichBlockVoiceNote) OptMap() *RichBlockMap       { return nil }
+func (impl *RichBlockVoiceNote) OptMathematicalExpression() *RichBlockMathematicalExpression {
+	return nil
+}
+func (impl *RichBlockVoiceNote) OptParagraph() *RichBlockParagraph           { return nil }
+func (impl *RichBlockVoiceNote) OptPhoto() *RichBlockPhoto                   { return nil }
+func (impl *RichBlockVoiceNote) OptPreformatted() *RichBlockPreformatted     { return nil }
+func (impl *RichBlockVoiceNote) OptPullQuotation() *RichBlockPullQuotation   { return nil }
+func (impl *RichBlockVoiceNote) OptSectionHeading() *RichBlockSectionHeading { return nil }
+func (impl *RichBlockVoiceNote) OptSlideshow() *RichBlockSlideshow           { return nil }
+func (impl *RichBlockVoiceNote) OptTable() *RichBlockTable                   { return nil }
+func (impl *RichBlockVoiceNote) OptThinking() *RichBlockThinking             { return nil }
+func (impl *RichBlockVoiceNote) OptVideo() *RichBlockVideo                   { return nil }
+func (impl *RichBlockVoiceNote) OptVoiceNote() *RichBlockVoiceNote           { return impl }
+
+// RichBlockAnchor A block with an anchor, corresponding to the HTML tag <a> with the attribute name.
+type RichBlockAnchor struct {
+	// Type of the block, always “anchor”
+	Type string `json:"type" default:"anchor"`
+	// The name of the anchor
+	Name string `json:"name"`
+}
+
+// RichBlockAnimation A block with an animation, corresponding to the HTML tag <video>.
+type RichBlockAnimation struct {
+	// Type of the block, always “animation”
+	Type string `json:"type" default:"animation"`
+	// The animation
+	Animation *TelegramAnimation `json:"animation"`
+	// Optional. True, if the media preview is covered by a spoiler animation
+	HasSpoiler bool `json:"has_spoiler,omitempty"`
+	// Optional. Caption of the block
+	Caption *RichBlockCaption `json:"caption,omitempty"`
+}
+
+// RichBlockAudio A block with a music file, corresponding to the HTML tag <audio>.
+type RichBlockAudio struct {
+	// Type of the block, always “audio”
+	Type string `json:"type" default:"audio"`
+	// The audio
+	Audio *TelegramAudio `json:"audio"`
+	// Optional. Caption of the block
+	Caption *RichBlockCaption `json:"caption,omitempty"`
+}
+
+// RichBlockBlockQuotation A block quotation, corresponding to the HTML tag <blockquote>.
+type RichBlockBlockQuotation struct {
+	// Type of the block, always “blockquote”
+	Type string `json:"type" default:"blockquote"`
+	// Content of the block
+	Blocks []RichBlock `json:"blocks"`
+	// Optional. Credit of the block
+	Credit any `json:"credit,omitempty"`
+}
+
+// RichBlockButtons A block containing a list of buttons that are shown in one row, corresponding to the custom HTML tag <tg-button-row>.
+type RichBlockButtons struct {
+	// Type of the block, always “buttons”
+	Type string `json:"type" default:"buttons"`
+	// The buttons
+	Buttons []*RichMessageButton `json:"buttons"`
+	// Optional. Horizontal alignment of the buttons. Currently, must be one of “left”, “center”, or “right”.
+	Align string `json:"align,omitempty"`
+}
+
+// RichBlockCaption Caption of a rich formatted block.
+type RichBlockCaption struct {
+	// Block caption
+	Text any `json:"text"`
+	// Optional. Block credit which corresponds to the HTML tag <cite>
+	Credit any `json:"credit,omitempty"`
+}
+
+// RichBlockCollage A collage, corresponding to the custom HTML tag <tg-collage>.
+type RichBlockCollage struct {
+	// Type of the block, always “collage”
+	Type string `json:"type" default:"collage"`
+	// Elements of the collage
+	Blocks []RichBlock `json:"blocks"`
+	// Optional. Caption of the block
+	Caption *RichBlockCaption `json:"caption,omitempty"`
+}
+
+// RichBlockDetails An expandable block for details disclosure, corresponding to the HTML tag <details>.
+type RichBlockDetails struct {
+	// Type of the block, always “details”
+	Type string `json:"type" default:"details"`
+	// Always shown summary of the block
+	Summary any `json:"summary"`
+	// Content of the block
+	Blocks []RichBlock `json:"blocks"`
+	// Optional. True, if the content of the block is visible by default
+	IsOpen bool `json:"is_open,omitempty"`
+}
+
+// RichBlockDivider A divider, corresponding to the HTML tag <hr/>.
+type RichBlockDivider struct {
+	// Type of the block, always “divider”
+	Type string `json:"type" default:"divider"`
+}
+
+// RichBlockDocument A block with a general file, corresponding to the custom HTML tag <tg-document>.
+type RichBlockDocument struct {
+	// Type of the block, always “document”
+	Type string `json:"type" default:"document"`
+	// The document
+	Document *TelegramDocument `json:"document"`
+	// Optional. Caption of the block
+	Caption *RichBlockCaption `json:"caption,omitempty"`
+}
+
+// RichBlockExpandableBlockQuotation A block quotation, corresponding to the HTML tag <blockquote> with custom attribute "expandable".
+type RichBlockExpandableBlockQuotation struct {
+	// Type of the block, always “expandable_blockquote”
+	Type string `json:"type" default:"expandable_blockquote"`
+	// Content of the block
+	Text any `json:"text"`
+	// Optional. Credit of the block
+	Credit any `json:"credit,omitempty"`
+}
+
+// RichBlockFooter A footer, corresponding to the HTML tag <footer>.
+type RichBlockFooter struct {
+	// Type of the block, always “footer”
+	Type string `json:"type" default:"footer"`
+	// Text of the block
+	Text any `json:"text"`
+}
+
+// RichBlockList A list of blocks, corresponding to the HTML tag <ul> or <ol> with multiple nested tags <li>.
+type RichBlockList struct {
+	// Type of the block, always “list”
+	Type string `json:"type" default:"list"`
+	// Items of the list
+	Items []*RichBlockListItem `json:"items"`
+}
+
+// RichBlockListItem An item of a list.
+type RichBlockListItem struct {
+	// Label of the item
+	Label string `json:"label"`
+	// The content of the item
+	Blocks []RichBlock `json:"blocks"`
+	// Optional. True, if the item has a checkbox
+	HasCheckbox bool `json:"has_checkbox,omitempty"`
+	// Optional. True, if the item has a checked checkbox
+	IsChecked bool `json:"is_checked,omitempty"`
+	// Optional. For ordered lists, the numeric value of the item label
+	Value int64 `json:"value,omitempty"`
+	// Optional.
+	// For ordered lists, the type of the item label; must be one of “a” for lowercase letters, “A” for uppercase letters, “i” for lowercase Roman numerals, “I” for uppercase Roman numerals, or “1” for decimal numbers
+	Type string `json:"type,omitempty"`
+}
+
+// RichBlockMap A block with a map, corresponding to the custom HTML tag <tg-map>.
+type RichBlockMap struct {
+	// Type of the block, always “map”
+	Type string `json:"type" default:"map"`
+	// Location of the center of the map
+	Location *Location `json:"location"`
+	// Map zoom level
+	Zoom int64 `json:"zoom"`
+	// Expected width of the map
+	Width int64 `json:"width"`
+	// Expected height of the map
+	Height int64 `json:"height"`
+	// Optional. Caption of the block
+	Caption *RichBlockCaption `json:"caption,omitempty"`
+}
+
+// RichBlockMathematicalExpression A block with a mathematical expression in LaTeX format, corresponding to the custom HTML tag <tg-math-block>.
+type RichBlockMathematicalExpression struct {
+	// Type of the block, always “mathematical_expression”
+	Type string `json:"type" default:"mathematical_expression"`
+	// The mathematical expression in LaTeX format
+	Expression string `json:"expression"`
+}
+
+// RichBlockParagraph A text paragraph, corresponding to the HTML tag <p>.
+type RichBlockParagraph struct {
+	// Type of the block, always “paragraph”
+	Type string `json:"type" default:"paragraph"`
+	// Text of the block
+	Text any `json:"text"`
+}
+
+// RichBlockPhoto A block with a photo, corresponding to the HTML tag <img>.
+type RichBlockPhoto struct {
+	// Type of the block, always “photo”
+	Type string `json:"type" default:"photo"`
+	// Available sizes of the photo
+	Photo TelegramPhoto `json:"photo"`
+	// Optional. True, if the media preview is covered by a spoiler animation
+	HasSpoiler bool `json:"has_spoiler,omitempty"`
+	// Optional. Caption of the block
+	Caption *RichBlockCaption `json:"caption,omitempty"`
+}
+
+// RichBlockPreformatted A preformatted text block, corresponding to the nested HTML tags <pre> and <code>.
+type RichBlockPreformatted struct {
+	// Type of the block, always “pre”
+	Type string `json:"type" default:"pre"`
+	// Text of the block
+	Text any `json:"text"`
+	// Optional. The programming language of the text
+	Language string `json:"language,omitempty"`
+}
+
+// RichBlockPullQuotation A quotation with centered text, loosely corresponding to the HTML tag <aside>.
+type RichBlockPullQuotation struct {
+	// Type of the block, always “pullquote”
+	Type string `json:"type" default:"pullquote"`
+	// Text of the block
+	Text any `json:"text"`
+	// Optional. Credit of the block
+	Credit any `json:"credit,omitempty"`
+}
+
+// RichBlockSectionHeading A section heading, corresponding to the HTML tags <h1>, <h2>, <h3>, <h4>, <h5>, or <h6>.
+type RichBlockSectionHeading struct {
+	// Type of the block, always “heading”
+	Type string `json:"type" default:"heading"`
+	// Text of the block
+	Text any `json:"text"`
+	// Relative size of the text font; 1-6, 1 is the largest, 6 is the smallest
+	Size int64 `json:"size"`
+}
+
+// RichBlockSlideshow A slideshow, corresponding to the custom HTML tag <tg-slideshow>.
+type RichBlockSlideshow struct {
+	// Type of the block, always “slideshow”
+	Type string `json:"type" default:"slideshow"`
+	// Elements of the slideshow
+	Blocks []RichBlock `json:"blocks"`
+	// Optional. Caption of the block
+	Caption *RichBlockCaption `json:"caption,omitempty"`
+}
+
+// RichBlockTable A table, corresponding to the HTML tag <table>.
+type RichBlockTable struct {
+	// Type of the block, always “table”
+	Type string `json:"type" default:"table"`
+	// Cells of the table
+	Cells [][]*RichBlockTableCell `json:"cells"`
+	// Optional. True, if the table has borders
+	IsBordered bool `json:"is_bordered,omitempty"`
+	// Optional. True, if the table is striped
+	IsStriped bool `json:"is_striped,omitempty"`
+	// Optional. True, if table cells have smaller indents
+	IsCompact bool `json:"is_compact,omitempty"`
+	// Optional. Caption of the table
+	Caption any `json:"caption,omitempty"`
+}
+
+// RichBlockTableCell Cell in a table.
+type RichBlockTableCell struct {
+	// Optional. Text in the cell. If omitted, then the cell is invisible.
+	Text any `json:"text,omitempty"`
+	// Optional. True, if the cell is a header cell
+	IsHeader bool `json:"is_header,omitempty"`
+	// Optional. The number of columns the cell spans if it is bigger than 1
+	Colspan int64 `json:"colspan,omitempty"`
+	// Optional. The number of rows the cell spans if it is bigger than 1
+	Rowspan int64 `json:"rowspan,omitempty"`
+	// Horizontal cell content alignment. Currently, must be one of “left”, “center”, or “right”.
+	Align string `json:"align"`
+	// Vertical cell content alignment. Currently, must be one of “top”, “middle”, or “bottom”.
+	Valign string `json:"valign"`
+}
+
+// RichBlockThinking A block with a “Thinking…” placeholder, corresponding to the custom HTML tag <tg-thinking>.
+// The block may be used only in sendRichMessageDraft, therefore it can't be received in messages.
+// See https://t.me/addemoji/AIActions for examples of custom emoji that are recommended for usage in the block.
+type RichBlockThinking struct {
+	// Type of the block, always “thinking”
+	Type string `json:"type" default:"thinking"`
+	// Text of the block.
+	// See https://t.me/addemoji/AIActions for examples of custom emoji that are recommended for usage in the block.
+	Text any `json:"text"`
+}
+
+// RichBlockVideo A block with a video, corresponding to the HTML tag <video>.
+type RichBlockVideo struct {
+	// Type of the block, always “video”
+	Type string `json:"type" default:"video"`
+	// The video
+	Video *TelegramVideo `json:"video"`
+	// Optional. True, if the media preview is covered by a spoiler animation
+	HasSpoiler bool `json:"has_spoiler,omitempty"`
+	// Optional. Caption of the block
+	Caption *RichBlockCaption `json:"caption,omitempty"`
+}
+
+// RichBlockVoiceNote A block with a voice note, corresponding to the HTML tag <audio>.
+type RichBlockVoiceNote struct {
+	// Type of the block, always “voice_note”
+	Type string `json:"type" default:"voice_note"`
+	// The voice note
+	VoiceNote *Voice `json:"voice_note"`
+	// Optional. Caption of the block
+	Caption *RichBlockCaption `json:"caption,omitempty"`
+}
+
+// RichMessage Rich formatted message.
+type RichMessage struct {
+	// Content of the message
+	Blocks []RichBlock `json:"blocks"`
+	// Optional. True, if the rich message must be shown right-to-left
+	IsRtl bool `json:"is_rtl,omitempty"`
+}
+
+// RichMessageButton This object represents a button in a RichMessage.
+// Exactly one of the fields other than text and style must be used to specify the type of the button.
+type RichMessageButton struct {
+	// Text of the button. May contain only plain text, RichTextCustomEmoji and RichTextDateTime entities.
+	Text any `json:"text"`
+	// Optional. Style of the button. The style “link” is allowed only for callback buttons.
+	// Must be one of “danger”, “success”, “primary”, or “link” (the button is shown as a regular link without borders).
+	// Apps may use theme-specific colors for the button background and text based on the style.
+	Style string `json:"style,omitempty"`
+	// Optional. HTTP or tg:// URL to be opened when the button is pressed.
+	// Links tg://user?id=<user_id> can be used to mention a user by their identifier without using a username, if this is allowed by their privacy settings.
+	Url string `json:"url,omitempty"`
+	// Optional. Data to be sent in a callback query to the bot when the button is pressed, 1-64 bytes
+	CallbackData string `json:"callback_data,omitempty"`
+	// Optional. Description of the Web App that will be launched when the user presses the button.
+	// The Web App will be able to send an arbitrary message on behalf of the user using the method answerWebAppQuery.
+	// Available only in private chats between a user and the bot.
+	// Not supported for messages sent on behalf of a business account.
+	WebApp *WebAppInfo `json:"web_app,omitempty"`
+	// Optional. An HTTPS URL used to automatically authorize the user. Not supported for ephemeral messages.
+	// Can be used as a replacement for the Telegram Login Widget.
+	LoginUrl *LoginUrl `json:"login_url,omitempty"`
+	// Optional. May be empty, in which case just the bot's username will be inserted.
+	// If set, pressing the button will prompt the user to select one of their chats, open that chat and insert the bot's username and the specified inline query in the input field.
+	// Not supported for messages sent in channel direct messages chats and on behalf of a business account.
+	SwitchInlineQuery string `json:"switch_inline_query,omitempty"`
+	// Optional. May be empty, in which case only the bot's username will be inserted.
+	// If set, pressing the button will insert the bot's username and the specified inline query in the current chat's input field.
+	// Not supported in channels and for messages sent in channel direct messages chats and on behalf of a business account.
+	SwitchInlineQueryCurrentChat string `json:"switch_inline_query_current_chat,omitempty"`
+	// Optional. Not supported for messages sent in channel direct messages chats and on behalf of a business account.
+	// If set, pressing the button will prompt the user to select one of their chats of the specified type, open that chat and insert the bot's username and the specified inline query in the input field.
+	SwitchInlineQueryChosenChat *SwitchInlineQueryChosenChat `json:"switch_inline_query_chosen_chat,omitempty"`
+	// Optional. A button that copies the specified text to the clipboard
+	CopyText *CopyTextButton `json:"copy_text,omitempty"`
+	// Optional. If set, then the button is disabled and does nothing
+	Disabled *DisabledButton `json:"disabled,omitempty"`
+}
+
+// RichTextAnchor An anchor.
+type RichTextAnchor struct {
+	// Type of the rich text, always “anchor”
+	Type string `json:"type" default:"anchor"`
+	// The name of the anchor
+	Name string `json:"name"`
+}
+
+// RichTextAnchorLink A link to an anchor.
+type RichTextAnchorLink struct {
+	// Type of the rich text, always “anchor_link”
+	Type string `json:"type" default:"anchor_link"`
+	// The link text
+	Text any `json:"text"`
+	// The name of the anchor. If the name is empty, then the link brings back to the top of the message.
+	AnchorName string `json:"anchor_name"`
+}
+
+// RichTextBankCardNumber A text with a bank card number.
+type RichTextBankCardNumber struct {
+	// Type of the rich text, always “bank_card_number”
+	Type string `json:"type" default:"bank_card_number"`
+	// The text
+	Text any `json:"text"`
+	// The bank card number
+	BankCardNumber string `json:"bank_card_number"`
+}
+
+// RichTextBold A bold text.
+type RichTextBold struct {
+	// Type of the rich text, always “bold”
+	Type string `json:"type" default:"bold"`
+	// The text
+	Text any `json:"text"`
+}
+
+// RichTextBotCommand A bot command.
+type RichTextBotCommand struct {
+	// Type of the rich text, always “bot_command”
+	Type string `json:"type" default:"bot_command"`
+	// The text
+	Text any `json:"text"`
+	// The bot command
+	BotCommand string `json:"bot_command"`
+}
+
+// RichTextButton A button.
+type RichTextButton struct {
+	// Type of the rich text, always “button”
+	Type string `json:"type" default:"button"`
+	// The button
+	Button *RichMessageButton `json:"button"`
+}
+
+// RichTextCashtag A cashtag.
+type RichTextCashtag struct {
+	// Type of the rich text, always “cashtag”
+	Type string `json:"type" default:"cashtag"`
+	// The text
+	Text any `json:"text"`
+	// The cashtag
+	Cashtag string `json:"cashtag"`
+}
+
+// RichTextCode A monowidth text.
+type RichTextCode struct {
+	// Type of the rich text, always “code”
+	Type string `json:"type" default:"code"`
+	// The text
+	Text any `json:"text"`
+}
+
+// RichTextCustomEmoji A custom emoji.
+type RichTextCustomEmoji struct {
+	// Type of the rich text, always “custom_emoji”
+	Type string `json:"type" default:"custom_emoji"`
+	// Unique identifier of the custom emoji. Use getCustomEmojiStickers to get full information about the sticker.
+	CustomEmojiId string `json:"custom_emoji_id"`
+	// Alternative emoji for the custom emoji
+	AlternativeText string `json:"alternative_text"`
+}
+
+// RichTextDateTime Formatted date and time.
+type RichTextDateTime struct {
+	// Type of the rich text, always “date_time”
+	Type string `json:"type" default:"date_time"`
+	// The text
+	Text any `json:"text"`
+	// The Unix time associated with the entity
+	UnixTime int64 `json:"unix_time"`
+	// The string that defines the formatting of the date and time. See date-time entity formatting for more details.
+	DateTimeFormat string `json:"date_time_format"`
+}
+
+// RichTextEmailAddress A text with an email address.
+type RichTextEmailAddress struct {
+	// Type of the rich text, always “email_address”
+	Type string `json:"type" default:"email_address"`
+	// The text
+	Text any `json:"text"`
+	// The email address
+	EmailAddress string `json:"email_address"`
+}
+
+// RichTextHashtag A hashtag.
+type RichTextHashtag struct {
+	// Type of the rich text, always “hashtag”
+	Type string `json:"type" default:"hashtag"`
+	// The text
+	Text any `json:"text"`
+	// The hashtag
+	Hashtag string `json:"hashtag"`
+}
+
+// RichTextItalic An italicized text.
+type RichTextItalic struct {
+	// Type of the rich text, always “italic”
+	Type string `json:"type" default:"italic"`
+	// The text
+	Text any `json:"text"`
+}
+
+// RichTextMarked A marked text.
+type RichTextMarked struct {
+	// Type of the rich text, always “marked”
+	Type string `json:"type" default:"marked"`
+	// The text
+	Text any `json:"text"`
+}
+
+// RichTextMathematicalExpression A mathematical expression.
+type RichTextMathematicalExpression struct {
+	// Type of the rich text, always “mathematical_expression”
+	Type string `json:"type" default:"mathematical_expression"`
+	// The expression in LaTeX format
+	Expression string `json:"expression"`
+}
+
+// RichTextMention A mention by a username.
+type RichTextMention struct {
+	// Type of the rich text, always “mention”
+	Type string `json:"type" default:"mention"`
+	// The text
+	Text any `json:"text"`
+	// The username
+	Username string `json:"username"`
+}
+
+// RichTextPhoneNumber A text with a phone number.
+type RichTextPhoneNumber struct {
+	// Type of the rich text, always “phone_number”
+	Type string `json:"type" default:"phone_number"`
+	// The text
+	Text any `json:"text"`
+	// The phone number
+	PhoneNumber string `json:"phone_number"`
+}
+
+// RichTextReference A reference.
+type RichTextReference struct {
+	// Type of the rich text, always “reference”
+	Type string `json:"type" default:"reference"`
+	// Text of the reference
+	Text any `json:"text"`
+	// The name of the reference
+	Name string `json:"name"`
+}
+
+// RichTextReferenceLink A link to a reference.
+type RichTextReferenceLink struct {
+	// Type of the rich text, always “reference_link”
+	Type string `json:"type" default:"reference_link"`
+	// The link text
+	Text any `json:"text"`
+	// The name of the reference
+	ReferenceName string `json:"reference_name"`
+}
+
+// RichTextSpoiler A text covered by a spoiler.
+type RichTextSpoiler struct {
+	// Type of the rich text, always “spoiler”
+	Type string `json:"type" default:"spoiler"`
+	// The text
+	Text any `json:"text"`
+}
+
+// RichTextStrikethrough A strikethrough text.
+type RichTextStrikethrough struct {
+	// Type of the rich text, always “strikethrough”
+	Type string `json:"type" default:"strikethrough"`
+	// The text
+	Text any `json:"text"`
+}
+
+// RichTextSubscript A subscript text.
+type RichTextSubscript struct {
+	// Type of the rich text, always “subscript”
+	Type string `json:"type" default:"subscript"`
+	// The text
+	Text any `json:"text"`
+}
+
+// RichTextSuperscript A superscript text.
+type RichTextSuperscript struct {
+	// Type of the rich text, always “superscript”
+	Type string `json:"type" default:"superscript"`
+	// The text
+	Text any `json:"text"`
+}
+
+// RichTextTextMention A mention of a Telegram user by their identifier.
+type RichTextTextMention struct {
+	// Type of the rich text, always “text_mention”
+	Type string `json:"type" default:"text_mention"`
+	// The text
+	Text any `json:"text"`
+	// The mentioned user
+	User *User `json:"user"`
+}
+
+// RichTextUnderline An underlined text.
+type RichTextUnderline struct {
+	// Type of the rich text, always “underline”
+	Type string `json:"type" default:"underline"`
+	// The text
+	Text any `json:"text"`
+}
+
+// RichTextUrl A text with a link.
+type RichTextUrl struct {
+	// Type of the rich text, always “url”
+	Type string `json:"type" default:"url"`
+	// The text
+	Text any `json:"text"`
+	// URL of the link
 	Url string `json:"url"`
 }
 
