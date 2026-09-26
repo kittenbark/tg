@@ -96,6 +96,9 @@ func GenericRequestMultipart[Request any, Result any](ctx context.Context, metho
 	}
 
 	prepared := defaults(request)
+	if getOrDefault(ctx, ContextRedactToken, true) {
+		redactToken(prepared, token)
+	}
 	url := fmt.Sprintf("%s/bot%s/%s", getOrDefault(ctx, ContextApiUrl, DefaultTelegramApiUrl), token, method)
 
 	for {

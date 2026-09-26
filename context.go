@@ -14,6 +14,7 @@ const (
 	ContextExtraHeaders     = contextPrefix + "extra_headers"
 	ContextFileDownloadType = contextPrefix + "file_downloader"
 	ContextScheduler        = contextPrefix + "scheduler"
+	ContextRedactToken      = contextPrefix + "redact_token"
 
 	contextPrefix = "kittenbark_"
 )

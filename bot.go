@@ -123,6 +123,14 @@ func (bot *Bot) Scheduler(scheduler ...Scheduler) *Bot {
 	return bot
 }
 
+// RedactToken controls whether the bot's own token is scrubbed out of any text
+// (message text, captions, button labels, ...) before it's sent to Telegram —
+// enabled by default.
+func (bot *Bot) RedactToken(enabled ...bool) *Bot {
+	bot.context = context.WithValue(bot.context, ContextRedactToken, at(enabled, 0, true))
+	return bot
+}
+
 // ContextWithCancel build new Context with a fresh timeout.
 func (bot *Bot) ContextWithCancel() (ctx context.Context, cancel context.CancelFunc) {
 	if bot.contextTimeout == 0 {

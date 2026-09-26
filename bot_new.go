@@ -28,6 +28,8 @@ const (
 	EnvTimeoutHandle     = "TIMEOUT_HANDLE"
 	defaultHandleTimeout = time.Hour
 
+	EnvDisableTokenRedaction = "DISABLE_TOKEN_REDACTION"
+
 	EnvTimeoutPolling     = "TIMEOUT_POLL"
 	defaultPollingTimeout = 100 * time.Millisecond
 )
@@ -59,6 +61,10 @@ type Config struct {
 	OnError       OnErrorFunc       `json:"-"`
 	OnErrorByType string            `json:"on_error,omitempty"`
 	ExtraHeaders  map[string]string `json:"extra_headers,omitempty"`
+
+	// DisableTokenRedaction turns off scrubbing the bot token out of outgoing
+	// message text (see RedactToken). Zero value (false) means redaction stays enabled.
+	DisableTokenRedaction bool `json:"disable_token_redaction,omitempty"`
 
 	buildType int
 }
@@ -104,6 +110,7 @@ func TryNew(cfg *Config) (*Bot, error) {
 	if cfg.ApiURL != "" {
 		ctx = context.WithValue(ctx, ContextApiUrl, cfg.ApiURL)
 	}
+	ctx = context.WithValue(ctx, ContextRedactToken, !cfg.DisableTokenRedaction)
 	if len(cfg.ExtraHeaders) > 0 {
 		ctx = context.WithValue(ctx, ContextExtraHeaders, cfg.ExtraHeaders)
 	}
@@ -256,6 +263,9 @@ func configFromEnv() (config *Config, err error) {
 		buildType:     buildTypeEnv,
 	}
 	if config.SyncHandling, err = parseFromEnvBool(EnvSyncedHandle, false); err != nil {
+		return nil, err
+	}
+	if config.DisableTokenRedaction, err = parseFromEnvBool(EnvDisableTokenRedaction, false); err != nil {
 		return nil, err
 	}
 	if config.TimeoutHandle, err = parseFromEnvDuration(EnvTimeoutHandle, -1); err != nil {

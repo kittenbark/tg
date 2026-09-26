@@ -22,6 +22,9 @@ func GenericRequest[Request any, Result any](ctx context.Context, method string,
 	}
 
 	prepared := defaults(request)
+	if getOrDefault(ctx, ContextRedactToken, true) {
+		redactToken(prepared, token)
+	}
 	url := fmt.Sprintf("%s/bot%s/%s", getOrDefault(ctx, ContextApiUrl, DefaultTelegramApiUrl), token, method)
 
 	for {
