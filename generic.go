@@ -129,6 +129,20 @@ func deref[T any](ptr *T) (val T) {
 	return *ptr
 }
 
+// unmarshalRawOrZero decodes raw JSON captured for a polymorphic field whose
+// name is reused, with a different Go type, by more than one variant of the
+// same interface (e.g. OwnedGiftRegular.Gift is *Gift, OwnedGiftUnique.Gift
+// is *UniqueGift). Each variant's own construction site instantiates this
+// with its own field type, deferring the actual unmarshal until the
+// discriminant has picked the concrete variant.
+func unmarshalRawOrZero[T any](data json.RawMessage) (val T) {
+	if len(data) == 0 {
+		return
+	}
+	_ = json.Unmarshal(data, &val)
+	return
+}
+
 func isEmptyValue(v reflect.Value) bool {
 	switch v.Kind() {
 	case reflect.Array, reflect.Map, reflect.Slice, reflect.String:

@@ -40,11 +40,12 @@ func NewFactory() *Factory2 {
 				Name:    "Album",
 				Comment: "",
 				Options: []string{
-					"InputMediaAudio", "InputMediaDocument", "InputMediaPhoto", "InputMediaVideo",
+					"InputMediaAudio", "InputMediaDocument", "InputMediaLivePhoto", "InputMediaPhoto", "InputMediaVideo",
 				},
 				Prefix: "",
 			},
 		},
+		emittedImpls: map[string]bool{},
 		Specials: map[string]string{
 			"Message":                  "*Message",  // Message depends on itself, so we have to give the codegen a hint.
 			"InaccessibleMessage":      "*Message",  // InaccessibleMessage is a subset of Message (field-wise).
@@ -162,7 +163,7 @@ type goTypeInterfaceVariant struct {
 	Prefix  string
 }
 
-func (variant *goTypeInterfaceVariant) build() string {
+func (variant *goTypeInterfaceVariant) build(emittedImpls map[string]bool) string {
 	if len(variant.Options) == 0 {
 		return fmt.Sprintf("%s\ntype %s any", variant.Comment, variant.Name)
 	}
@@ -182,11 +183,23 @@ func (variant *goTypeInterfaceVariant) build() string {
 				returnStatement = "return impl"
 			}
 			funcName := variant.Prefix + strings.TrimPrefix(option, variant.Name)
-			optionsImplementationLines = append(optionsImplementationLines,
-				fmt.Sprintf("func (impl *%s) %s() *%s { %s }", optionImplementing, funcName, option, returnStatement),
-			)
 			optionsDeclarationLines = append(optionsDeclarationLines,
 				fmt.Sprintf("%s() *%s", funcName, option),
+			)
+
+			// The same (receiver, method) pair can be requested by more than one
+			// interface when their Options sets overlap (e.g. InputMedia and
+			// InputPollMedia both reuse Photo/Video/...). The generated body only
+			// ever depends on optionImplementing == option, so it's identical no
+			// matter which interface asked for it; emit it once and let Go's
+			// structural typing satisfy every interface that wants it.
+			implKey := optionImplementing + "." + funcName
+			if emittedImpls[implKey] {
+				continue
+			}
+			emittedImpls[implKey] = true
+			optionsImplementationLines = append(optionsImplementationLines,
+				fmt.Sprintf("func (impl *%s) %s() *%s { %s }", optionImplementing, funcName, option, returnStatement),
 			)
 		}
 		optionsImplementationLines = append(optionsImplementationLines, "")
@@ -207,12 +220,13 @@ type discriminator struct {
 }
 
 type Factory2 struct {
-	Basics     map[string]*goTypeBasic
-	Structs    map[string]*goTypeStruct
-	Interfaces map[string]*goTypeInterfaceVariant
-	Renames    map[string]string
-	Specials   map[string]string
-	Skip       []string
+	Basics       map[string]*goTypeBasic
+	Structs      map[string]*goTypeStruct
+	Interfaces   map[string]*goTypeInterfaceVariant
+	Renames      map[string]string
+	Specials     map[string]string
+	Skip         []string
+	emittedImpls map[string]bool
 }
 
 func (fac *Factory2) build(typ *Type) string {
@@ -240,7 +254,7 @@ func (fac *Factory2) buildInterfaceVariant(typ *Type, variantsPrefix ...string) 
 		fac.Interfaces[typ.Name].Options[i] = fac.renames(fac.Interfaces[typ.Name].Options[i])
 	}
 
-	return fac.Interfaces[typ.Name].build()
+	return fac.Interfaces[typ.Name].build(fac.emittedImpls)
 }
 
 func (fac *Factory2) buildStruct(typ *Type) string {
@@ -352,6 +366,20 @@ func (fac *Factory2) renames(name string) string {
 		return rename
 	}
 	return name
+}
+
+// findStructByGoName looks up a built struct by its post-rename Go name.
+// fac.Structs is keyed by the original (pre-rename) schema type name, but
+// interface variant Options are stored under their renamed Go names, so a
+// direct map lookup by Go name would miss (or worse, collide with an
+// unrelated original name equal to the renamed target).
+func (fac *Factory2) findStructByGoName(goName string) *goTypeStruct {
+	for key, strct := range fac.Structs {
+		if fac.renames(key) == goName {
+			return strct
+		}
+	}
+	return nil
 }
 
 func (fac *Factory2) withDefaultByDiscriminators(typ string, field *Field, tag string) string {

@@ -37,22 +37,60 @@ type structUnmarshalerVariant struct {
 	IsArray       bool
 }
 
+// ambiguousFields returns the set of field names that appear, with different
+// Go types, on more than one option of this variant (e.g. OwnedGiftRegular.Gift
+// is *Gift, OwnedGiftUnique.Gift is *UniqueGift). A single merged field can't
+// be declared for these under their normal pointer-to-type shape, since Go
+// doesn't allow two struct fields with the same name.
+func (variant *structUnmarshalerVariant) ambiguousFields() map[string]bool {
+	seenType := map[string]string{}
+	ambiguous := map[string]bool{}
+	for _, option := range variant.Options {
+		for _, field := range option.Fields {
+			if prevType, ok := seenType[field.Name]; ok {
+				if prevType != field.Type {
+					ambiguous[field.Name] = true
+				}
+				continue
+			}
+			seenType[field.Name] = field.Type
+		}
+	}
+	return ambiguous
+}
+
 func (variant *structUnmarshalerVariant) buildStructDeclaration() string {
+	ambiguous := variant.ambiguousFields()
 	result := []string{
 		fmt.Sprintf("type %s struct {", variant.Type),
 	}
 
 	for _, option := range variant.Options {
 		for _, field := range option.Fields {
-			result = append(result, fmt.Sprintf("%s *%s %s",
-				field.Name, field.Type, removeDefaultFromTag(strings.ReplaceAll(field.Tag, ",omitempty", ""))),
-			)
+			tag := removeDefaultFromTag(strings.ReplaceAll(field.Tag, ",omitempty", ""))
+			if ambiguous[field.Name] {
+				// Deferred: decoded into its real type only once the
+				// discriminant has picked the concrete variant.
+				result = append(result, fmt.Sprintf("%s json.RawMessage %s", field.Name, tag))
+				continue
+			}
+			result = append(result, fmt.Sprintf("%s *%s %s", field.Name, field.Type, tag))
 		}
 	}
 	result = stringsUnique(result)
 
 	result = append(result, "}")
 	return strings.Join(result, "\n")
+}
+
+// buildFieldValue renders the expression that reads optionField off of the
+// joined instance variable named inst, choosing the raw-JSON decode path for
+// fields whose name is ambiguous across this variant's options.
+func (variant *structUnmarshalerVariant) buildFieldValue(inst string, optionField *goTypeStructField) string {
+	if variant.ambiguousFields()[optionField.Name] {
+		return fmt.Sprintf("unmarshalRawOrZero[%s](%s.%s)", optionField.Type, inst, optionField.Name)
+	}
+	return fmt.Sprintf("deref(%s.%s)", inst, optionField.Name)
 }
 
 func (variant *structUnmarshalerVariant) buildParsingCode() string {
@@ -159,7 +197,7 @@ func (fac *Factory2) buildStructUnmarshaler(strct *goTypeStruct, variants []stri
 			Options:       []*goTypeStruct{},
 		}
 		for _, option := range fieldOptions {
-			variant.Options = append(variant.Options, fac.Structs[option])
+			variant.Options = append(variant.Options, fac.findStructByGoName(option))
 		}
 		result.Variants = append(result.Variants, variant)
 	}
@@ -200,7 +238,7 @@ func (variant *structUnmarshalerVariant) buildParsingCodeWithDiscriminators(disc
 
 		for _, optionField := range option.Fields {
 			result = append(result,
-				fmt.Sprintf("%s: deref(%s.%s),", optionField.Name, inst, optionField.Name),
+				fmt.Sprintf("%s: %s,", optionField.Name, variant.buildFieldValue(inst, optionField)),
 			)
 		}
 		result = append(result, "}")
@@ -250,7 +288,7 @@ func (variant *structUnmarshalerVariant) buildParsingCodeSliceWithDiscriminators
 
 		for _, optionField := range option.Fields {
 			result = append(result,
-				fmt.Sprintf("%s: deref(item.%s),", optionField.Name, optionField.Name),
+				fmt.Sprintf("%s: %s,", optionField.Name, variant.buildFieldValue("item", optionField)),
 			)
 		}
 		result = append(result, "})")
@@ -302,7 +340,7 @@ func (variant *structUnmarshalerVariant) buildParsingCodeSingle() string {
 		)
 		for _, optionField := range option.Fields {
 			result = append(result,
-				fmt.Sprintf("%s: deref(%s.%s),", optionField.Name, inst, optionField.Name),
+				fmt.Sprintf("%s: %s,", optionField.Name, variant.buildFieldValue(inst, optionField)),
 			)
 		}
 		result = append(result, "}")
@@ -355,7 +393,7 @@ func (variant *structUnmarshalerVariant) buildParsingCodeSlice() string {
 		)
 		for _, optionField := range option.Fields {
 			result = append(result,
-				fmt.Sprintf("%s: deref(item.%s),", optionField.Name, optionField.Name),
+				fmt.Sprintf("%s: %s,", optionField.Name, variant.buildFieldValue("item", optionField)),
 			)
 		}
 		result = append(result, "})")

@@ -5,7 +5,7 @@ import (
 )
 
 // AddStickerToSet Use this method to add a new sticker to a set created by the bot. Emoji sticker sets can have up to 200 stickers.
-// Other sticker sets can have up to 120 stickers. Returns True on success.
+// Other sticker sets can have up to 120 stickers. Returns *True* on success.
 func AddStickerToSet(ctx context.Context, userId int64, name string, sticker *InputSticker) (bool, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -22,8 +22,8 @@ func AddStickerToSet(ctx context.Context, userId int64, name string, sticker *In
 	return GenericRequest[Request, bool](ctx, "addStickerToSet", request)
 }
 
-// AnswerCallbackQuery Use this method to send answers to callback queries sent from inline keyboards. On success, True is returned.
-// The answer will be displayed to the user as a notification at the top of the chat screen or as an alert.
+// AnswerCallbackQuery Use this method to send answers to callback queries sent from [inline keyboards](https://core.telegram.org/bots/features#inline-keyboards). The answer will be displayed to the user as a notification at the top of the chat screen or as an alert. On success, *True* is returned.
+// Alternatively, the user can be redirected to the specified Game URL. For this option to work, you must first create a game for your bot via [@BotFather](https://t.me/botfather) and accept the terms. Otherwise, you may use links like `t.me/your_bot?start=XXXX` that open your bot with a parameter.
 func AnswerCallbackQuery(ctx context.Context, callbackQueryId string, opts ...*OptAnswerCallbackQuery) (bool, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -61,8 +61,39 @@ type OptAnswerCallbackQuery struct {
 	CacheTime int64
 }
 
-// AnswerInlineQuery Use this method to send answers to an inline query. On success, True is returned.
-// No more than 50 results per query are allowed.
+// AnswerChatJoinRequestQuery Use this method to process a received chat join request query. Returns True on success.
+func AnswerChatJoinRequestQuery(ctx context.Context, chatJoinRequestQueryId string, result string) (bool, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+		ChatJoinRequestQueryId string `json:"chat_join_request_query_id"`
+		Result                 string `json:"result"`
+	}
+	request := &Request{
+		ChatJoinRequestQueryId: chatJoinRequestQueryId,
+		Result:                 result,
+	}
+	return GenericRequest[Request, bool](ctx, "answerChatJoinRequestQuery", request)
+}
+
+// AnswerGuestQuery Use this method to reply to a received guest message.
+// On success, a [SentGuestMessage](https://core.telegram.org/bots/api/#sentguestmessage) object is returned.
+func AnswerGuestQuery(ctx context.Context, guestQueryId string, result InlineQueryResult) (*SentGuestMessage, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+		GuestQueryId string            `json:"guest_query_id"`
+		Result       InlineQueryResult `json:"result"`
+	}
+	request := &Request{
+		GuestQueryId: guestQueryId,
+		Result:       result,
+	}
+	return GenericRequest[Request, *SentGuestMessage](ctx, "answerGuestQuery", request)
+}
+
+// AnswerInlineQuery Use this method to send answers to an inline query. On success, *True* is returned.
+// No more than **50** results per query are allowed.
 func AnswerInlineQuery(ctx context.Context, inlineQueryId string, results []InlineQueryResult, opts ...*OptAnswerInlineQuery) (bool, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -102,9 +133,9 @@ type OptAnswerInlineQuery struct {
 	Button     *InlineQueryResultsButton
 }
 
-// AnswerPreCheckoutQuery Once the user has confirmed their payment and shipping details, the Bot API sends the final confirmation in the form of an Update with the field pre_checkout_query.
-// Use this method to respond to such pre-checkout queries. On success, True is returned.
-// Note: The Bot API must receive an answer within 10 seconds after the pre-checkout query was sent.
+// AnswerPreCheckoutQuery Once the user has confirmed their payment and shipping details, the Bot API sends the final confirmation in the form of an [Update](https://core.telegram.org/bots/api/#update) with the field *pre\_checkout\_query*.
+// Use this method to respond to such pre-checkout queries. On success, *True* is returned.
+// **Note:** The Bot API must receive an answer within 10 seconds after the pre-checkout query was sent.
 func AnswerPreCheckoutQuery(ctx context.Context, preCheckoutQueryId string, ok bool, opts ...*OptAnswerPreCheckoutQuery) (bool, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -129,8 +160,8 @@ type OptAnswerPreCheckoutQuery struct {
 	ErrorMessage string
 }
 
-// AnswerShippingQuery If you sent an invoice requesting a shipping address and the parameter is_flexible was specified, the Bot API will send an Update with a shipping_query field to the bot.
-// Use this method to reply to shipping queries. On success, True is returned.
+// AnswerShippingQuery If you sent an invoice requesting a shipping address and the parameter *is\_flexible* was specified, the Bot API will send an [Update](https://core.telegram.org/bots/api/#update) with a *shipping\_query* field to the bot.
+// Use this method to reply to shipping queries. On success, *True* is returned.
 func AnswerShippingQuery(ctx context.Context, shippingQueryId string, ok bool, opts ...*OptAnswerShippingQuery) (bool, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -160,8 +191,8 @@ type OptAnswerShippingQuery struct {
 	ErrorMessage    string
 }
 
-// AnswerWebAppQuery Use this method to set the result of an interaction with a Web App and send a corresponding message on behalf of the user to the chat from which the query originated.
-// On success, a SentWebAppMessage object is returned.
+// AnswerWebAppQuery Use this method to set the result of an interaction with a [Web App](https://core.telegram.org/bots/webapps) and send a corresponding message on behalf of the user to the chat from which the query originated.
+// On success, a [SentWebAppMessage](https://core.telegram.org/bots/api/#sentwebappmessage) object is returned.
 func AnswerWebAppQuery(ctx context.Context, webAppQueryId string, result InlineQueryResult) (*SentWebAppMessage, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -176,8 +207,8 @@ func AnswerWebAppQuery(ctx context.Context, webAppQueryId string, result InlineQ
 	return GenericRequest[Request, *SentWebAppMessage](ctx, "answerWebAppQuery", request)
 }
 
-// ApproveChatJoinRequest Use this method to approve a chat join request. Returns True on success.
-// The bot must be an administrator in the chat for this to work and must have the can_invite_users administrator right.
+// ApproveChatJoinRequest Use this method to approve a chat join request. Returns *True* on success.
+// The bot must be an administrator in the chat for this to work and must have the *can\_invite\_users* administrator right.
 func ApproveChatJoinRequest(ctx context.Context, chatId int64, userId int64) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -192,8 +223,34 @@ func ApproveChatJoinRequest(ctx context.Context, chatId int64, userId int64) (bo
 	return GenericRequest[Request, bool](ctx, "approveChatJoinRequest", request)
 }
 
-// BanChatMember Use this method to ban a user in a group, a supergroup or a channel. Returns True on success.
-// In the case of supergroups and channels, the user will not be able to return to the chat on their own using invite links, etc., unless unbanned first.
+// ApproveSuggestedPost Use this method to approve a suggested post in a direct messages chat. Returns *True* on success.
+// The bot must have the 'can\_post\_messages' administrator right in the corresponding channel chat.
+func ApproveSuggestedPost(ctx context.Context, chatId int64, messageId int64, opts ...*OptApproveSuggestedPost) (bool, error) {
+	ContextSchedule(ctx, chatId, 1)
+	defer ContextScheduleDone(ctx, chatId, 1)
+	type Request struct {
+		ChatId    int64 `json:"chat_id"`
+		MessageId int64 `json:"message_id"`
+		SendDate  int64 `json:"send_date,omitempty"`
+	}
+	request := &Request{
+		ChatId:    chatId,
+		MessageId: messageId,
+	}
+	for _, opt := range opts {
+		if opt.SendDate != 0 {
+			request.SendDate = opt.SendDate
+		}
+	}
+	return GenericRequest[Request, bool](ctx, "approveSuggestedPost", request)
+}
+
+type OptApproveSuggestedPost struct {
+	SendDate int64
+}
+
+// BanChatMember Use this method to ban a user in a group, a supergroup or a channel. Returns *True* on success.
+// In the case of supergroups and channels, the user will not be able to return to the chat on their own using invite links, etc., unless [unbanned](https://core.telegram.org/bots/api/#unbanchatmember) first.
 // The bot must be an administrator in the chat for this to work and must have the appropriate administrator rights.
 func BanChatMember(ctx context.Context, chatId int64, userId int64, opts ...*OptBanChatMember) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
@@ -224,8 +281,8 @@ type OptBanChatMember struct {
 	RevokeMessages bool
 }
 
-// BanChatSenderChat Use this method to ban a channel chat in a supergroup or a channel. Returns True on success.
-// Until the chat is unbanned, the owner of the banned chat won't be able to send messages on behalf of any of their channels.
+// BanChatSenderChat Use this method to ban a channel chat in a supergroup or a channel. Returns *True* on success.
+// Until the chat is [unbanned](https://core.telegram.org/bots/api/#unbanchatsenderchat), the owner of the banned chat won't be able to send messages on behalf of **any of their channels**.
 // The bot must be an administrator in the supergroup or channel for this to work and must have the appropriate administrator rights.
 func BanChatSenderChat(ctx context.Context, chatId int64, senderChatId int64) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
@@ -244,7 +301,7 @@ func BanChatSenderChat(ctx context.Context, chatId int64, senderChatId int64) (b
 // Close Use this method to close the bot instance before moving it from one local server to another.
 // You need to delete the webhook before calling this method to ensure that the bot isn't launched again after server restart.
 // The method will return error 429 in the first 10 minutes after the bot is launched.
-// Returns True on success. Requires no parameters.
+// Returns *True* on success. Requires no parameters.
 func Close(ctx context.Context) (bool, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -254,8 +311,8 @@ func Close(ctx context.Context) (bool, error) {
 	return GenericRequest[Request, bool](ctx, "close", request)
 }
 
-// CloseForumTopic Use this method to close an open topic in a forum supergroup chat. Returns True on success.
-// The bot must be an administrator in the chat for this to work and must have the can_manage_topics administrator rights, unless it is the creator of the topic.
+// CloseForumTopic Use this method to close an open topic in a forum supergroup chat. Returns *True* on success.
+// The bot must be an administrator in the chat for this to work and must have the *can\_manage\_topics* administrator rights, unless it is the creator of the topic.
 func CloseForumTopic(ctx context.Context, chatId int64, messageThreadId int64) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -270,8 +327,8 @@ func CloseForumTopic(ctx context.Context, chatId int64, messageThreadId int64) (
 	return GenericRequest[Request, bool](ctx, "closeForumTopic", request)
 }
 
-// CloseGeneralForumTopic Use this method to close an open 'General' topic in a forum supergroup chat. Returns True on success.
-// The bot must be an administrator in the chat for this to work and must have the can_manage_topics administrator rights.
+// CloseGeneralForumTopic Use this method to close an open 'General' topic in a forum supergroup chat. Returns *True* on success.
+// The bot must be an administrator in the chat for this to work and must have the *can\_manage\_topics* administrator rights.
 func CloseGeneralForumTopic(ctx context.Context, chatId int64) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -284,27 +341,48 @@ func CloseGeneralForumTopic(ctx context.Context, chatId int64) (bool, error) {
 	return GenericRequest[Request, bool](ctx, "closeGeneralForumTopic", request)
 }
 
-// CopyMessage Use this method to copy messages of any kind. Returns the MessageId of the sent message on success.
+// ConvertGiftToStars Converts a given regular gift to Telegram Stars. Requires the *can\_convert\_gifts\_to\_stars* business bot right.
+// Returns *True* on success.
+func ConvertGiftToStars(ctx context.Context, businessConnectionId string, ownedGiftId string) (bool, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId string `json:"business_connection_id"`
+		OwnedGiftId          string `json:"owned_gift_id"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+		OwnedGiftId:          ownedGiftId,
+	}
+	return GenericRequest[Request, bool](ctx, "convertGiftToStars", request)
+}
+
+// CopyMessage Use this method to copy messages of any kind.
 // Service messages, paid media messages, giveaway messages, giveaway winners messages, and invoice messages can't be copied.
-// A quiz poll can be copied only if the value of the field correct_option_id is known to the bot.
-// The method is analogous to the method forwardMessage, but the copied message doesn't have a link to the original message.
+// A quiz [poll](https://core.telegram.org/bots/api/#poll) can be copied only if the value of the field *correct\_option\_id* is known to the bot.
+// The method is analogous to the method [forwardMessage](https://core.telegram.org/bots/api/#forwardmessage), but the copied message doesn't have a link to the original message.
+// Returns the [MessageId](https://core.telegram.org/bots/api/#messageid) of the sent message on success.
 func CopyMessage(ctx context.Context, chatId int64, fromChatId int64, messageId int64, opts ...*OptCopyMessage) (*MessageId, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
 	type Request struct {
-		ChatId                int64                                                                       `json:"chat_id"`
-		MessageThreadId       int64                                                                       `json:"message_thread_id,omitempty"`
-		FromChatId            int64                                                                       `json:"from_chat_id"`
-		MessageId             int64                                                                       `json:"message_id"`
-		Caption               string                                                                      `json:"caption,omitempty"`
-		ParseMode             string                                                                      `json:"parse_mode,omitempty"`
-		CaptionEntities       []*MessageEntity                                                            `json:"caption_entities,omitempty"`
-		ShowCaptionAboveMedia bool                                                                        `json:"show_caption_above_media,omitempty"`
-		DisableNotification   bool                                                                        `json:"disable_notification,omitempty"`
-		ProtectContent        bool                                                                        `json:"protect_content,omitempty"`
-		AllowPaidBroadcast    bool                                                                        `json:"allow_paid_broadcast,omitempty"`
-		ReplyParameters       *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
-		ReplyMarkup           VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
+		ChatId                  int64                                                                       `json:"chat_id"`
+		MessageThreadId         int64                                                                       `json:"message_thread_id,omitempty"`
+		DirectMessagesTopicId   int64                                                                       `json:"direct_messages_topic_id,omitempty"`
+		FromChatId              int64                                                                       `json:"from_chat_id"`
+		MessageId               int64                                                                       `json:"message_id"`
+		VideoStartTimestamp     int64                                                                       `json:"video_start_timestamp,omitempty"`
+		Caption                 string                                                                      `json:"caption,omitempty"`
+		ParseMode               string                                                                      `json:"parse_mode,omitempty"`
+		CaptionEntities         []*MessageEntity                                                            `json:"caption_entities,omitempty"`
+		ShowCaptionAboveMedia   bool                                                                        `json:"show_caption_above_media,omitempty"`
+		DisableNotification     bool                                                                        `json:"disable_notification,omitempty"`
+		ProtectContent          bool                                                                        `json:"protect_content,omitempty"`
+		AllowPaidBroadcast      bool                                                                        `json:"allow_paid_broadcast,omitempty"`
+		MessageEffectId         string                                                                      `json:"message_effect_id,omitempty"`
+		SuggestedPostParameters *SuggestedPostParameters                                                    `json:"suggested_post_parameters,omitempty"`
+		ReplyParameters         *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
+		ReplyMarkup             VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
 	}
 	request := &Request{
 		ChatId:     chatId,
@@ -314,6 +392,12 @@ func CopyMessage(ctx context.Context, chatId int64, fromChatId int64, messageId 
 	for _, opt := range opts {
 		if opt.MessageThreadId != 0 {
 			request.MessageThreadId = opt.MessageThreadId
+		}
+		if opt.DirectMessagesTopicId != 0 {
+			request.DirectMessagesTopicId = opt.DirectMessagesTopicId
+		}
+		if opt.VideoStartTimestamp != 0 {
+			request.VideoStartTimestamp = opt.VideoStartTimestamp
 		}
 		if opt.Caption != "" {
 			request.Caption = opt.Caption
@@ -336,6 +420,12 @@ func CopyMessage(ctx context.Context, chatId int64, fromChatId int64, messageId 
 		if opt.AllowPaidBroadcast {
 			request.AllowPaidBroadcast = opt.AllowPaidBroadcast
 		}
+		if opt.MessageEffectId != "" {
+			request.MessageEffectId = opt.MessageEffectId
+		}
+		if opt.SuggestedPostParameters != nil {
+			request.SuggestedPostParameters = opt.SuggestedPostParameters
+		}
 		if opt.ReplyParameters != nil {
 			request.ReplyParameters = opt.ReplyParameters
 		}
@@ -347,35 +437,40 @@ func CopyMessage(ctx context.Context, chatId int64, fromChatId int64, messageId 
 }
 
 type OptCopyMessage struct {
-	MessageThreadId       int64
-	Caption               string
-	ParseMode             string
-	CaptionEntities       []*MessageEntity
-	ShowCaptionAboveMedia bool
-	DisableNotification   bool
-	ProtectContent        bool
-	AllowPaidBroadcast    bool
-	ReplyParameters       *ReplyParameters
-	ReplyMarkup           VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
+	MessageThreadId         int64
+	DirectMessagesTopicId   int64
+	VideoStartTimestamp     int64
+	Caption                 string
+	ParseMode               string
+	CaptionEntities         []*MessageEntity
+	ShowCaptionAboveMedia   bool
+	DisableNotification     bool
+	ProtectContent          bool
+	AllowPaidBroadcast      bool
+	MessageEffectId         string
+	SuggestedPostParameters *SuggestedPostParameters
+	ReplyParameters         *ReplyParameters
+	ReplyMarkup             VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
 }
 
 // CopyMessages Use this method to copy messages of any kind. Album grouping is kept for copied messages.
 // If some of the specified messages can't be found or copied, they are skipped.
 // Service messages, paid media messages, giveaway messages, giveaway winners messages, and invoice messages can't be copied.
-// A quiz poll can be copied only if the value of the field correct_option_id is known to the bot.
-// The method is analogous to the method forwardMessages, but the copied messages don't have a link to the original message.
-// On success, an array of MessageId of the sent messages is returned.
+// A quiz [poll](https://core.telegram.org/bots/api/#poll) can be copied only if the value of the field *correct\_option\_id* is known to the bot.
+// The method is analogous to the method [forwardMessages](https://core.telegram.org/bots/api/#forwardmessages), but the copied messages don't have a link to the original message.
+// On success, an array of [MessageId](https://core.telegram.org/bots/api/#messageid) of the sent messages is returned.
 func CopyMessages(ctx context.Context, chatId int64, fromChatId int64, messageIds []int64, opts ...*OptCopyMessages) ([]*MessageId, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
 	type Request struct {
-		ChatId              int64   `json:"chat_id"`
-		MessageThreadId     int64   `json:"message_thread_id,omitempty"`
-		FromChatId          int64   `json:"from_chat_id"`
-		MessageIds          []int64 `json:"message_ids"`
-		DisableNotification bool    `json:"disable_notification,omitempty"`
-		ProtectContent      bool    `json:"protect_content,omitempty"`
-		RemoveCaption       bool    `json:"remove_caption,omitempty"`
+		ChatId                int64   `json:"chat_id"`
+		MessageThreadId       int64   `json:"message_thread_id,omitempty"`
+		DirectMessagesTopicId int64   `json:"direct_messages_topic_id,omitempty"`
+		FromChatId            int64   `json:"from_chat_id"`
+		MessageIds            []int64 `json:"message_ids"`
+		DisableNotification   bool    `json:"disable_notification,omitempty"`
+		ProtectContent        bool    `json:"protect_content,omitempty"`
+		RemoveCaption         bool    `json:"remove_caption,omitempty"`
 	}
 	request := &Request{
 		ChatId:     chatId,
@@ -385,6 +480,9 @@ func CopyMessages(ctx context.Context, chatId int64, fromChatId int64, messageId
 	for _, opt := range opts {
 		if opt.MessageThreadId != 0 {
 			request.MessageThreadId = opt.MessageThreadId
+		}
+		if opt.DirectMessagesTopicId != 0 {
+			request.DirectMessagesTopicId = opt.DirectMessagesTopicId
 		}
 		if opt.DisableNotification {
 			request.DisableNotification = opt.DisableNotification
@@ -400,15 +498,17 @@ func CopyMessages(ctx context.Context, chatId int64, fromChatId int64, messageId
 }
 
 type OptCopyMessages struct {
-	MessageThreadId     int64
-	DisableNotification bool
-	ProtectContent      bool
-	RemoveCaption       bool
+	MessageThreadId       int64
+	DirectMessagesTopicId int64
+	DisableNotification   bool
+	ProtectContent        bool
+	RemoveCaption         bool
 }
 
-// CreateChatInviteLink Use this method to create an additional invite link for a chat. Returns the new invite link as ChatInviteLink object.
+// CreateChatInviteLink Use this method to create an additional invite link for a chat.
 // The bot must be an administrator in the chat for this to work and must have the appropriate administrator rights.
-// The link can be revoked using the method revokeChatInviteLink.
+// The link can be revoked using the method [revokeChatInviteLink](https://core.telegram.org/bots/api/#revokechatinvitelink).
+// Returns the new invite link as [ChatInviteLink](https://core.telegram.org/bots/api/#chatinvitelink) object.
 func CreateChatInviteLink(ctx context.Context, chatId int64, opts ...*OptCreateChatInviteLink) (*ChatInviteLink, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -446,10 +546,10 @@ type OptCreateChatInviteLink struct {
 	CreatesJoinRequest bool
 }
 
-// CreateChatSubscriptionInviteLink Use this method to create a subscription invite link for a channel chat.
-// The bot must have the can_invite_users administrator rights.
-// The link can be edited using the method editChatSubscriptionInviteLink or revoked using the method revokeChatInviteLink.
-// Returns the new invite link as a ChatInviteLink object.
+// CreateChatSubscriptionInviteLink Use this method to create a [subscription invite link](https://telegram.org/blog/superchannels-star-reactions-subscriptions#star-subscriptions) for a channel chat.
+// The bot must have the *can\_invite\_users* administrator rights.
+// The link can be edited using the method [editChatSubscriptionInviteLink](https://core.telegram.org/bots/api/#editchatsubscriptioninvitelink) or revoked using the method [revokeChatInviteLink](https://core.telegram.org/bots/api/#revokechatinvitelink).
+// Returns the new invite link as a [ChatInviteLink](https://core.telegram.org/bots/api/#chatinvitelink) object.
 func CreateChatSubscriptionInviteLink(ctx context.Context, chatId int64, subscriptionPeriod int64, subscriptionPrice int64, opts ...*OptCreateChatSubscriptionInviteLink) (*ChatInviteLink, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -476,9 +576,9 @@ type OptCreateChatSubscriptionInviteLink struct {
 	Name string
 }
 
-// CreateForumTopic Use this method to create a topic in a forum supergroup chat.
-// The bot must be an administrator in the chat for this to work and must have the can_manage_topics administrator rights.
-// Returns information about the created topic as a ForumTopic object.
+// CreateForumTopic Use this method to create a topic in a forum supergroup chat or a private chat with a user.
+// In the case of a supergroup chat the bot must be an administrator in the chat for this to work and must have the *can\_manage\_topics* administrator right.
+// Returns information about the created topic as a [ForumTopic](https://core.telegram.org/bots/api/#forumtopic) object.
 func CreateForumTopic(ctx context.Context, chatId int64, name string, opts ...*OptCreateForumTopic) (*ForumTopic, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -508,7 +608,7 @@ type OptCreateForumTopic struct {
 	IconCustomEmojiId string
 }
 
-// CreateInvoiceLink Use this method to create a link for an invoice. Returns the created invoice link as String on success.
+// CreateInvoiceLink Use this method to create a link for an invoice. Returns the created invoice link as *String* on success.
 func CreateInvoiceLink(ctx context.Context, title string, description string, payload string, currency string, prices []*LabeledPrice, opts ...*OptCreateInvoiceLink) (string, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -619,7 +719,7 @@ type OptCreateInvoiceLink struct {
 	IsFlexible                bool
 }
 
-// CreateNewStickerSet Use this method to create a new sticker set owned by a user. Returns True on success.
+// CreateNewStickerSet Use this method to create a new sticker set owned by a user. Returns *True* on success.
 // The bot will be able to edit the sticker set thus created.
 func CreateNewStickerSet(ctx context.Context, userId int64, name string, title string, stickers []*InputSticker, opts ...*OptCreateNewStickerSet) (bool, error) {
 	ContextSchedule(ctx, 0, 1)
@@ -654,8 +754,8 @@ type OptCreateNewStickerSet struct {
 	NeedsRepainting bool
 }
 
-// DeclineChatJoinRequest Use this method to decline a chat join request. Returns True on success.
-// The bot must be an administrator in the chat for this to work and must have the can_invite_users administrator right.
+// DeclineChatJoinRequest Use this method to decline a chat join request. Returns *True* on success.
+// The bot must be an administrator in the chat for this to work and must have the *can\_invite\_users* administrator right.
 func DeclineChatJoinRequest(ctx context.Context, chatId int64, userId int64) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -670,9 +770,80 @@ func DeclineChatJoinRequest(ctx context.Context, chatId int64, userId int64) (bo
 	return GenericRequest[Request, bool](ctx, "declineChatJoinRequest", request)
 }
 
+// DeclineSuggestedPost Use this method to decline a suggested post in a direct messages chat. Returns *True* on success.
+// The bot must have the 'can\_manage\_direct\_messages' administrator right in the corresponding channel chat.
+func DeclineSuggestedPost(ctx context.Context, chatId int64, messageId int64, opts ...*OptDeclineSuggestedPost) (bool, error) {
+	ContextSchedule(ctx, chatId, 1)
+	defer ContextScheduleDone(ctx, chatId, 1)
+	type Request struct {
+		ChatId    int64  `json:"chat_id"`
+		MessageId int64  `json:"message_id"`
+		Comment   string `json:"comment,omitempty"`
+	}
+	request := &Request{
+		ChatId:    chatId,
+		MessageId: messageId,
+	}
+	for _, opt := range opts {
+		if opt.Comment != "" {
+			request.Comment = opt.Comment
+		}
+	}
+	return GenericRequest[Request, bool](ctx, "declineSuggestedPost", request)
+}
+
+type OptDeclineSuggestedPost struct {
+	Comment string
+}
+
+// DeleteAllMessageReactions Use this method to remove up to 10000 recent reactions in a group or a supergroup chat added by a given user or chat.
+// The bot must have the 'can\_delete\_messages' administrator right in the chat. Returns *True* on success.
+func DeleteAllMessageReactions(ctx context.Context, chatId int64, opts ...*OptDeleteAllMessageReactions) (bool, error) {
+	ContextSchedule(ctx, chatId, 1)
+	defer ContextScheduleDone(ctx, chatId, 1)
+	type Request struct {
+		ChatId      int64 `json:"chat_id"`
+		UserId      int64 `json:"user_id,omitempty"`
+		ActorChatId int64 `json:"actor_chat_id,omitempty"`
+	}
+	request := &Request{
+		ChatId: chatId,
+	}
+	for _, opt := range opts {
+		if opt.UserId != 0 {
+			request.UserId = opt.UserId
+		}
+		if opt.ActorChatId != 0 {
+			request.ActorChatId = opt.ActorChatId
+		}
+	}
+	return GenericRequest[Request, bool](ctx, "deleteAllMessageReactions", request)
+}
+
+type OptDeleteAllMessageReactions struct {
+	UserId      int64
+	ActorChatId int64
+}
+
+// DeleteBusinessMessages Delete messages on behalf of a business account. Returns *True* on success.
+// Requires the *can\_delete\_sent\_messages* business bot right to delete messages sent by the bot itself, or the *can\_delete\_all\_messages* business bot right to delete any message.
+func DeleteBusinessMessages(ctx context.Context, businessConnectionId string, messageIds []int64) (bool, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId string  `json:"business_connection_id"`
+		MessageIds           []int64 `json:"message_ids"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+		MessageIds:           messageIds,
+	}
+	return GenericRequest[Request, bool](ctx, "deleteBusinessMessages", request)
+}
+
 // DeleteChatPhoto Use this method to delete a chat photo. Photos can't be changed for private chats.
 // The bot must be an administrator in the chat for this to work and must have the appropriate administrator rights.
-// Returns True on success.
+// Returns *True* on success.
 func DeleteChatPhoto(ctx context.Context, chatId int64) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -685,9 +856,9 @@ func DeleteChatPhoto(ctx context.Context, chatId int64) (bool, error) {
 	return GenericRequest[Request, bool](ctx, "deleteChatPhoto", request)
 }
 
-// DeleteChatStickerSet Use this method to delete a group sticker set from a supergroup. Returns True on success.
+// DeleteChatStickerSet Use this method to delete a group sticker set from a supergroup. Returns *True* on success.
 // The bot must be an administrator in the chat for this to work and must have the appropriate administrator rights.
-// Use the field can_set_sticker_set optionally returned in getChat requests to check if the bot can use this method.
+// Use the field *can\_set\_sticker\_set* optionally returned in [getChat](https://core.telegram.org/bots/api/#getchat) requests to check if the bot can use this method.
 func DeleteChatStickerSet(ctx context.Context, chatId int64) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -700,9 +871,27 @@ func DeleteChatStickerSet(ctx context.Context, chatId int64) (bool, error) {
 	return GenericRequest[Request, bool](ctx, "deleteChatStickerSet", request)
 }
 
-// DeleteForumTopic Use this method to delete a forum topic along with all its messages in a forum supergroup chat.
-// The bot must be an administrator in the chat for this to work and must have the can_delete_messages administrator rights.
-// Returns True on success.
+// DeleteEphemeralMessage Use this method to delete an ephemeral message. Returns True on success.
+// Note that it is not guaranteed that the user will receive the message deletion event, especially if they are offline.
+func DeleteEphemeralMessage(ctx context.Context, chatId int64, receiverUserId int64, ephemeralMessageId int64) (bool, error) {
+	ContextSchedule(ctx, chatId, 1)
+	defer ContextScheduleDone(ctx, chatId, 1)
+	type Request struct {
+		ChatId             int64 `json:"chat_id"`
+		ReceiverUserId     int64 `json:"receiver_user_id"`
+		EphemeralMessageId int64 `json:"ephemeral_message_id"`
+	}
+	request := &Request{
+		ChatId:             chatId,
+		ReceiverUserId:     receiverUserId,
+		EphemeralMessageId: ephemeralMessageId,
+	}
+	return GenericRequest[Request, bool](ctx, "deleteEphemeralMessage", request)
+}
+
+// DeleteForumTopic Use this method to delete a forum topic along with all its messages in a forum supergroup chat or a private chat with a user.
+// In the case of a supergroup chat the bot must be an administrator in the chat for this to work and must have the *can\_delete\_messages* administrator rights.
+// Returns *True* on success.
 func DeleteForumTopic(ctx context.Context, chatId int64, messageThreadId int64) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -718,15 +907,16 @@ func DeleteForumTopic(ctx context.Context, chatId int64, messageThreadId int64) 
 }
 
 // DeleteMessage Use this method to delete a message, including service messages, with the following limitations:
-// - A message can only be deleted if it was sent less than 48 hours ago.
-// - Service messages about a supergroup, channel, or forum topic creation can't be deleted.
-// - A dice message in a private chat can only be deleted if it was sent more than 24 hours ago.
-// - Bots can delete outgoing messages in private chats, groups, and supergroups.
-// - Bots can delete incoming messages in private chats.
-// - Bots granted can_post_messages permissions can delete outgoing messages in channels.
-// - If the bot is an administrator of a group, it can delete any message there.
-// - If the bot has can_delete_messages permission in a supergroup or a channel, it can delete any message there.
-// Returns True on success.
+// \- A message can only be deleted if it was sent less than 48 hours ago.
+// \- Service messages about a supergroup, channel, or forum topic creation can't be deleted.
+// \- A dice message in a private chat can only be deleted if it was sent more than 24 hours ago.
+// \- Bots can delete outgoing messages in private chats, groups, and supergroups.
+// \- Bots can delete incoming messages in private chats.
+// \- Bots granted *can\_post\_messages* permissions can delete outgoing messages in channels.
+// \- If the bot is an administrator of a group, it can delete any message there.
+// \- If the bot has *can\_delete\_messages* administrator right in a supergroup or a channel, it can delete any message there.
+// \- If the bot has *can\_manage\_direct\_messages* administrator right in a channel, it can delete any message in the corresponding direct messages chat.
+// Returns *True* on success.
 func DeleteMessage(ctx context.Context, chatId int64, messageId int64) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -741,7 +931,38 @@ func DeleteMessage(ctx context.Context, chatId int64, messageId int64) (bool, er
 	return GenericRequest[Request, bool](ctx, "deleteMessage", request)
 }
 
-// DeleteMessages Use this method to delete multiple messages simultaneously. Returns True on success.
+// DeleteMessageReaction Use this method to remove a reaction from a message in a group or a supergroup chat.
+// The bot must have the 'can\_delete\_messages' administrator right in the chat. Returns *True* on success.
+func DeleteMessageReaction(ctx context.Context, chatId int64, messageId int64, opts ...*OptDeleteMessageReaction) (bool, error) {
+	ContextSchedule(ctx, chatId, 1)
+	defer ContextScheduleDone(ctx, chatId, 1)
+	type Request struct {
+		ChatId      int64 `json:"chat_id"`
+		MessageId   int64 `json:"message_id"`
+		UserId      int64 `json:"user_id,omitempty"`
+		ActorChatId int64 `json:"actor_chat_id,omitempty"`
+	}
+	request := &Request{
+		ChatId:    chatId,
+		MessageId: messageId,
+	}
+	for _, opt := range opts {
+		if opt.UserId != 0 {
+			request.UserId = opt.UserId
+		}
+		if opt.ActorChatId != 0 {
+			request.ActorChatId = opt.ActorChatId
+		}
+	}
+	return GenericRequest[Request, bool](ctx, "deleteMessageReaction", request)
+}
+
+type OptDeleteMessageReaction struct {
+	UserId      int64
+	ActorChatId int64
+}
+
+// DeleteMessages Use this method to delete multiple messages simultaneously. Returns *True* on success.
 // If some of the specified messages can't be found, they are skipped.
 func DeleteMessages(ctx context.Context, chatId int64, messageIds []int64) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
@@ -758,7 +979,8 @@ func DeleteMessages(ctx context.Context, chatId int64, messageIds []int64) (bool
 }
 
 // DeleteMyCommands Use this method to delete the list of the bot's commands for the given scope and user language.
-// After deletion, higher level commands will be shown to affected users. Returns True on success.
+// After deletion, [higher level commands](https://core.telegram.org/bots/api/#determining-list-of-commands) will be shown to affected users.
+// Returns *True* on success.
 func DeleteMyCommands(ctx context.Context, opts ...*OptDeleteMyCommands) (bool, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -783,7 +1005,7 @@ type OptDeleteMyCommands struct {
 	LanguageCode string
 }
 
-// DeleteStickerFromSet Use this method to delete a sticker from a set created by the bot. Returns True on success.
+// DeleteStickerFromSet Use this method to delete a sticker from a set created by the bot. Returns *True* on success.
 func DeleteStickerFromSet(ctx context.Context, sticker string) (bool, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -796,7 +1018,7 @@ func DeleteStickerFromSet(ctx context.Context, sticker string) (bool, error) {
 	return GenericRequest[Request, bool](ctx, "deleteStickerFromSet", request)
 }
 
-// DeleteStickerSet Use this method to delete a sticker set that was created by the bot. Returns True on success.
+// DeleteStickerSet Use this method to delete a sticker set that was created by the bot. Returns *True* on success.
 func DeleteStickerSet(ctx context.Context, name string) (bool, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -809,8 +1031,24 @@ func DeleteStickerSet(ctx context.Context, name string) (bool, error) {
 	return GenericRequest[Request, bool](ctx, "deleteStickerSet", request)
 }
 
-// DeleteWebhook Use this method to remove webhook integration if you decide to switch back to getUpdates.
-// Returns True on success.
+// DeleteStory Deletes a story previously posted by the bot on behalf of a managed business account.
+// Requires the *can\_manage\_stories* business bot right. Returns *True* on success.
+func DeleteStory(ctx context.Context, businessConnectionId string, storyId int64) (bool, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId string `json:"business_connection_id"`
+		StoryId              int64  `json:"story_id"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+		StoryId:              storyId,
+	}
+	return GenericRequest[Request, bool](ctx, "deleteStory", request)
+}
+
+// DeleteWebhook Use this method to remove webhook integration if you decide to switch back to [getUpdates](https://core.telegram.org/bots/api/#getupdates).
+// Returns *True* on success.
 func DeleteWebhook(ctx context.Context, opts ...*OptDeleteWebhook) (bool, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -832,7 +1070,7 @@ type OptDeleteWebhook struct {
 
 // EditChatInviteLink Use this method to edit a non-primary invite link created by the bot.
 // The bot must be an administrator in the chat for this to work and must have the appropriate administrator rights.
-// Returns the edited invite link as a ChatInviteLink object.
+// Returns the edited invite link as a [ChatInviteLink](https://core.telegram.org/bots/api/#chatinvitelink) object.
 func EditChatInviteLink(ctx context.Context, chatId int64, inviteLink string, opts ...*OptEditChatInviteLink) (*ChatInviteLink, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -873,8 +1111,8 @@ type OptEditChatInviteLink struct {
 }
 
 // EditChatSubscriptionInviteLink Use this method to edit a subscription invite link created by the bot.
-// The bot must have the can_invite_users administrator rights.
-// Returns the edited invite link as a ChatInviteLink object.
+// The bot must have the *can\_invite\_users* administrator rights.
+// Returns the edited invite link as a [ChatInviteLink](https://core.telegram.org/bots/api/#chatinvitelink) object.
 func EditChatSubscriptionInviteLink(ctx context.Context, chatId int64, inviteLink string, opts ...*OptEditChatSubscriptionInviteLink) (*ChatInviteLink, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -899,8 +1137,163 @@ type OptEditChatSubscriptionInviteLink struct {
 	Name string
 }
 
-// EditForumTopic Use this method to edit name and icon of a topic in a forum supergroup chat. Returns True on success.
-// The bot must be an administrator in the chat for this to work and must have the can_manage_topics administrator rights, unless it is the creator of the topic.
+// EditEphemeralMessageCaption Use this method to edit the caption of an ephemeral message. On success, True is returned.
+// Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline.
+func EditEphemeralMessageCaption(ctx context.Context, chatId int64, receiverUserId int64, ephemeralMessageId int64, opts ...*OptEditEphemeralMessageCaption) (bool, error) {
+	ContextSchedule(ctx, chatId, 1)
+	defer ContextScheduleDone(ctx, chatId, 1)
+	type Request struct {
+		ChatId                int64                 `json:"chat_id"`
+		ReceiverUserId        int64                 `json:"receiver_user_id"`
+		EphemeralMessageId    int64                 `json:"ephemeral_message_id"`
+		Caption               string                `json:"caption,omitempty"`
+		ParseMode             string                `json:"parse_mode,omitempty"`
+		CaptionEntities       []*MessageEntity      `json:"caption_entities,omitempty"`
+		ShowCaptionAboveMedia bool                  `json:"show_caption_above_media,omitempty"`
+		ReplyMarkup           *InlineKeyboardMarkup `json:"reply_markup,omitempty"`
+	}
+	request := &Request{
+		ChatId:             chatId,
+		ReceiverUserId:     receiverUserId,
+		EphemeralMessageId: ephemeralMessageId,
+	}
+	for _, opt := range opts {
+		if opt.Caption != "" {
+			request.Caption = opt.Caption
+		}
+		if opt.ParseMode != "" {
+			request.ParseMode = opt.ParseMode
+		}
+		if opt.CaptionEntities != nil {
+			request.CaptionEntities = opt.CaptionEntities
+		}
+		if opt.ShowCaptionAboveMedia {
+			request.ShowCaptionAboveMedia = opt.ShowCaptionAboveMedia
+		}
+		if opt.ReplyMarkup != nil {
+			request.ReplyMarkup = opt.ReplyMarkup
+		}
+	}
+	return GenericRequest[Request, bool](ctx, "editEphemeralMessageCaption", request)
+}
+
+type OptEditEphemeralMessageCaption struct {
+	Caption               string
+	ParseMode             string
+	CaptionEntities       []*MessageEntity
+	ShowCaptionAboveMedia bool
+	ReplyMarkup           *InlineKeyboardMarkup
+}
+
+// EditEphemeralMessageMedia Use this method to edit the media of an ephemeral message. On success, True is returned.
+// Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline.
+func EditEphemeralMessageMedia(ctx context.Context, chatId int64, receiverUserId int64, ephemeralMessageId int64, media InputMedia, opts ...*OptEditEphemeralMessageMedia) (bool, error) {
+	ContextSchedule(ctx, chatId, 1)
+	defer ContextScheduleDone(ctx, chatId, 1)
+	type Request struct {
+		ChatId             int64                 `json:"chat_id"`
+		ReceiverUserId     int64                 `json:"receiver_user_id"`
+		EphemeralMessageId int64                 `json:"ephemeral_message_id"`
+		Media              InputMedia            `json:"media"`
+		ReplyMarkup        *InlineKeyboardMarkup `json:"reply_markup,omitempty"`
+	}
+	request := &Request{
+		ChatId:             chatId,
+		ReceiverUserId:     receiverUserId,
+		EphemeralMessageId: ephemeralMessageId,
+		Media:              media,
+	}
+	for _, opt := range opts {
+		if opt.ReplyMarkup != nil {
+			request.ReplyMarkup = opt.ReplyMarkup
+		}
+	}
+	return GenericRequestMultipart[Request, bool](ctx, "editEphemeralMessageMedia", request)
+}
+
+type OptEditEphemeralMessageMedia struct {
+	ReplyMarkup *InlineKeyboardMarkup
+}
+
+// EditEphemeralMessageReplyMarkup Use this method to edit only the reply markup of an ephemeral message. On success, True is returned.
+// Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline.
+func EditEphemeralMessageReplyMarkup(ctx context.Context, chatId int64, receiverUserId int64, ephemeralMessageId int64, opts ...*OptEditEphemeralMessageReplyMarkup) (bool, error) {
+	ContextSchedule(ctx, chatId, 1)
+	defer ContextScheduleDone(ctx, chatId, 1)
+	type Request struct {
+		ChatId             int64                 `json:"chat_id"`
+		ReceiverUserId     int64                 `json:"receiver_user_id"`
+		EphemeralMessageId int64                 `json:"ephemeral_message_id"`
+		ReplyMarkup        *InlineKeyboardMarkup `json:"reply_markup,omitempty"`
+	}
+	request := &Request{
+		ChatId:             chatId,
+		ReceiverUserId:     receiverUserId,
+		EphemeralMessageId: ephemeralMessageId,
+	}
+	for _, opt := range opts {
+		if opt.ReplyMarkup != nil {
+			request.ReplyMarkup = opt.ReplyMarkup
+		}
+	}
+	return GenericRequest[Request, bool](ctx, "editEphemeralMessageReplyMarkup", request)
+}
+
+type OptEditEphemeralMessageReplyMarkup struct {
+	ReplyMarkup *InlineKeyboardMarkup
+}
+
+// EditEphemeralMessageText Use this method to edit an ephemeral text or rich message. On success, True is returned.
+// Note that it is not guaranteed that the user will receive the message edit event, especially if they are offline.
+func EditEphemeralMessageText(ctx context.Context, chatId int64, receiverUserId int64, ephemeralMessageId int64, opts ...*OptEditEphemeralMessageText) (bool, error) {
+	ContextSchedule(ctx, chatId, 1)
+	defer ContextScheduleDone(ctx, chatId, 1)
+	type Request struct {
+		ChatId             int64                 `json:"chat_id"`
+		ReceiverUserId     int64                 `json:"receiver_user_id"`
+		EphemeralMessageId int64                 `json:"ephemeral_message_id"`
+		Text               string                `json:"text,omitempty"`
+		ParseMode          string                `json:"parse_mode,omitempty"`
+		Entities           []*MessageEntity      `json:"entities,omitempty"`
+		LinkPreviewOptions *LinkPreviewOptions   `json:"link_preview_options,omitempty"`
+		ReplyMarkup        *InlineKeyboardMarkup `json:"reply_markup,omitempty"`
+	}
+	request := &Request{
+		ChatId:             chatId,
+		ReceiverUserId:     receiverUserId,
+		EphemeralMessageId: ephemeralMessageId,
+	}
+	for _, opt := range opts {
+		if opt.Text != "" {
+			request.Text = opt.Text
+		}
+		if opt.ParseMode != "" {
+			request.ParseMode = opt.ParseMode
+		}
+		if opt.Entities != nil {
+			request.Entities = opt.Entities
+		}
+		if opt.LinkPreviewOptions != nil {
+			request.LinkPreviewOptions = opt.LinkPreviewOptions
+		}
+		if opt.ReplyMarkup != nil {
+			request.ReplyMarkup = opt.ReplyMarkup
+		}
+	}
+	return GenericRequest[Request, bool](ctx, "editEphemeralMessageText", request)
+}
+
+type OptEditEphemeralMessageText struct {
+	Text               string
+	ParseMode          string
+	Entities           []*MessageEntity
+	LinkPreviewOptions *LinkPreviewOptions
+	ReplyMarkup        *InlineKeyboardMarkup
+}
+
+// EditForumTopic Use this method to edit name and icon of a topic in a forum supergroup chat or a private chat with a user.
+// In the case of a supergroup chat the bot must be an administrator in the chat for this to work and must have the *can\_manage\_topics* administrator rights, unless it is the creator of the topic.
+// Returns *True* on success.
 func EditForumTopic(ctx context.Context, chatId int64, messageThreadId int64, opts ...*OptEditForumTopic) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -931,8 +1324,8 @@ type OptEditForumTopic struct {
 }
 
 // EditGeneralForumTopic Use this method to edit the name of the 'General' topic in a forum supergroup chat.
-// The bot must be an administrator in the chat for this to work and must have the can_manage_topics administrator rights.
-// Returns True on success.
+// The bot must be an administrator in the chat for this to work and must have the *can\_manage\_topics* administrator rights.
+// Returns *True* on success.
 func EditGeneralForumTopic(ctx context.Context, chatId int64, name string) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -948,8 +1341,8 @@ func EditGeneralForumTopic(ctx context.Context, chatId int64, name string) (bool
 }
 
 // EditMessageCaption Use this method to edit captions of messages.
-// On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned.
-// Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
+// On success, if the edited message is not an inline message, the edited [Message](https://core.telegram.org/bots/api/#message) is returned, otherwise *True* is returned.
+// Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within **48 hours** from the time they were sent.
 func EditMessageCaption(ctx context.Context, opts ...*OptEditMessageCaption) (*Message, error) /* >> either: [bool] */ {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -1009,9 +1402,39 @@ type OptEditMessageCaption struct {
 	ReplyMarkup           *InlineKeyboardMarkup
 }
 
+// EditMessageChecklist Use this method to edit a checklist on behalf of a connected business account.
+// On success, the edited [Message](https://core.telegram.org/bots/api/#message) is returned.
+func EditMessageChecklist(ctx context.Context, businessConnectionId string, chatId int64, messageId int64, checklist *InputChecklist, opts ...*OptEditMessageChecklist) (*Message, error) {
+	ContextSchedule(ctx, chatId, 1)
+	defer ContextScheduleDone(ctx, chatId, 1)
+	type Request struct {
+		BusinessConnectionId string                `json:"business_connection_id"`
+		ChatId               int64                 `json:"chat_id"`
+		MessageId            int64                 `json:"message_id"`
+		Checklist            *InputChecklist       `json:"checklist"`
+		ReplyMarkup          *InlineKeyboardMarkup `json:"reply_markup,omitempty"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+		ChatId:               chatId,
+		MessageId:            messageId,
+		Checklist:            checklist,
+	}
+	for _, opt := range opts {
+		if opt.ReplyMarkup != nil {
+			request.ReplyMarkup = opt.ReplyMarkup
+		}
+	}
+	return GenericRequest[Request, *Message](ctx, "editMessageChecklist", request)
+}
+
+type OptEditMessageChecklist struct {
+	ReplyMarkup *InlineKeyboardMarkup
+}
+
 // EditMessageLiveLocation Use this method to edit live location messages.
-// A location can be edited until its live_period expires or editing is explicitly disabled by a call to stopMessageLiveLocation.
-// On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned.
+// A location can be edited until its *live\_period* expires or editing is explicitly disabled by a call to [stopMessageLiveLocation](https://core.telegram.org/bots/api/#stopmessagelivelocation).
+// On success, if the edited message is not an inline message, the edited [Message](https://core.telegram.org/bots/api/#message) is returned, otherwise *True* is returned.
 func EditMessageLiveLocation(ctx context.Context, latitude float64, longitude float64, opts ...*OptEditMessageLiveLocation) (*Message, error) /* >> either: [bool] */ {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -1076,11 +1499,11 @@ type OptEditMessageLiveLocation struct {
 	ReplyMarkup          *InlineKeyboardMarkup
 }
 
-// EditMessageMedia Use this method to edit animation, audio, document, photo, or video messages, or to add media to text messages.
-// If a message is part of a message album, then it can be edited only to an audio for audio albums, only to a document for document albums and to a photo or a video otherwise.
-// When an inline message is edited, a new file can't be uploaded; use a previously uploaded file via its file_id or specify a URL.
-// On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned.
-// Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
+// EditMessageMedia Use this method to edit animation, audio, document, live photo, photo, or video messages, or to add media to text messages.
+// If a message is part of a message album, then it can be edited only to an audio for audio albums, only to a document for document albums and to a photo, a live photo, or a video otherwise.
+// When an inline message is edited, a new file can't be uploaded; use a previously uploaded file via its file\_id or specify a URL.
+// On success, if the edited message is not an inline message, the edited [Message](https://core.telegram.org/bots/api/#message) is returned, otherwise *True* is returned.
+// Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within **48 hours** from the time they were sent.
 func EditMessageMedia(ctx context.Context, media InputMedia, opts ...*OptEditMessageMedia) (*Message, error) /* >> either: [bool] */ {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -1124,8 +1547,8 @@ type OptEditMessageMedia struct {
 }
 
 // EditMessageReplyMarkup Use this method to edit only the reply markup of messages.
-// On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned.
-// Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
+// On success, if the edited message is not an inline message, the edited [Message](https://core.telegram.org/bots/api/#message) is returned, otherwise *True* is returned.
+// Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within **48 hours** from the time they were sent.
 func EditMessageReplyMarkup(ctx context.Context, opts ...*OptEditMessageReplyMarkup) (*Message, error) /* >> either: [bool] */ {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -1165,9 +1588,9 @@ type OptEditMessageReplyMarkup struct {
 	ReplyMarkup          *InlineKeyboardMarkup
 }
 
-// EditMessageText Use this method to edit text and game messages.
-// On success, if the edited message is not an inline message, the edited Message is returned, otherwise True is returned.
-// Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within 48 hours from the time they were sent.
+// EditMessageText Use this method to edit text and [game](https://core.telegram.org/bots/api/#games) messages.
+// On success, if the edited message is not an inline message, the edited [Message](https://core.telegram.org/bots/api/#message) is returned, otherwise *True* is returned.
+// Note that business messages that were not sent by the bot and do not contain an inline keyboard can only be edited within **48 hours** from the time they were sent.
 func EditMessageText(ctx context.Context, text string, opts ...*OptEditMessageText) (*Message, error) /* >> either: [bool] */ {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -1225,8 +1648,52 @@ type OptEditMessageText struct {
 	ReplyMarkup          *InlineKeyboardMarkup
 }
 
+// EditStory Edits a story previously posted by the bot on behalf of a managed business account.
+// Requires the *can\_manage\_stories* business bot right.
+// Returns [Story](https://core.telegram.org/bots/api/#story) on success.
+func EditStory(ctx context.Context, businessConnectionId string, storyId int64, content InputStoryContent, opts ...*OptEditStory) (*Story, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId string            `json:"business_connection_id"`
+		StoryId              int64             `json:"story_id"`
+		Content              InputStoryContent `json:"content"`
+		Caption              string            `json:"caption,omitempty"`
+		ParseMode            string            `json:"parse_mode,omitempty"`
+		CaptionEntities      []*MessageEntity  `json:"caption_entities,omitempty"`
+		Areas                []*StoryArea      `json:"areas,omitempty"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+		StoryId:              storyId,
+		Content:              content,
+	}
+	for _, opt := range opts {
+		if opt.Caption != "" {
+			request.Caption = opt.Caption
+		}
+		if opt.ParseMode != "" {
+			request.ParseMode = opt.ParseMode
+		}
+		if opt.CaptionEntities != nil {
+			request.CaptionEntities = opt.CaptionEntities
+		}
+		if opt.Areas != nil {
+			request.Areas = opt.Areas
+		}
+	}
+	return GenericRequest[Request, *Story](ctx, "editStory", request)
+}
+
+type OptEditStory struct {
+	Caption         string
+	ParseMode       string
+	CaptionEntities []*MessageEntity
+	Areas           []*StoryArea
+}
+
 // EditUserStarSubscription Allows the bot to cancel or re-enable extension of a subscription paid in Telegram Stars.
-// Returns True on success.
+// Returns *True* on success.
 func EditUserStarSubscription(ctx context.Context, userId int64, telegramPaymentChargeId string, isCanceled bool) (bool, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -1245,7 +1712,7 @@ func EditUserStarSubscription(ctx context.Context, userId int64, telegramPayment
 
 // ExportChatInviteLink Use this method to generate a new primary invite link for a chat; any previously generated primary link is revoked.
 // The bot must be an administrator in the chat for this to work and must have the appropriate administrator rights.
-// Returns the new invite link as String on success.
+// Returns the new invite link as *String* on success.
 func ExportChatInviteLink(ctx context.Context, chatId int64) (string, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -1258,18 +1725,23 @@ func ExportChatInviteLink(ctx context.Context, chatId int64) (string, error) {
 	return GenericRequest[Request, string](ctx, "exportChatInviteLink", request)
 }
 
-// ForwardMessage Use this method to forward messages of any kind. On success, the sent Message is returned.
+// ForwardMessage Use this method to forward messages of any kind.
 // Service messages and messages with protected content can't be forwarded.
+// On success, the sent [Message](https://core.telegram.org/bots/api/#message) is returned.
 func ForwardMessage(ctx context.Context, chatId int64, fromChatId int64, messageId int64, opts ...*OptForwardMessage) (*Message, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
 	type Request struct {
-		ChatId              int64 `json:"chat_id"`
-		MessageThreadId     int64 `json:"message_thread_id,omitempty"`
-		FromChatId          int64 `json:"from_chat_id"`
-		DisableNotification bool  `json:"disable_notification,omitempty"`
-		ProtectContent      bool  `json:"protect_content,omitempty"`
-		MessageId           int64 `json:"message_id"`
+		ChatId                  int64                    `json:"chat_id"`
+		MessageThreadId         int64                    `json:"message_thread_id,omitempty"`
+		DirectMessagesTopicId   int64                    `json:"direct_messages_topic_id,omitempty"`
+		FromChatId              int64                    `json:"from_chat_id"`
+		VideoStartTimestamp     int64                    `json:"video_start_timestamp,omitempty"`
+		DisableNotification     bool                     `json:"disable_notification,omitempty"`
+		ProtectContent          bool                     `json:"protect_content,omitempty"`
+		MessageEffectId         string                   `json:"message_effect_id,omitempty"`
+		SuggestedPostParameters *SuggestedPostParameters `json:"suggested_post_parameters,omitempty"`
+		MessageId               int64                    `json:"message_id"`
 	}
 	request := &Request{
 		ChatId:     chatId,
@@ -1280,36 +1752,53 @@ func ForwardMessage(ctx context.Context, chatId int64, fromChatId int64, message
 		if opt.MessageThreadId != 0 {
 			request.MessageThreadId = opt.MessageThreadId
 		}
+		if opt.DirectMessagesTopicId != 0 {
+			request.DirectMessagesTopicId = opt.DirectMessagesTopicId
+		}
+		if opt.VideoStartTimestamp != 0 {
+			request.VideoStartTimestamp = opt.VideoStartTimestamp
+		}
 		if opt.DisableNotification {
 			request.DisableNotification = opt.DisableNotification
 		}
 		if opt.ProtectContent {
 			request.ProtectContent = opt.ProtectContent
 		}
+		if opt.MessageEffectId != "" {
+			request.MessageEffectId = opt.MessageEffectId
+		}
+		if opt.SuggestedPostParameters != nil {
+			request.SuggestedPostParameters = opt.SuggestedPostParameters
+		}
 	}
 	return GenericRequest[Request, *Message](ctx, "forwardMessage", request)
 }
 
 type OptForwardMessage struct {
-	MessageThreadId     int64
-	DisableNotification bool
-	ProtectContent      bool
+	MessageThreadId         int64
+	DirectMessagesTopicId   int64
+	VideoStartTimestamp     int64
+	DisableNotification     bool
+	ProtectContent          bool
+	MessageEffectId         string
+	SuggestedPostParameters *SuggestedPostParameters
 }
 
 // ForwardMessages Use this method to forward multiple messages of any kind. Album grouping is kept for forwarded messages.
 // If some of the specified messages can't be found or forwarded, they are skipped.
 // Service messages and messages with protected content can't be forwarded.
-// On success, an array of MessageId of the sent messages is returned.
+// On success, an array of [MessageId](https://core.telegram.org/bots/api/#messageid) of the sent messages is returned.
 func ForwardMessages(ctx context.Context, chatId int64, fromChatId int64, messageIds []int64, opts ...*OptForwardMessages) ([]*MessageId, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
 	type Request struct {
-		ChatId              int64   `json:"chat_id"`
-		MessageThreadId     int64   `json:"message_thread_id,omitempty"`
-		FromChatId          int64   `json:"from_chat_id"`
-		MessageIds          []int64 `json:"message_ids"`
-		DisableNotification bool    `json:"disable_notification,omitempty"`
-		ProtectContent      bool    `json:"protect_content,omitempty"`
+		ChatId                int64   `json:"chat_id"`
+		MessageThreadId       int64   `json:"message_thread_id,omitempty"`
+		DirectMessagesTopicId int64   `json:"direct_messages_topic_id,omitempty"`
+		FromChatId            int64   `json:"from_chat_id"`
+		MessageIds            []int64 `json:"message_ids"`
+		DisableNotification   bool    `json:"disable_notification,omitempty"`
+		ProtectContent        bool    `json:"protect_content,omitempty"`
 	}
 	request := &Request{
 		ChatId:     chatId,
@@ -1319,6 +1808,9 @@ func ForwardMessages(ctx context.Context, chatId int64, fromChatId int64, messag
 	for _, opt := range opts {
 		if opt.MessageThreadId != 0 {
 			request.MessageThreadId = opt.MessageThreadId
+		}
+		if opt.DirectMessagesTopicId != 0 {
+			request.DirectMessagesTopicId = opt.DirectMessagesTopicId
 		}
 		if opt.DisableNotification {
 			request.DisableNotification = opt.DisableNotification
@@ -1331,13 +1823,14 @@ func ForwardMessages(ctx context.Context, chatId int64, fromChatId int64, messag
 }
 
 type OptForwardMessages struct {
-	MessageThreadId     int64
-	DisableNotification bool
-	ProtectContent      bool
+	MessageThreadId       int64
+	DirectMessagesTopicId int64
+	DisableNotification   bool
+	ProtectContent        bool
 }
 
-// GetAvailableGifts Returns the list of gifts that can be sent by the bot to users. Requires no parameters.
-// Returns a Gifts object.
+// GetAvailableGifts Returns the list of gifts that can be sent by the bot to users and channel chats.
+// Requires no parameters. Returns a [Gifts](https://core.telegram.org/bots/api/#gifts) object.
 func GetAvailableGifts(ctx context.Context) (*Gifts, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -1347,8 +1840,93 @@ func GetAvailableGifts(ctx context.Context) (*Gifts, error) {
 	return GenericRequest[Request, *Gifts](ctx, "getAvailableGifts", request)
 }
 
+// GetBusinessAccountGifts Returns the gifts received and owned by a managed business account.
+// Requires the *can\_view\_gifts\_and\_stars* business bot right.
+// Returns [OwnedGifts](https://core.telegram.org/bots/api/#ownedgifts) on success.
+func GetBusinessAccountGifts(ctx context.Context, businessConnectionId string, opts ...*OptGetBusinessAccountGifts) (*OwnedGifts, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId        string `json:"business_connection_id"`
+		ExcludeUnsaved              bool   `json:"exclude_unsaved,omitempty"`
+		ExcludeSaved                bool   `json:"exclude_saved,omitempty"`
+		ExcludeUnlimited            bool   `json:"exclude_unlimited,omitempty"`
+		ExcludeLimitedUpgradable    bool   `json:"exclude_limited_upgradable,omitempty"`
+		ExcludeLimitedNonUpgradable bool   `json:"exclude_limited_non_upgradable,omitempty"`
+		ExcludeUnique               bool   `json:"exclude_unique,omitempty"`
+		ExcludeFromBlockchain       bool   `json:"exclude_from_blockchain,omitempty"`
+		SortByPrice                 bool   `json:"sort_by_price,omitempty"`
+		Offset                      string `json:"offset,omitempty"`
+		Limit                       int64  `json:"limit,omitempty"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+	}
+	for _, opt := range opts {
+		if opt.ExcludeUnsaved {
+			request.ExcludeUnsaved = opt.ExcludeUnsaved
+		}
+		if opt.ExcludeSaved {
+			request.ExcludeSaved = opt.ExcludeSaved
+		}
+		if opt.ExcludeUnlimited {
+			request.ExcludeUnlimited = opt.ExcludeUnlimited
+		}
+		if opt.ExcludeLimitedUpgradable {
+			request.ExcludeLimitedUpgradable = opt.ExcludeLimitedUpgradable
+		}
+		if opt.ExcludeLimitedNonUpgradable {
+			request.ExcludeLimitedNonUpgradable = opt.ExcludeLimitedNonUpgradable
+		}
+		if opt.ExcludeUnique {
+			request.ExcludeUnique = opt.ExcludeUnique
+		}
+		if opt.ExcludeFromBlockchain {
+			request.ExcludeFromBlockchain = opt.ExcludeFromBlockchain
+		}
+		if opt.SortByPrice {
+			request.SortByPrice = opt.SortByPrice
+		}
+		if opt.Offset != "" {
+			request.Offset = opt.Offset
+		}
+		if opt.Limit != 0 {
+			request.Limit = opt.Limit
+		}
+	}
+	return GenericRequest[Request, *OwnedGifts](ctx, "getBusinessAccountGifts", request)
+}
+
+type OptGetBusinessAccountGifts struct {
+	ExcludeUnsaved              bool
+	ExcludeSaved                bool
+	ExcludeUnlimited            bool
+	ExcludeLimitedUpgradable    bool
+	ExcludeLimitedNonUpgradable bool
+	ExcludeUnique               bool
+	ExcludeFromBlockchain       bool
+	SortByPrice                 bool
+	Offset                      string
+	Limit                       int64
+}
+
+// GetBusinessAccountStarBalance Returns the amount of Telegram Stars owned by a managed business account.
+// Requires the *can\_view\_gifts\_and\_stars* business bot right.
+// Returns [StarAmount](https://core.telegram.org/bots/api/#staramount) on success.
+func GetBusinessAccountStarBalance(ctx context.Context, businessConnectionId string) (*StarAmount, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId string `json:"business_connection_id"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+	}
+	return GenericRequest[Request, *StarAmount](ctx, "getBusinessAccountStarBalance", request)
+}
+
 // GetBusinessConnection Use this method to get information about the connection of the bot with a business account.
-// Returns a BusinessConnection object on success.
+// Returns a [BusinessConnection](https://core.telegram.org/bots/api/#businessconnection) object on success.
 func GetBusinessConnection(ctx context.Context, businessConnectionId string) (*BusinessConnection, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -1361,7 +1939,8 @@ func GetBusinessConnection(ctx context.Context, businessConnectionId string) (*B
 	return GenericRequest[Request, *BusinessConnection](ctx, "getBusinessConnection", request)
 }
 
-// GetChat Use this method to get up-to-date information about the chat. Returns a ChatFullInfo object on success.
+// GetChat Use this method to get up-to-date information about the chat.
+// Returns a [ChatFullInfo](https://core.telegram.org/bots/api/#chatfullinfo) object on success.
 func GetChat(ctx context.Context, chatId int64) (*ChatFullInfo, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -1374,21 +1953,101 @@ func GetChat(ctx context.Context, chatId int64) (*ChatFullInfo, error) {
 	return GenericRequest[Request, *ChatFullInfo](ctx, "getChat", request)
 }
 
-// GetChatAdministrators Use this method to get a list of administrators in a chat, which aren't bots. Returns an Array of ChatMember objects.
-func GetChatAdministrators(ctx context.Context, chatId int64) ([]ChatMember, error) {
+// GetChatAdministrators Use this method to get a list of administrators in a chat.
+// Returns an Array of [ChatMember](https://core.telegram.org/bots/api/#chatmember) objects.
+func GetChatAdministrators(ctx context.Context, chatId int64, opts ...*OptGetChatAdministrators) ([]ChatMember, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
 	type Request struct {
-		ChatId int64 `json:"chat_id"`
+		ChatId     int64 `json:"chat_id"`
+		ReturnBots bool  `json:"return_bots,omitempty"`
 	}
 	request := &Request{
 		ChatId: chatId,
 	}
+	for _, opt := range opts {
+		if opt.ReturnBots {
+			request.ReturnBots = opt.ReturnBots
+		}
+	}
 	return GenericRequest[Request, []ChatMember](ctx, "getChatAdministrators", request)
 }
 
-// GetChatMember Use this method to get information about a member of a chat. Returns a ChatMember object on success.
+type OptGetChatAdministrators struct {
+	ReturnBots bool
+}
+
+// GetChatGifts Returns the gifts owned by a chat. Returns [OwnedGifts](https://core.telegram.org/bots/api/#ownedgifts) on success.
+func GetChatGifts(ctx context.Context, chatId int64, opts ...*OptGetChatGifts) (*OwnedGifts, error) {
+	ContextSchedule(ctx, chatId, 1)
+	defer ContextScheduleDone(ctx, chatId, 1)
+	type Request struct {
+		ChatId                      int64  `json:"chat_id"`
+		ExcludeUnsaved              bool   `json:"exclude_unsaved,omitempty"`
+		ExcludeSaved                bool   `json:"exclude_saved,omitempty"`
+		ExcludeUnlimited            bool   `json:"exclude_unlimited,omitempty"`
+		ExcludeLimitedUpgradable    bool   `json:"exclude_limited_upgradable,omitempty"`
+		ExcludeLimitedNonUpgradable bool   `json:"exclude_limited_non_upgradable,omitempty"`
+		ExcludeFromBlockchain       bool   `json:"exclude_from_blockchain,omitempty"`
+		ExcludeUnique               bool   `json:"exclude_unique,omitempty"`
+		SortByPrice                 bool   `json:"sort_by_price,omitempty"`
+		Offset                      string `json:"offset,omitempty"`
+		Limit                       int64  `json:"limit,omitempty"`
+	}
+	request := &Request{
+		ChatId: chatId,
+	}
+	for _, opt := range opts {
+		if opt.ExcludeUnsaved {
+			request.ExcludeUnsaved = opt.ExcludeUnsaved
+		}
+		if opt.ExcludeSaved {
+			request.ExcludeSaved = opt.ExcludeSaved
+		}
+		if opt.ExcludeUnlimited {
+			request.ExcludeUnlimited = opt.ExcludeUnlimited
+		}
+		if opt.ExcludeLimitedUpgradable {
+			request.ExcludeLimitedUpgradable = opt.ExcludeLimitedUpgradable
+		}
+		if opt.ExcludeLimitedNonUpgradable {
+			request.ExcludeLimitedNonUpgradable = opt.ExcludeLimitedNonUpgradable
+		}
+		if opt.ExcludeFromBlockchain {
+			request.ExcludeFromBlockchain = opt.ExcludeFromBlockchain
+		}
+		if opt.ExcludeUnique {
+			request.ExcludeUnique = opt.ExcludeUnique
+		}
+		if opt.SortByPrice {
+			request.SortByPrice = opt.SortByPrice
+		}
+		if opt.Offset != "" {
+			request.Offset = opt.Offset
+		}
+		if opt.Limit != 0 {
+			request.Limit = opt.Limit
+		}
+	}
+	return GenericRequest[Request, *OwnedGifts](ctx, "getChatGifts", request)
+}
+
+type OptGetChatGifts struct {
+	ExcludeUnsaved              bool
+	ExcludeSaved                bool
+	ExcludeUnlimited            bool
+	ExcludeLimitedUpgradable    bool
+	ExcludeLimitedNonUpgradable bool
+	ExcludeFromBlockchain       bool
+	ExcludeUnique               bool
+	SortByPrice                 bool
+	Offset                      string
+	Limit                       int64
+}
+
+// GetChatMember Use this method to get information about a member of a chat.
 // The method is only guaranteed to work for other users if the bot is an administrator in the chat.
+// Returns a [ChatMember](https://core.telegram.org/bots/api/#chatmember) object on success.
 func GetChatMember(ctx context.Context, chatId int64, userId int64) (ChatMember, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -1403,7 +2062,7 @@ func GetChatMember(ctx context.Context, chatId int64, userId int64) (ChatMember,
 	return GenericRequest[Request, ChatMember](ctx, "getChatMember", request)
 }
 
-// GetChatMemberCount Use this method to get the number of members in a chat. Returns Int on success.
+// GetChatMemberCount Use this method to get the number of members in a chat. Returns *Int* on success.
 func GetChatMemberCount(ctx context.Context, chatId int64) (int64, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -1417,7 +2076,7 @@ func GetChatMemberCount(ctx context.Context, chatId int64) (int64, error) {
 }
 
 // GetChatMenuButton Use this method to get the current value of the bot's menu button in a private chat, or the default menu button.
-// Returns MenuButton on success.
+// Returns [MenuButton](https://core.telegram.org/bots/api/#menubutton) on success.
 func GetChatMenuButton(ctx context.Context, opts ...*OptGetChatMenuButton) (MenuButton, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -1438,7 +2097,7 @@ type OptGetChatMenuButton struct {
 }
 
 // GetCustomEmojiStickers Use this method to get information about custom emoji stickers by their identifiers.
-// Returns an Array of Sticker objects.
+// Returns an Array of [Sticker](https://core.telegram.org/bots/api/#sticker) objects.
 func GetCustomEmojiStickers(ctx context.Context, customEmojiIds []string) ([]*Sticker, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -1451,8 +2110,12 @@ func GetCustomEmojiStickers(ctx context.Context, customEmojiIds []string) ([]*St
 	return GenericRequest[Request, []*Sticker](ctx, "getCustomEmojiStickers", request)
 }
 
-// GetFile Use this method to get basic information about a file and prepare it for downloading. For the moment, bots can download files of up to 20MB in size. On success, a File object is returned. The file can then be downloaded via the link https://api.telegram.org/file/bot<token>/<file_path>, where <file_path> is taken from the response. It is guaranteed that the link will be valid for at least 1 hour. When the link expires, a new one can be requested by calling getFile again.
-// Note: This function may not preserve the original file name and MIME type. You should save the file's MIME type and name (if available) when the File object is received.
+// GetFile Use this method to get basic information about a file and prepare it for downloading.
+// For the moment, bots can download files of up to 20MB in size.
+// On success, a [File](https://core.telegram.org/bots/api/#file) object is returned.
+// The file can then be downloaded via the link `https://api.telegram.org/file/bot<token>/<file_path>`, where `<file_path>` is taken from the response.
+// It is guaranteed that the link will be valid for at least 1 hour.
+// When the link expires, a new one can be requested by calling [getFile](https://core.telegram.org/bots/api/#getfile) again.
 func GetFile(ctx context.Context, fileId string) (*File, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -1466,7 +2129,7 @@ func GetFile(ctx context.Context, fileId string) (*File, error) {
 }
 
 // GetForumTopicIconStickers Use this method to get custom emoji stickers, which can be used as a forum topic icon by any user.
-// Requires no parameters. Returns an Array of Sticker objects.
+// Requires no parameters. Returns an Array of [Sticker](https://core.telegram.org/bots/api/#sticker) objects.
 func GetForumTopicIconStickers(ctx context.Context) ([]*Sticker, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -1476,8 +2139,8 @@ func GetForumTopicIconStickers(ctx context.Context) ([]*Sticker, error) {
 	return GenericRequest[Request, []*Sticker](ctx, "getForumTopicIconStickers", request)
 }
 
-// GetGameHighScores Use this method to get data for high score tables. Returns an Array of GameHighScore objects.
-// Will return the score of the specified user and several of their neighbors in a game.
+// GetGameHighScores Use this method to get data for high score tables. Will return the score of the specified user and several of their neighbors in a game. Returns an Array of [GameHighScore](https://core.telegram.org/bots/api/#gamehighscore) objects.
+// This method will currently return scores for the target user, plus two of their closest neighbors on each side. Will also return the top three users if the user and their neighbors are not among them. Please note that this behavior is subject to change.
 func GetGameHighScores(ctx context.Context, userId int64, opts ...*OptGetGameHighScores) ([]*GameHighScore, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -1510,8 +2173,35 @@ type OptGetGameHighScores struct {
 	InlineMessageId string
 }
 
+// GetManagedBotAccessSettings Use this method to get the access settings of a managed bot.
+// Returns a [BotAccessSettings](https://core.telegram.org/bots/api/#botaccesssettings) object on success.
+func GetManagedBotAccessSettings(ctx context.Context, userId int64) (*BotAccessSettings, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+		UserId int64 `json:"user_id"`
+	}
+	request := &Request{
+		UserId: userId,
+	}
+	return GenericRequest[Request, *BotAccessSettings](ctx, "getManagedBotAccessSettings", request)
+}
+
+// GetManagedBotToken Use this method to get the token of a managed bot. Returns the token as *String* on success.
+func GetManagedBotToken(ctx context.Context, userId int64) (string, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+		UserId int64 `json:"user_id"`
+	}
+	request := &Request{
+		UserId: userId,
+	}
+	return GenericRequest[Request, string](ctx, "getManagedBotToken", request)
+}
+
 // GetMe A simple method for testing your bot's authentication token. Requires no parameters.
-// Returns basic information about the bot in form of a User object.
+// Returns basic information about the bot in form of a [User](https://core.telegram.org/bots/api/#user) object.
 func GetMe(ctx context.Context) (*User, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -1522,7 +2212,8 @@ func GetMe(ctx context.Context) (*User, error) {
 }
 
 // GetMyCommands Use this method to get the current list of the bot's commands for the given scope and user language.
-// Returns an Array of BotCommand objects. If commands aren't set, an empty list is returned.
+// Returns an Array of [BotCommand](https://core.telegram.org/bots/api/#botcommand) objects.
+// If commands aren't set, an empty list is returned.
 func GetMyCommands(ctx context.Context, opts ...*OptGetMyCommands) ([]*BotCommand, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -1548,7 +2239,7 @@ type OptGetMyCommands struct {
 }
 
 // GetMyDefaultAdministratorRights Use this method to get the current default administrator rights of the bot.
-// Returns ChatAdministratorRights on success.
+// Returns [ChatAdministratorRights](https://core.telegram.org/bots/api/#chatadministratorrights) on success.
 func GetMyDefaultAdministratorRights(ctx context.Context, opts ...*OptGetMyDefaultAdministratorRights) (*ChatAdministratorRights, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -1568,7 +2259,8 @@ type OptGetMyDefaultAdministratorRights struct {
 	ForChannels bool
 }
 
-// GetMyDescription Use this method to get the current bot description for the given user language. Returns BotDescription on success.
+// GetMyDescription Use this method to get the current bot description for the given user language.
+// Returns [BotDescription](https://core.telegram.org/bots/api/#botdescription) on success.
 func GetMyDescription(ctx context.Context, opts ...*OptGetMyDescription) (*BotDescription, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -1588,7 +2280,8 @@ type OptGetMyDescription struct {
 	LanguageCode string
 }
 
-// GetMyName Use this method to get the current bot name for the given user language. Returns BotName on success.
+// GetMyName Use this method to get the current bot name for the given user language.
+// Returns [BotName](https://core.telegram.org/bots/api/#botname) on success.
 func GetMyName(ctx context.Context, opts ...*OptGetMyName) (*BotName, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -1609,7 +2302,7 @@ type OptGetMyName struct {
 }
 
 // GetMyShortDescription Use this method to get the current bot short description for the given user language.
-// Returns BotShortDescription on success.
+// Returns [BotShortDescription](https://core.telegram.org/bots/api/#botshortdescription) on success.
 func GetMyShortDescription(ctx context.Context, opts ...*OptGetMyShortDescription) (*BotShortDescription, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -1629,7 +2322,19 @@ type OptGetMyShortDescription struct {
 	LanguageCode string
 }
 
-// GetStarTransactions Returns the bot's Telegram Star transactions in chronological order. On success, returns a StarTransactions object.
+// GetMyStarBalance A method to get the current Telegram Stars balance of the bot. Requires no parameters.
+// On success, returns a [StarAmount](https://core.telegram.org/bots/api/#staramount) object.
+func GetMyStarBalance(ctx context.Context) (*StarAmount, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+	}
+	request := &Request{}
+	return GenericRequest[Request, *StarAmount](ctx, "getMyStarBalance", request)
+}
+
+// GetStarTransactions Returns the bot's Telegram Star transactions in chronological order.
+// On success, returns a [StarTransactions](https://core.telegram.org/bots/api/#startransactions) object.
 func GetStarTransactions(ctx context.Context, opts ...*OptGetStarTransactions) (*StarTransactions, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -1654,7 +2359,8 @@ type OptGetStarTransactions struct {
 	Limit  int64
 }
 
-// GetStickerSet Use this method to get a sticker set. On success, a StickerSet object is returned.
+// GetStickerSet Use this method to get a sticker set.
+// On success, a [StickerSet](https://core.telegram.org/bots/api/#stickerset) object is returned.
 func GetStickerSet(ctx context.Context, name string) (*StickerSet, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -1667,7 +2373,8 @@ func GetStickerSet(ctx context.Context, name string) (*StickerSet, error) {
 	return GenericRequest[Request, *StickerSet](ctx, "getStickerSet", request)
 }
 
-// GetUpdates Use this method to receive incoming updates using long polling (wiki). Returns an Array of Update objects.
+// GetUpdates Use this method to receive incoming updates using long polling ([wiki](https://en.wikipedia.org/wiki/Push_technology#Long_polling)).
+// Returns an Array of [Update](https://core.telegram.org/bots/api/#update) objects.
 func GetUpdates(ctx context.Context, opts ...*OptGetUpdates) ([]*Update, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -1703,7 +2410,7 @@ type OptGetUpdates struct {
 }
 
 // GetUserChatBoosts Use this method to get the list of boosts added to a chat by a user. Requires administrator rights in the chat.
-// Returns a UserChatBoosts object.
+// Returns a [UserChatBoosts](https://core.telegram.org/bots/api/#userchatboosts) object.
 func GetUserChatBoosts(ctx context.Context, chatId int64, userId int64) (*UserChatBoosts, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -1718,7 +2425,112 @@ func GetUserChatBoosts(ctx context.Context, chatId int64, userId int64) (*UserCh
 	return GenericRequest[Request, *UserChatBoosts](ctx, "getUserChatBoosts", request)
 }
 
-// GetUserProfilePhotos Use this method to get a list of profile pictures for a user. Returns a UserProfilePhotos object.
+// GetUserGifts Returns the gifts owned and hosted by a user.
+// Returns [OwnedGifts](https://core.telegram.org/bots/api/#ownedgifts) on success.
+func GetUserGifts(ctx context.Context, userId int64, opts ...*OptGetUserGifts) (*OwnedGifts, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+		UserId                      int64  `json:"user_id"`
+		ExcludeUnlimited            bool   `json:"exclude_unlimited,omitempty"`
+		ExcludeLimitedUpgradable    bool   `json:"exclude_limited_upgradable,omitempty"`
+		ExcludeLimitedNonUpgradable bool   `json:"exclude_limited_non_upgradable,omitempty"`
+		ExcludeFromBlockchain       bool   `json:"exclude_from_blockchain,omitempty"`
+		ExcludeUnique               bool   `json:"exclude_unique,omitempty"`
+		SortByPrice                 bool   `json:"sort_by_price,omitempty"`
+		Offset                      string `json:"offset,omitempty"`
+		Limit                       int64  `json:"limit,omitempty"`
+	}
+	request := &Request{
+		UserId: userId,
+	}
+	for _, opt := range opts {
+		if opt.ExcludeUnlimited {
+			request.ExcludeUnlimited = opt.ExcludeUnlimited
+		}
+		if opt.ExcludeLimitedUpgradable {
+			request.ExcludeLimitedUpgradable = opt.ExcludeLimitedUpgradable
+		}
+		if opt.ExcludeLimitedNonUpgradable {
+			request.ExcludeLimitedNonUpgradable = opt.ExcludeLimitedNonUpgradable
+		}
+		if opt.ExcludeFromBlockchain {
+			request.ExcludeFromBlockchain = opt.ExcludeFromBlockchain
+		}
+		if opt.ExcludeUnique {
+			request.ExcludeUnique = opt.ExcludeUnique
+		}
+		if opt.SortByPrice {
+			request.SortByPrice = opt.SortByPrice
+		}
+		if opt.Offset != "" {
+			request.Offset = opt.Offset
+		}
+		if opt.Limit != 0 {
+			request.Limit = opt.Limit
+		}
+	}
+	return GenericRequest[Request, *OwnedGifts](ctx, "getUserGifts", request)
+}
+
+type OptGetUserGifts struct {
+	ExcludeUnlimited            bool
+	ExcludeLimitedUpgradable    bool
+	ExcludeLimitedNonUpgradable bool
+	ExcludeFromBlockchain       bool
+	ExcludeUnique               bool
+	SortByPrice                 bool
+	Offset                      string
+	Limit                       int64
+}
+
+// GetUserPersonalChatMessages Use this method to get the last messages from the personal chat (i.e., the chat currently added to their profile) of a given user.
+// On success, an array of [Message](https://core.telegram.org/bots/api/#message) objects is returned.
+func GetUserPersonalChatMessages(ctx context.Context, userId int64, limit int64) ([]*Message, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+		UserId int64 `json:"user_id"`
+		Limit  int64 `json:"limit"`
+	}
+	request := &Request{
+		UserId: userId,
+		Limit:  limit,
+	}
+	return GenericRequest[Request, []*Message](ctx, "getUserPersonalChatMessages", request)
+}
+
+// GetUserProfileAudios Use this method to get a list of profile audios for a user.
+// Returns a [UserProfileAudios](https://core.telegram.org/bots/api/#userprofileaudios) object.
+func GetUserProfileAudios(ctx context.Context, userId int64, opts ...*OptGetUserProfileAudios) (*UserProfileAudios, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+		UserId int64 `json:"user_id"`
+		Offset int64 `json:"offset,omitempty"`
+		Limit  int64 `json:"limit,omitempty"`
+	}
+	request := &Request{
+		UserId: userId,
+	}
+	for _, opt := range opts {
+		if opt.Offset != 0 {
+			request.Offset = opt.Offset
+		}
+		if opt.Limit != 0 {
+			request.Limit = opt.Limit
+		}
+	}
+	return GenericRequest[Request, *UserProfileAudios](ctx, "getUserProfileAudios", request)
+}
+
+type OptGetUserProfileAudios struct {
+	Offset int64
+	Limit  int64
+}
+
+// GetUserProfilePhotos Use this method to get a list of profile pictures for a user.
+// Returns a [UserProfilePhotos](https://core.telegram.org/bots/api/#userprofilephotos) object.
 func GetUserProfilePhotos(ctx context.Context, userId int64, opts ...*OptGetUserProfilePhotos) (*UserProfilePhotos, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -1746,8 +2558,9 @@ type OptGetUserProfilePhotos struct {
 	Limit  int64
 }
 
-// GetWebhookInfo Use this method to get current webhook status. Requires no parameters. On success, returns a WebhookInfo object.
-// If the bot is using getUpdates, will return an object with the url field empty.
+// GetWebhookInfo Use this method to get current webhook status. Requires no parameters.
+// On success, returns a [WebhookInfo](https://core.telegram.org/bots/api/#webhookinfo) object.
+// If the bot is using [getUpdates](https://core.telegram.org/bots/api/#getupdates), will return an object with the *url* field empty.
 func GetWebhookInfo(ctx context.Context) (*WebhookInfo, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -1757,8 +2570,45 @@ func GetWebhookInfo(ctx context.Context) (*WebhookInfo, error) {
 	return GenericRequest[Request, *WebhookInfo](ctx, "getWebhookInfo", request)
 }
 
-// HideGeneralForumTopic Use this method to hide the 'General' topic in a forum supergroup chat. Returns True on success.
-// The bot must be an administrator in the chat for this to work and must have the can_manage_topics administrator rights.
+// GiftPremiumSubscription Gifts a Telegram Premium subscription to the given user. Returns *True* on success.
+func GiftPremiumSubscription(ctx context.Context, userId int64, monthCount int64, starCount int64, opts ...*OptGiftPremiumSubscription) (bool, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+		UserId        int64            `json:"user_id"`
+		MonthCount    int64            `json:"month_count"`
+		StarCount     int64            `json:"star_count"`
+		Text          string           `json:"text,omitempty"`
+		TextParseMode string           `json:"text_parse_mode,omitempty"`
+		TextEntities  []*MessageEntity `json:"text_entities,omitempty"`
+	}
+	request := &Request{
+		UserId:     userId,
+		MonthCount: monthCount,
+		StarCount:  starCount,
+	}
+	for _, opt := range opts {
+		if opt.Text != "" {
+			request.Text = opt.Text
+		}
+		if opt.TextParseMode != "" {
+			request.TextParseMode = opt.TextParseMode
+		}
+		if opt.TextEntities != nil {
+			request.TextEntities = opt.TextEntities
+		}
+	}
+	return GenericRequest[Request, bool](ctx, "giftPremiumSubscription", request)
+}
+
+type OptGiftPremiumSubscription struct {
+	Text          string
+	TextParseMode string
+	TextEntities  []*MessageEntity
+}
+
+// HideGeneralForumTopic Use this method to hide the 'General' topic in a forum supergroup chat. Returns *True* on success.
+// The bot must be an administrator in the chat for this to work and must have the *can\_manage\_topics* administrator rights.
 // The topic will be automatically closed if it was open.
 func HideGeneralForumTopic(ctx context.Context, chatId int64) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
@@ -1772,7 +2622,7 @@ func HideGeneralForumTopic(ctx context.Context, chatId int64) (bool, error) {
 	return GenericRequest[Request, bool](ctx, "hideGeneralForumTopic", request)
 }
 
-// LeaveChat Use this method for your bot to leave a group, supergroup or channel. Returns True on success.
+// LeaveChat Use this method for your bot to leave a group, supergroup or channel. Returns *True* on success.
 func LeaveChat(ctx context.Context, chatId int64) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -1786,9 +2636,9 @@ func LeaveChat(ctx context.Context, chatId int64) (bool, error) {
 }
 
 // LogOut Use this method to log out from the cloud Bot API server before launching the bot locally.
-// You must log out the bot before running it locally, otherwise there is no guarantee that the bot will receive updates.
+// You **must** log out the bot before running it locally, otherwise there is no guarantee that the bot will receive updates.
 // After a successful call, you can immediately log in on a local server, but will not be able to log in back to the cloud Bot API server for 10 minutes.
-// Returns True on success. Requires no parameters.
+// Returns *True* on success. Requires no parameters.
 func LogOut(ctx context.Context) (bool, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -1798,8 +2648,9 @@ func LogOut(ctx context.Context) (bool, error) {
 	return GenericRequest[Request, bool](ctx, "logOut", request)
 }
 
-// PinChatMessage Use this method to add a message to the list of pinned messages in a chat. Returns True on success.
-// If the chat is not a private chat, the bot must be an administrator in the chat for this to work and must have the 'can_pin_messages' administrator right in a supergroup or 'can_edit_messages' administrator right in a channel.
+// PinChatMessage Use this method to add a message to the list of pinned messages in a chat. Returns *True* on success.
+// In private chats and channel direct messages chats, all non-service messages can be pinned.
+// Conversely, the bot must be an administrator with the 'can\_pin\_messages' right or the 'can\_edit\_messages' right to pin messages in groups and channels respectively.
 func PinChatMessage(ctx context.Context, chatId int64, messageId int64, opts ...*OptPinChatMessage) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -1829,30 +2680,86 @@ type OptPinChatMessage struct {
 	DisableNotification  bool
 }
 
-// PromoteChatMember Use this method to promote or demote a user in a supergroup or a channel. Returns True on success.
+// PostStory Posts a story on behalf of a managed business account. Requires the *can\_manage\_stories* business bot right.
+// Returns [Story](https://core.telegram.org/bots/api/#story) on success.
+func PostStory(ctx context.Context, businessConnectionId string, content InputStoryContent, activePeriod int64, opts ...*OptPostStory) (*Story, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId string            `json:"business_connection_id"`
+		Content              InputStoryContent `json:"content"`
+		ActivePeriod         int64             `json:"active_period"`
+		Caption              string            `json:"caption,omitempty"`
+		ParseMode            string            `json:"parse_mode,omitempty"`
+		CaptionEntities      []*MessageEntity  `json:"caption_entities,omitempty"`
+		Areas                []*StoryArea      `json:"areas,omitempty"`
+		PostToChatPage       bool              `json:"post_to_chat_page,omitempty"`
+		ProtectContent       bool              `json:"protect_content,omitempty"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+		Content:              content,
+		ActivePeriod:         activePeriod,
+	}
+	for _, opt := range opts {
+		if opt.Caption != "" {
+			request.Caption = opt.Caption
+		}
+		if opt.ParseMode != "" {
+			request.ParseMode = opt.ParseMode
+		}
+		if opt.CaptionEntities != nil {
+			request.CaptionEntities = opt.CaptionEntities
+		}
+		if opt.Areas != nil {
+			request.Areas = opt.Areas
+		}
+		if opt.PostToChatPage {
+			request.PostToChatPage = opt.PostToChatPage
+		}
+		if opt.ProtectContent {
+			request.ProtectContent = opt.ProtectContent
+		}
+	}
+	return GenericRequest[Request, *Story](ctx, "postStory", request)
+}
+
+type OptPostStory struct {
+	Caption         string
+	ParseMode       string
+	CaptionEntities []*MessageEntity
+	Areas           []*StoryArea
+	PostToChatPage  bool
+	ProtectContent  bool
+}
+
+// PromoteChatMember Use this method to promote or demote a user in a supergroup or a channel. Returns *True* on success.
 // The bot must be an administrator in the chat for this to work and must have the appropriate administrator rights.
-// Pass False for all boolean parameters to demote a user.
+// Pass *False* for all boolean parameters to demote a user.
 func PromoteChatMember(ctx context.Context, chatId int64, userId int64, opts ...*OptPromoteChatMember) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
 	type Request struct {
-		ChatId              int64 `json:"chat_id"`
-		UserId              int64 `json:"user_id"`
-		IsAnonymous         bool  `json:"is_anonymous,omitempty"`
-		CanManageChat       bool  `json:"can_manage_chat,omitempty"`
-		CanDeleteMessages   bool  `json:"can_delete_messages,omitempty"`
-		CanManageVideoChats bool  `json:"can_manage_video_chats,omitempty"`
-		CanRestrictMembers  bool  `json:"can_restrict_members,omitempty"`
-		CanPromoteMembers   bool  `json:"can_promote_members,omitempty"`
-		CanChangeInfo       bool  `json:"can_change_info,omitempty"`
-		CanInviteUsers      bool  `json:"can_invite_users,omitempty"`
-		CanPostStories      bool  `json:"can_post_stories,omitempty"`
-		CanEditStories      bool  `json:"can_edit_stories,omitempty"`
-		CanDeleteStories    bool  `json:"can_delete_stories,omitempty"`
-		CanPostMessages     bool  `json:"can_post_messages,omitempty"`
-		CanEditMessages     bool  `json:"can_edit_messages,omitempty"`
-		CanPinMessages      bool  `json:"can_pin_messages,omitempty"`
-		CanManageTopics     bool  `json:"can_manage_topics,omitempty"`
+		ChatId                  int64 `json:"chat_id"`
+		UserId                  int64 `json:"user_id"`
+		IsAnonymous             bool  `json:"is_anonymous,omitempty"`
+		CanManageChat           bool  `json:"can_manage_chat,omitempty"`
+		CanDeleteMessages       bool  `json:"can_delete_messages,omitempty"`
+		CanManageVideoChats     bool  `json:"can_manage_video_chats,omitempty"`
+		CanRestrictMembers      bool  `json:"can_restrict_members,omitempty"`
+		CanPromoteMembers       bool  `json:"can_promote_members,omitempty"`
+		CanChangeInfo           bool  `json:"can_change_info,omitempty"`
+		CanInviteUsers          bool  `json:"can_invite_users,omitempty"`
+		CanPostStories          bool  `json:"can_post_stories,omitempty"`
+		CanEditStories          bool  `json:"can_edit_stories,omitempty"`
+		CanDeleteStories        bool  `json:"can_delete_stories,omitempty"`
+		CanPostMessages         bool  `json:"can_post_messages,omitempty"`
+		CanEditMessages         bool  `json:"can_edit_messages,omitempty"`
+		CanPinMessages          bool  `json:"can_pin_messages,omitempty"`
+		CanManageTopics         bool  `json:"can_manage_topics,omitempty"`
+		CanManageDirectMessages bool  `json:"can_manage_direct_messages,omitempty"`
+		CanManageTags           bool  `json:"can_manage_tags,omitempty"`
+		CanSendWelcomeMessages  bool  `json:"can_send_welcome_messages,omitempty"`
 	}
 	request := &Request{
 		ChatId: chatId,
@@ -1904,29 +2811,59 @@ func PromoteChatMember(ctx context.Context, chatId int64, userId int64, opts ...
 		if opt.CanManageTopics {
 			request.CanManageTopics = opt.CanManageTopics
 		}
+		if opt.CanManageDirectMessages {
+			request.CanManageDirectMessages = opt.CanManageDirectMessages
+		}
+		if opt.CanManageTags {
+			request.CanManageTags = opt.CanManageTags
+		}
+		if opt.CanSendWelcomeMessages {
+			request.CanSendWelcomeMessages = opt.CanSendWelcomeMessages
+		}
 	}
 	return GenericRequest[Request, bool](ctx, "promoteChatMember", request)
 }
 
 type OptPromoteChatMember struct {
-	IsAnonymous         bool
-	CanManageChat       bool
-	CanDeleteMessages   bool
-	CanManageVideoChats bool
-	CanRestrictMembers  bool
-	CanPromoteMembers   bool
-	CanChangeInfo       bool
-	CanInviteUsers      bool
-	CanPostStories      bool
-	CanEditStories      bool
-	CanDeleteStories    bool
-	CanPostMessages     bool
-	CanEditMessages     bool
-	CanPinMessages      bool
-	CanManageTopics     bool
+	IsAnonymous             bool
+	CanManageChat           bool
+	CanDeleteMessages       bool
+	CanManageVideoChats     bool
+	CanRestrictMembers      bool
+	CanPromoteMembers       bool
+	CanChangeInfo           bool
+	CanInviteUsers          bool
+	CanPostStories          bool
+	CanEditStories          bool
+	CanDeleteStories        bool
+	CanPostMessages         bool
+	CanEditMessages         bool
+	CanPinMessages          bool
+	CanManageTopics         bool
+	CanManageDirectMessages bool
+	CanManageTags           bool
+	CanSendWelcomeMessages  bool
 }
 
-// RefundStarPayment Refunds a successful payment in Telegram Stars. Returns True on success.
+// ReadBusinessMessage Marks incoming message as read on behalf of a business account. Returns *True* on success.
+// Requires the *can\_read\_messages* business bot right.
+func ReadBusinessMessage(ctx context.Context, businessConnectionId string, chatId int64, messageId int64) (bool, error) {
+	ContextSchedule(ctx, chatId, 1)
+	defer ContextScheduleDone(ctx, chatId, 1)
+	type Request struct {
+		BusinessConnectionId string `json:"business_connection_id"`
+		ChatId               int64  `json:"chat_id"`
+		MessageId            int64  `json:"message_id"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+		ChatId:               chatId,
+		MessageId:            messageId,
+	}
+	return GenericRequest[Request, bool](ctx, "readBusinessMessage", request)
+}
+
+// RefundStarPayment Refunds a successful payment in [Telegram Stars](https://t.me/BotNews/90). Returns *True* on success.
 func RefundStarPayment(ctx context.Context, userId int64, telegramPaymentChargeId string) (bool, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -1941,8 +2878,70 @@ func RefundStarPayment(ctx context.Context, userId int64, telegramPaymentChargeI
 	return GenericRequest[Request, bool](ctx, "refundStarPayment", request)
 }
 
-// ReopenForumTopic Use this method to reopen a closed topic in a forum supergroup chat. Returns True on success.
-// The bot must be an administrator in the chat for this to work and must have the can_manage_topics administrator rights, unless it is the creator of the topic.
+// RemoveBusinessAccountProfilePhoto Removes the current profile photo of a managed business account. Returns *True* on success.
+// Requires the *can\_edit\_profile\_photo* business bot right.
+func RemoveBusinessAccountProfilePhoto(ctx context.Context, businessConnectionId string, opts ...*OptRemoveBusinessAccountProfilePhoto) (bool, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId string `json:"business_connection_id"`
+		IsPublic             bool   `json:"is_public,omitempty"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+	}
+	for _, opt := range opts {
+		if opt.IsPublic {
+			request.IsPublic = opt.IsPublic
+		}
+	}
+	return GenericRequest[Request, bool](ctx, "removeBusinessAccountProfilePhoto", request)
+}
+
+type OptRemoveBusinessAccountProfilePhoto struct {
+	IsPublic bool
+}
+
+// RemoveChatVerification Removes verification from a chat that is currently verified [on behalf of the organization](https://telegram.org/verify#third-party-verification) represented by the bot.
+// Returns *True* on success.
+func RemoveChatVerification(ctx context.Context, chatId int64) (bool, error) {
+	ContextSchedule(ctx, chatId, 1)
+	defer ContextScheduleDone(ctx, chatId, 1)
+	type Request struct {
+		ChatId int64 `json:"chat_id"`
+	}
+	request := &Request{
+		ChatId: chatId,
+	}
+	return GenericRequest[Request, bool](ctx, "removeChatVerification", request)
+}
+
+// RemoveMyProfilePhoto Removes the profile photo of the bot. Requires no parameters. Returns *True* on success.
+func RemoveMyProfilePhoto(ctx context.Context) (bool, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+	}
+	request := &Request{}
+	return GenericRequest[Request, bool](ctx, "removeMyProfilePhoto", request)
+}
+
+// RemoveUserVerification Removes verification from a user who is currently verified [on behalf of the organization](https://telegram.org/verify#third-party-verification) represented by the bot.
+// Returns *True* on success.
+func RemoveUserVerification(ctx context.Context, userId int64) (bool, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+		UserId int64 `json:"user_id"`
+	}
+	request := &Request{
+		UserId: userId,
+	}
+	return GenericRequest[Request, bool](ctx, "removeUserVerification", request)
+}
+
+// ReopenForumTopic Use this method to reopen a closed topic in a forum supergroup chat. Returns *True* on success.
+// The bot must be an administrator in the chat for this to work and must have the *can\_manage\_topics* administrator rights, unless it is the creator of the topic.
 func ReopenForumTopic(ctx context.Context, chatId int64, messageThreadId int64) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -1957,8 +2956,8 @@ func ReopenForumTopic(ctx context.Context, chatId int64, messageThreadId int64) 
 	return GenericRequest[Request, bool](ctx, "reopenForumTopic", request)
 }
 
-// ReopenGeneralForumTopic Use this method to reopen a closed 'General' topic in a forum supergroup chat. Returns True on success.
-// The bot must be an administrator in the chat for this to work and must have the can_manage_topics administrator rights.
+// ReopenGeneralForumTopic Use this method to reopen a closed 'General' topic in a forum supergroup chat. Returns *True* on success.
+// The bot must be an administrator in the chat for this to work and must have the *can\_manage\_topics* administrator rights.
 // The topic will be automatically unhidden if it was hidden.
 func ReopenGeneralForumTopic(ctx context.Context, chatId int64) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
@@ -1972,8 +2971,22 @@ func ReopenGeneralForumTopic(ctx context.Context, chatId int64) (bool, error) {
 	return GenericRequest[Request, bool](ctx, "reopenGeneralForumTopic", request)
 }
 
-// ReplaceStickerInSet Use this method to replace an existing sticker in a sticker set with a new one. Returns True on success.
-// The method is equivalent to calling deleteStickerFromSet, then addStickerToSet, then setStickerPositionInSet.
+// ReplaceManagedBotToken Use this method to revoke the current token of a managed bot and generate a new one.
+// Returns the new token as *String* on success.
+func ReplaceManagedBotToken(ctx context.Context, userId int64) (string, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+		UserId int64 `json:"user_id"`
+	}
+	request := &Request{
+		UserId: userId,
+	}
+	return GenericRequest[Request, string](ctx, "replaceManagedBotToken", request)
+}
+
+// ReplaceStickerInSet Use this method to replace an existing sticker in a sticker set with a new one. Returns *True* on success.
+// The method is equivalent to calling [deleteStickerFromSet](https://core.telegram.org/bots/api/#deletestickerfromset), then [addStickerToSet](https://core.telegram.org/bots/api/#addstickertoset), then [setStickerPositionInSet](https://core.telegram.org/bots/api/#setstickerpositioninset).
 func ReplaceStickerInSet(ctx context.Context, userId int64, name string, oldSticker string, sticker *InputSticker) (bool, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -1992,9 +3005,46 @@ func ReplaceStickerInSet(ctx context.Context, userId int64, name string, oldStic
 	return GenericRequest[Request, bool](ctx, "replaceStickerInSet", request)
 }
 
-// RestrictChatMember Use this method to restrict a user in a supergroup. Pass True for all permissions to lift restrictions from a user.
+// RepostStory Reposts a story on behalf of a business account from another business account.
+// Both business accounts must be managed by the same bot, and the story on the source account must have been posted (or reposted) by the bot.
+// Requires the *can\_manage\_stories* business bot right for both business accounts.
+// Returns [Story](https://core.telegram.org/bots/api/#story) on success.
+func RepostStory(ctx context.Context, businessConnectionId string, fromChatId int64, fromStoryId int64, activePeriod int64, opts ...*OptRepostStory) (*Story, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId string `json:"business_connection_id"`
+		FromChatId           int64  `json:"from_chat_id"`
+		FromStoryId          int64  `json:"from_story_id"`
+		ActivePeriod         int64  `json:"active_period"`
+		PostToChatPage       bool   `json:"post_to_chat_page,omitempty"`
+		ProtectContent       bool   `json:"protect_content,omitempty"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+		FromChatId:           fromChatId,
+		FromStoryId:          fromStoryId,
+		ActivePeriod:         activePeriod,
+	}
+	for _, opt := range opts {
+		if opt.PostToChatPage {
+			request.PostToChatPage = opt.PostToChatPage
+		}
+		if opt.ProtectContent {
+			request.ProtectContent = opt.ProtectContent
+		}
+	}
+	return GenericRequest[Request, *Story](ctx, "repostStory", request)
+}
+
+type OptRepostStory struct {
+	PostToChatPage bool
+	ProtectContent bool
+}
+
+// RestrictChatMember Use this method to restrict a user in a supergroup. Pass *True* for all permissions to lift restrictions from a user.
 // The bot must be an administrator in the supergroup for this to work and must have the appropriate administrator rights.
-// Returns True on success.
+// Returns *True* on success.
 func RestrictChatMember(ctx context.Context, chatId int64, userId int64, permissions *ChatPermissions, opts ...*OptRestrictChatMember) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -2029,7 +3079,7 @@ type OptRestrictChatMember struct {
 // RevokeChatInviteLink Use this method to revoke an invite link created by the bot.
 // If the primary link is revoked, a new link is automatically generated.
 // The bot must be an administrator in the chat for this to work and must have the appropriate administrator rights.
-// Returns the revoked invite link as ChatInviteLink object.
+// Returns the revoked invite link as [ChatInviteLink](https://core.telegram.org/bots/api/#chatinvitelink) object.
 func RevokeChatInviteLink(ctx context.Context, chatId int64, inviteLink string) (*ChatInviteLink, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -2044,7 +3094,8 @@ func RevokeChatInviteLink(ctx context.Context, chatId int64, inviteLink string) 
 	return GenericRequest[Request, *ChatInviteLink](ctx, "revokeChatInviteLink", request)
 }
 
-// SavePreparedInlineMessage Stores a message that can be sent by a user of a Mini App. Returns a PreparedInlineMessage object.
+// SavePreparedInlineMessage Stores a message that can be sent by a user of a Mini App.
+// Returns a [PreparedInlineMessage](https://core.telegram.org/bots/api/#preparedinlinemessage) object.
 func SavePreparedInlineMessage(ctx context.Context, userId int64, result InlineQueryResult, opts ...*OptSavePreparedInlineMessage) (*PreparedInlineMessage, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -2084,32 +3135,51 @@ type OptSavePreparedInlineMessage struct {
 	AllowChannelChats bool
 }
 
+// SavePreparedKeyboardButton Stores a keyboard button that can be used by a user within a Mini App.
+// Returns a [PreparedKeyboardButton](https://core.telegram.org/bots/api/#preparedkeyboardbutton) object.
+func SavePreparedKeyboardButton(ctx context.Context, userId int64, button *KeyboardButton) (*PreparedKeyboardButton, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+		UserId int64           `json:"user_id"`
+		Button *KeyboardButton `json:"button"`
+	}
+	request := &Request{
+		UserId: userId,
+		Button: button,
+	}
+	return GenericRequest[Request, *PreparedKeyboardButton](ctx, "savePreparedKeyboardButton", request)
+}
+
 // SendAnimation Use this method to send animation files (GIF or H.264/MPEG-4 AVC video without sound).
-// On success, the sent Message is returned.
+// On success, the sent [Message](https://core.telegram.org/bots/api/#message) is returned.
 // Bots can currently send animation files of up to 50 MB in size, this limit may be changed in the future.
 func SendAnimation(ctx context.Context, chatId int64, animation InputFile, opts ...*OptSendAnimation) (*Message, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
 	type Request struct {
-		BusinessConnectionId  string                                                                      `json:"business_connection_id,omitempty"`
-		ChatId                int64                                                                       `json:"chat_id"`
-		MessageThreadId       int64                                                                       `json:"message_thread_id,omitempty"`
-		Animation             InputFile                                                                   `json:"animation"`
-		Duration              int64                                                                       `json:"duration,omitempty"`
-		Width                 int64                                                                       `json:"width,omitempty"`
-		Height                int64                                                                       `json:"height,omitempty"`
-		Thumbnail             InputFile                                                                   `json:"thumbnail,omitempty"`
-		Caption               string                                                                      `json:"caption,omitempty"`
-		ParseMode             string                                                                      `json:"parse_mode,omitempty"`
-		CaptionEntities       []*MessageEntity                                                            `json:"caption_entities,omitempty"`
-		ShowCaptionAboveMedia bool                                                                        `json:"show_caption_above_media,omitempty"`
-		HasSpoiler            bool                                                                        `json:"has_spoiler,omitempty"`
-		DisableNotification   bool                                                                        `json:"disable_notification,omitempty"`
-		ProtectContent        bool                                                                        `json:"protect_content,omitempty"`
-		AllowPaidBroadcast    bool                                                                        `json:"allow_paid_broadcast,omitempty"`
-		MessageEffectId       string                                                                      `json:"message_effect_id,omitempty"`
-		ReplyParameters       *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
-		ReplyMarkup           VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
+		BusinessConnectionId       string                                                                      `json:"business_connection_id,omitempty"`
+		ChatId                     int64                                                                       `json:"chat_id"`
+		MessageThreadId            int64                                                                       `json:"message_thread_id,omitempty"`
+		DirectMessagesTopicId      int64                                                                       `json:"direct_messages_topic_id,omitempty"`
+		Animation                  InputFile                                                                   `json:"animation"`
+		Duration                   int64                                                                       `json:"duration,omitempty"`
+		Width                      int64                                                                       `json:"width,omitempty"`
+		Height                     int64                                                                       `json:"height,omitempty"`
+		Thumbnail                  InputFile                                                                   `json:"thumbnail,omitempty"`
+		Caption                    string                                                                      `json:"caption,omitempty"`
+		ParseMode                  string                                                                      `json:"parse_mode,omitempty"`
+		CaptionEntities            []*MessageEntity                                                            `json:"caption_entities,omitempty"`
+		ShowCaptionAboveMedia      bool                                                                        `json:"show_caption_above_media,omitempty"`
+		HasSpoiler                 bool                                                                        `json:"has_spoiler,omitempty"`
+		DisableNotification        bool                                                                        `json:"disable_notification,omitempty"`
+		ProtectContent             bool                                                                        `json:"protect_content,omitempty"`
+		AllowPaidBroadcast         bool                                                                        `json:"allow_paid_broadcast,omitempty"`
+		MessageEffectId            string                                                                      `json:"message_effect_id,omitempty"`
+		SuggestedPostParameters    *SuggestedPostParameters                                                    `json:"suggested_post_parameters,omitempty"`
+		ReplyParameters            *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
+		ReplyMarkup                VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
+		EphemeralMessageParameters *EphemeralMessageParameters                                                 `json:"ephemeral_message_parameters,omitempty"`
 	}
 	request := &Request{
 		ChatId:    chatId,
@@ -2121,6 +3191,9 @@ func SendAnimation(ctx context.Context, chatId int64, animation InputFile, opts 
 		}
 		if opt.MessageThreadId != 0 {
 			request.MessageThreadId = opt.MessageThreadId
+		}
+		if opt.DirectMessagesTopicId != 0 {
+			request.DirectMessagesTopicId = opt.DirectMessagesTopicId
 		}
 		if opt.Duration != 0 {
 			request.Duration = opt.Duration
@@ -2161,59 +3234,71 @@ func SendAnimation(ctx context.Context, chatId int64, animation InputFile, opts 
 		if opt.MessageEffectId != "" {
 			request.MessageEffectId = opt.MessageEffectId
 		}
+		if opt.SuggestedPostParameters != nil {
+			request.SuggestedPostParameters = opt.SuggestedPostParameters
+		}
 		if opt.ReplyParameters != nil {
 			request.ReplyParameters = opt.ReplyParameters
 		}
 		if opt.ReplyMarkup != nil {
 			request.ReplyMarkup = opt.ReplyMarkup
 		}
+		if opt.EphemeralMessageParameters != nil {
+			request.EphemeralMessageParameters = opt.EphemeralMessageParameters
+		}
 	}
 	return GenericRequestMultipart[Request, *Message](ctx, "sendAnimation", request)
 }
 
 type OptSendAnimation struct {
-	BusinessConnectionId  string
-	MessageThreadId       int64
-	Duration              int64
-	Width                 int64
-	Height                int64
-	Thumbnail             InputFile
-	Caption               string
-	ParseMode             string
-	CaptionEntities       []*MessageEntity
-	ShowCaptionAboveMedia bool
-	HasSpoiler            bool
-	DisableNotification   bool
-	ProtectContent        bool
-	AllowPaidBroadcast    bool
-	MessageEffectId       string
-	ReplyParameters       *ReplyParameters
-	ReplyMarkup           VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
+	BusinessConnectionId       string
+	MessageThreadId            int64
+	DirectMessagesTopicId      int64
+	Duration                   int64
+	Width                      int64
+	Height                     int64
+	Thumbnail                  InputFile
+	Caption                    string
+	ParseMode                  string
+	CaptionEntities            []*MessageEntity
+	ShowCaptionAboveMedia      bool
+	HasSpoiler                 bool
+	DisableNotification        bool
+	ProtectContent             bool
+	AllowPaidBroadcast         bool
+	MessageEffectId            string
+	SuggestedPostParameters    *SuggestedPostParameters
+	ReplyParameters            *ReplyParameters
+	ReplyMarkup                VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
+	EphemeralMessageParameters *EphemeralMessageParameters
 }
 
-// SendAudio Use this method to send audio files, if you want Telegram clients to display them in the music player. Your audio must be in the .MP3 or .M4A format. On success, the sent Message is returned. Bots can currently send audio files of up to 50 MB in size, this limit may be changed in the future.
-// For sending voice messages, use the sendVoice method instead.
+// SendAudio Use this method to send audio files, if you want Telegram clients to display them in the music player. Your audio must be in the .MP3 or .M4A format. On success, the sent [Message](https://core.telegram.org/bots/api/#message) is returned. Bots can currently send audio files of up to 50 MB in size, this limit may be changed in the future.
+// For sending voice messages, use the [sendVoice](https://core.telegram.org/bots/api/#sendvoice) method instead.
 func SendAudio(ctx context.Context, chatId int64, audio InputFile, opts ...*OptSendAudio) (*Message, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
 	type Request struct {
-		BusinessConnectionId string                                                                      `json:"business_connection_id,omitempty"`
-		ChatId               int64                                                                       `json:"chat_id"`
-		MessageThreadId      int64                                                                       `json:"message_thread_id,omitempty"`
-		Audio                InputFile                                                                   `json:"audio"`
-		Caption              string                                                                      `json:"caption,omitempty"`
-		ParseMode            string                                                                      `json:"parse_mode,omitempty"`
-		CaptionEntities      []*MessageEntity                                                            `json:"caption_entities,omitempty"`
-		Duration             int64                                                                       `json:"duration,omitempty"`
-		Performer            string                                                                      `json:"performer,omitempty"`
-		Title                string                                                                      `json:"title,omitempty"`
-		Thumbnail            InputFile                                                                   `json:"thumbnail,omitempty"`
-		DisableNotification  bool                                                                        `json:"disable_notification,omitempty"`
-		ProtectContent       bool                                                                        `json:"protect_content,omitempty"`
-		AllowPaidBroadcast   bool                                                                        `json:"allow_paid_broadcast,omitempty"`
-		MessageEffectId      string                                                                      `json:"message_effect_id,omitempty"`
-		ReplyParameters      *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
-		ReplyMarkup          VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
+		BusinessConnectionId       string                                                                      `json:"business_connection_id,omitempty"`
+		ChatId                     int64                                                                       `json:"chat_id"`
+		MessageThreadId            int64                                                                       `json:"message_thread_id,omitempty"`
+		DirectMessagesTopicId      int64                                                                       `json:"direct_messages_topic_id,omitempty"`
+		Audio                      InputFile                                                                   `json:"audio"`
+		Caption                    string                                                                      `json:"caption,omitempty"`
+		ParseMode                  string                                                                      `json:"parse_mode,omitempty"`
+		CaptionEntities            []*MessageEntity                                                            `json:"caption_entities,omitempty"`
+		Duration                   int64                                                                       `json:"duration,omitempty"`
+		Performer                  string                                                                      `json:"performer,omitempty"`
+		Title                      string                                                                      `json:"title,omitempty"`
+		Thumbnail                  InputFile                                                                   `json:"thumbnail,omitempty"`
+		DisableNotification        bool                                                                        `json:"disable_notification,omitempty"`
+		ProtectContent             bool                                                                        `json:"protect_content,omitempty"`
+		AllowPaidBroadcast         bool                                                                        `json:"allow_paid_broadcast,omitempty"`
+		MessageEffectId            string                                                                      `json:"message_effect_id,omitempty"`
+		SuggestedPostParameters    *SuggestedPostParameters                                                    `json:"suggested_post_parameters,omitempty"`
+		ReplyParameters            *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
+		ReplyMarkup                VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
+		EphemeralMessageParameters *EphemeralMessageParameters                                                 `json:"ephemeral_message_parameters,omitempty"`
 	}
 	request := &Request{
 		ChatId: chatId,
@@ -2225,6 +3310,9 @@ func SendAudio(ctx context.Context, chatId int64, audio InputFile, opts ...*OptS
 		}
 		if opt.MessageThreadId != 0 {
 			request.MessageThreadId = opt.MessageThreadId
+		}
+		if opt.DirectMessagesTopicId != 0 {
+			request.DirectMessagesTopicId = opt.DirectMessagesTopicId
 		}
 		if opt.Caption != "" {
 			request.Caption = opt.Caption
@@ -2259,284 +3347,41 @@ func SendAudio(ctx context.Context, chatId int64, audio InputFile, opts ...*OptS
 		if opt.MessageEffectId != "" {
 			request.MessageEffectId = opt.MessageEffectId
 		}
+		if opt.SuggestedPostParameters != nil {
+			request.SuggestedPostParameters = opt.SuggestedPostParameters
+		}
 		if opt.ReplyParameters != nil {
 			request.ReplyParameters = opt.ReplyParameters
 		}
 		if opt.ReplyMarkup != nil {
 			request.ReplyMarkup = opt.ReplyMarkup
+		}
+		if opt.EphemeralMessageParameters != nil {
+			request.EphemeralMessageParameters = opt.EphemeralMessageParameters
 		}
 	}
 	return GenericRequestMultipart[Request, *Message](ctx, "sendAudio", request)
 }
 
 type OptSendAudio struct {
-	BusinessConnectionId string
-	MessageThreadId      int64
-	Caption              string
-	ParseMode            string
-	CaptionEntities      []*MessageEntity
-	Duration             int64
-	Performer            string
-	Title                string
-	Thumbnail            InputFile
-	DisableNotification  bool
-	ProtectContent       bool
-	AllowPaidBroadcast   bool
-	MessageEffectId      string
-	ReplyParameters      *ReplyParameters
-	ReplyMarkup          VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
-}
-
-// SendChatAction Use this method when you need to tell the user that something is happening on the bot's side. The status is set for 5 seconds or less (when a message arrives from your bot, Telegram clients clear its typing status). Returns True on success.
-// We only recommend using this method when a response from the bot will take a noticeable amount of time to arrive.
-func SendChatAction(ctx context.Context, chatId int64, action string, opts ...*OptSendChatAction) (bool, error) {
-	ContextSchedule(ctx, chatId, 1)
-	defer ContextScheduleDone(ctx, chatId, 1)
-	type Request struct {
-		BusinessConnectionId string `json:"business_connection_id,omitempty"`
-		ChatId               int64  `json:"chat_id"`
-		MessageThreadId      int64  `json:"message_thread_id,omitempty"`
-		Action               string `json:"action"`
-	}
-	request := &Request{
-		ChatId: chatId,
-		Action: action,
-	}
-	for _, opt := range opts {
-		if opt.BusinessConnectionId != "" {
-			request.BusinessConnectionId = opt.BusinessConnectionId
-		}
-		if opt.MessageThreadId != 0 {
-			request.MessageThreadId = opt.MessageThreadId
-		}
-	}
-	return GenericRequest[Request, bool](ctx, "sendChatAction", request)
-}
-
-type OptSendChatAction struct {
-	BusinessConnectionId string
-	MessageThreadId      int64
-}
-
-// SendContact Use this method to send phone contacts. On success, the sent Message is returned.
-func SendContact(ctx context.Context, chatId int64, phoneNumber string, firstName string, opts ...*OptSendContact) (*Message, error) {
-	ContextSchedule(ctx, chatId, 1)
-	defer ContextScheduleDone(ctx, chatId, 1)
-	type Request struct {
-		BusinessConnectionId string                                                                      `json:"business_connection_id,omitempty"`
-		ChatId               int64                                                                       `json:"chat_id"`
-		MessageThreadId      int64                                                                       `json:"message_thread_id,omitempty"`
-		PhoneNumber          string                                                                      `json:"phone_number"`
-		FirstName            string                                                                      `json:"first_name"`
-		LastName             string                                                                      `json:"last_name,omitempty"`
-		Vcard                string                                                                      `json:"vcard,omitempty"`
-		DisableNotification  bool                                                                        `json:"disable_notification,omitempty"`
-		ProtectContent       bool                                                                        `json:"protect_content,omitempty"`
-		AllowPaidBroadcast   bool                                                                        `json:"allow_paid_broadcast,omitempty"`
-		MessageEffectId      string                                                                      `json:"message_effect_id,omitempty"`
-		ReplyParameters      *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
-		ReplyMarkup          VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
-	}
-	request := &Request{
-		ChatId:      chatId,
-		PhoneNumber: phoneNumber,
-		FirstName:   firstName,
-	}
-	for _, opt := range opts {
-		if opt.BusinessConnectionId != "" {
-			request.BusinessConnectionId = opt.BusinessConnectionId
-		}
-		if opt.MessageThreadId != 0 {
-			request.MessageThreadId = opt.MessageThreadId
-		}
-		if opt.LastName != "" {
-			request.LastName = opt.LastName
-		}
-		if opt.Vcard != "" {
-			request.Vcard = opt.Vcard
-		}
-		if opt.DisableNotification {
-			request.DisableNotification = opt.DisableNotification
-		}
-		if opt.ProtectContent {
-			request.ProtectContent = opt.ProtectContent
-		}
-		if opt.AllowPaidBroadcast {
-			request.AllowPaidBroadcast = opt.AllowPaidBroadcast
-		}
-		if opt.MessageEffectId != "" {
-			request.MessageEffectId = opt.MessageEffectId
-		}
-		if opt.ReplyParameters != nil {
-			request.ReplyParameters = opt.ReplyParameters
-		}
-		if opt.ReplyMarkup != nil {
-			request.ReplyMarkup = opt.ReplyMarkup
-		}
-	}
-	return GenericRequest[Request, *Message](ctx, "sendContact", request)
-}
-
-type OptSendContact struct {
-	BusinessConnectionId string
-	MessageThreadId      int64
-	LastName             string
-	Vcard                string
-	DisableNotification  bool
-	ProtectContent       bool
-	AllowPaidBroadcast   bool
-	MessageEffectId      string
-	ReplyParameters      *ReplyParameters
-	ReplyMarkup          VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
-}
-
-// SendDice Use this method to send an animated emoji that will display a random value. On success, the sent Message is returned.
-func SendDice(ctx context.Context, chatId int64, opts ...*OptSendDice) (*Message, error) {
-	ContextSchedule(ctx, chatId, 1)
-	defer ContextScheduleDone(ctx, chatId, 1)
-	type Request struct {
-		BusinessConnectionId string                                                                      `json:"business_connection_id,omitempty"`
-		ChatId               int64                                                                       `json:"chat_id"`
-		MessageThreadId      int64                                                                       `json:"message_thread_id,omitempty"`
-		Emoji                string                                                                      `json:"emoji,omitempty"`
-		DisableNotification  bool                                                                        `json:"disable_notification,omitempty"`
-		ProtectContent       bool                                                                        `json:"protect_content,omitempty"`
-		AllowPaidBroadcast   bool                                                                        `json:"allow_paid_broadcast,omitempty"`
-		MessageEffectId      string                                                                      `json:"message_effect_id,omitempty"`
-		ReplyParameters      *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
-		ReplyMarkup          VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
-	}
-	request := &Request{
-		ChatId: chatId,
-	}
-	for _, opt := range opts {
-		if opt.BusinessConnectionId != "" {
-			request.BusinessConnectionId = opt.BusinessConnectionId
-		}
-		if opt.MessageThreadId != 0 {
-			request.MessageThreadId = opt.MessageThreadId
-		}
-		if opt.Emoji != "" {
-			request.Emoji = opt.Emoji
-		}
-		if opt.DisableNotification {
-			request.DisableNotification = opt.DisableNotification
-		}
-		if opt.ProtectContent {
-			request.ProtectContent = opt.ProtectContent
-		}
-		if opt.AllowPaidBroadcast {
-			request.AllowPaidBroadcast = opt.AllowPaidBroadcast
-		}
-		if opt.MessageEffectId != "" {
-			request.MessageEffectId = opt.MessageEffectId
-		}
-		if opt.ReplyParameters != nil {
-			request.ReplyParameters = opt.ReplyParameters
-		}
-		if opt.ReplyMarkup != nil {
-			request.ReplyMarkup = opt.ReplyMarkup
-		}
-	}
-	return GenericRequest[Request, *Message](ctx, "sendDice", request)
-}
-
-type OptSendDice struct {
-	BusinessConnectionId string
-	MessageThreadId      int64
-	Emoji                string
-	DisableNotification  bool
-	ProtectContent       bool
-	AllowPaidBroadcast   bool
-	MessageEffectId      string
-	ReplyParameters      *ReplyParameters
-	ReplyMarkup          VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
-}
-
-// SendDocument Use this method to send general files. On success, the sent Message is returned.
-// Bots can currently send files of any type of up to 50 MB in size, this limit may be changed in the future.
-func SendDocument(ctx context.Context, chatId int64, document InputFile, opts ...*OptSendDocument) (*Message, error) {
-	ContextSchedule(ctx, chatId, 1)
-	defer ContextScheduleDone(ctx, chatId, 1)
-	type Request struct {
-		BusinessConnectionId        string                                                                      `json:"business_connection_id,omitempty"`
-		ChatId                      int64                                                                       `json:"chat_id"`
-		MessageThreadId             int64                                                                       `json:"message_thread_id,omitempty"`
-		Document                    InputFile                                                                   `json:"document"`
-		Thumbnail                   InputFile                                                                   `json:"thumbnail,omitempty"`
-		Caption                     string                                                                      `json:"caption,omitempty"`
-		ParseMode                   string                                                                      `json:"parse_mode,omitempty"`
-		CaptionEntities             []*MessageEntity                                                            `json:"caption_entities,omitempty"`
-		DisableContentTypeDetection bool                                                                        `json:"disable_content_type_detection,omitempty"`
-		DisableNotification         bool                                                                        `json:"disable_notification,omitempty"`
-		ProtectContent              bool                                                                        `json:"protect_content,omitempty"`
-		AllowPaidBroadcast          bool                                                                        `json:"allow_paid_broadcast,omitempty"`
-		MessageEffectId             string                                                                      `json:"message_effect_id,omitempty"`
-		ReplyParameters             *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
-		ReplyMarkup                 VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
-	}
-	request := &Request{
-		ChatId:   chatId,
-		Document: document,
-	}
-	for _, opt := range opts {
-		if opt.BusinessConnectionId != "" {
-			request.BusinessConnectionId = opt.BusinessConnectionId
-		}
-		if opt.MessageThreadId != 0 {
-			request.MessageThreadId = opt.MessageThreadId
-		}
-		if opt.Thumbnail != nil {
-			request.Thumbnail = opt.Thumbnail
-		}
-		if opt.Caption != "" {
-			request.Caption = opt.Caption
-		}
-		if opt.ParseMode != "" {
-			request.ParseMode = opt.ParseMode
-		}
-		if opt.CaptionEntities != nil {
-			request.CaptionEntities = opt.CaptionEntities
-		}
-		if opt.DisableContentTypeDetection {
-			request.DisableContentTypeDetection = opt.DisableContentTypeDetection
-		}
-		if opt.DisableNotification {
-			request.DisableNotification = opt.DisableNotification
-		}
-		if opt.ProtectContent {
-			request.ProtectContent = opt.ProtectContent
-		}
-		if opt.AllowPaidBroadcast {
-			request.AllowPaidBroadcast = opt.AllowPaidBroadcast
-		}
-		if opt.MessageEffectId != "" {
-			request.MessageEffectId = opt.MessageEffectId
-		}
-		if opt.ReplyParameters != nil {
-			request.ReplyParameters = opt.ReplyParameters
-		}
-		if opt.ReplyMarkup != nil {
-			request.ReplyMarkup = opt.ReplyMarkup
-		}
-	}
-	return GenericRequestMultipart[Request, *Message](ctx, "sendDocument", request)
-}
-
-type OptSendDocument struct {
-	BusinessConnectionId        string
-	MessageThreadId             int64
-	Thumbnail                   InputFile
-	Caption                     string
-	ParseMode                   string
-	CaptionEntities             []*MessageEntity
-	DisableContentTypeDetection bool
-	DisableNotification         bool
-	ProtectContent              bool
-	AllowPaidBroadcast          bool
-	MessageEffectId             string
-	ReplyParameters             *ReplyParameters
-	ReplyMarkup                 VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
+	BusinessConnectionId       string
+	MessageThreadId            int64
+	DirectMessagesTopicId      int64
+	Caption                    string
+	ParseMode                  string
+	CaptionEntities            []*MessageEntity
+	Duration                   int64
+	Performer                  string
+	Title                      string
+	Thumbnail                  InputFile
+	DisableNotification        bool
+	ProtectContent             bool
+	AllowPaidBroadcast         bool
+	MessageEffectId            string
+	SuggestedPostParameters    *SuggestedPostParameters
+	ReplyParameters            *ReplyParameters
+	ReplyMarkup                VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
+	EphemeralMessageParameters *EphemeralMessageParameters
 }
 
 type VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply interface {
@@ -2605,7 +3450,369 @@ func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeybo
 	return impl
 }
 
-// SendGame Use this method to send a game. On success, the sent Message is returned.
+// SendChatAction Use this method when you need to tell the user that something is happening on the bot's side. The status is set for 5 seconds or less (when a message arrives from your bot, Telegram clients clear its typing status). Returns *True* on success.
+// Example: The [ImageBot](https://t.me/imagebot) needs some time to process a request and upload the image. Instead of sending a text message along the lines of “Retrieving image, please wait…”, the bot may use [sendChatAction](https://core.telegram.org/bots/api/#sendchataction) with *action* = *upload\_photo*. The user will see a “sending photo” status for the bot.
+// We only recommend using this method when a response from the bot will take a **noticeable** amount of time to arrive.
+func SendChatAction(ctx context.Context, chatId int64, action string, opts ...*OptSendChatAction) (bool, error) {
+	ContextSchedule(ctx, chatId, 1)
+	defer ContextScheduleDone(ctx, chatId, 1)
+	type Request struct {
+		BusinessConnectionId string `json:"business_connection_id,omitempty"`
+		ChatId               int64  `json:"chat_id"`
+		MessageThreadId      int64  `json:"message_thread_id,omitempty"`
+		Action               string `json:"action"`
+	}
+	request := &Request{
+		ChatId: chatId,
+		Action: action,
+	}
+	for _, opt := range opts {
+		if opt.BusinessConnectionId != "" {
+			request.BusinessConnectionId = opt.BusinessConnectionId
+		}
+		if opt.MessageThreadId != 0 {
+			request.MessageThreadId = opt.MessageThreadId
+		}
+	}
+	return GenericRequest[Request, bool](ctx, "sendChatAction", request)
+}
+
+type OptSendChatAction struct {
+	BusinessConnectionId string
+	MessageThreadId      int64
+}
+
+// SendChatJoinRequestWebApp Use this method to process a received chat join request query by showing a Mini App to the user before deciding the outcome.
+// Call answerChatJoinRequestQuery to resolve the join request query based on the user interaction with the Mini App.
+// Returns True on success.
+func SendChatJoinRequestWebApp(ctx context.Context, chatJoinRequestQueryId string, webAppUrl string) (bool, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+		ChatJoinRequestQueryId string `json:"chat_join_request_query_id"`
+		WebAppUrl              string `json:"web_app_url"`
+	}
+	request := &Request{
+		ChatJoinRequestQueryId: chatJoinRequestQueryId,
+		WebAppUrl:              webAppUrl,
+	}
+	return GenericRequest[Request, bool](ctx, "sendChatJoinRequestWebApp", request)
+}
+
+// SendChecklist Use this method to send a checklist on behalf of a connected business account.
+// On success, the sent [Message](https://core.telegram.org/bots/api/#message) is returned.
+func SendChecklist(ctx context.Context, businessConnectionId string, chatId int64, checklist *InputChecklist, opts ...*OptSendChecklist) (*Message, error) {
+	ContextSchedule(ctx, chatId, 1)
+	defer ContextScheduleDone(ctx, chatId, 1)
+	type Request struct {
+		BusinessConnectionId string                `json:"business_connection_id"`
+		ChatId               int64                 `json:"chat_id"`
+		Checklist            *InputChecklist       `json:"checklist"`
+		DisableNotification  bool                  `json:"disable_notification,omitempty"`
+		ProtectContent       bool                  `json:"protect_content,omitempty"`
+		MessageEffectId      string                `json:"message_effect_id,omitempty"`
+		ReplyParameters      *ReplyParameters      `json:"reply_parameters,omitempty"`
+		ReplyMarkup          *InlineKeyboardMarkup `json:"reply_markup,omitempty"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+		ChatId:               chatId,
+		Checklist:            checklist,
+	}
+	for _, opt := range opts {
+		if opt.DisableNotification {
+			request.DisableNotification = opt.DisableNotification
+		}
+		if opt.ProtectContent {
+			request.ProtectContent = opt.ProtectContent
+		}
+		if opt.MessageEffectId != "" {
+			request.MessageEffectId = opt.MessageEffectId
+		}
+		if opt.ReplyParameters != nil {
+			request.ReplyParameters = opt.ReplyParameters
+		}
+		if opt.ReplyMarkup != nil {
+			request.ReplyMarkup = opt.ReplyMarkup
+		}
+	}
+	return GenericRequest[Request, *Message](ctx, "sendChecklist", request)
+}
+
+type OptSendChecklist struct {
+	DisableNotification bool
+	ProtectContent      bool
+	MessageEffectId     string
+	ReplyParameters     *ReplyParameters
+	ReplyMarkup         *InlineKeyboardMarkup
+}
+
+// SendContact Use this method to send phone contacts.
+// On success, the sent [Message](https://core.telegram.org/bots/api/#message) is returned.
+func SendContact(ctx context.Context, chatId int64, phoneNumber string, firstName string, opts ...*OptSendContact) (*Message, error) {
+	ContextSchedule(ctx, chatId, 1)
+	defer ContextScheduleDone(ctx, chatId, 1)
+	type Request struct {
+		BusinessConnectionId       string                                                                      `json:"business_connection_id,omitempty"`
+		ChatId                     int64                                                                       `json:"chat_id"`
+		MessageThreadId            int64                                                                       `json:"message_thread_id,omitempty"`
+		DirectMessagesTopicId      int64                                                                       `json:"direct_messages_topic_id,omitempty"`
+		PhoneNumber                string                                                                      `json:"phone_number"`
+		FirstName                  string                                                                      `json:"first_name"`
+		LastName                   string                                                                      `json:"last_name,omitempty"`
+		Vcard                      string                                                                      `json:"vcard,omitempty"`
+		DisableNotification        bool                                                                        `json:"disable_notification,omitempty"`
+		ProtectContent             bool                                                                        `json:"protect_content,omitempty"`
+		AllowPaidBroadcast         bool                                                                        `json:"allow_paid_broadcast,omitempty"`
+		MessageEffectId            string                                                                      `json:"message_effect_id,omitempty"`
+		SuggestedPostParameters    *SuggestedPostParameters                                                    `json:"suggested_post_parameters,omitempty"`
+		ReplyParameters            *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
+		ReplyMarkup                VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
+		EphemeralMessageParameters *EphemeralMessageParameters                                                 `json:"ephemeral_message_parameters,omitempty"`
+	}
+	request := &Request{
+		ChatId:      chatId,
+		PhoneNumber: phoneNumber,
+		FirstName:   firstName,
+	}
+	for _, opt := range opts {
+		if opt.BusinessConnectionId != "" {
+			request.BusinessConnectionId = opt.BusinessConnectionId
+		}
+		if opt.MessageThreadId != 0 {
+			request.MessageThreadId = opt.MessageThreadId
+		}
+		if opt.DirectMessagesTopicId != 0 {
+			request.DirectMessagesTopicId = opt.DirectMessagesTopicId
+		}
+		if opt.LastName != "" {
+			request.LastName = opt.LastName
+		}
+		if opt.Vcard != "" {
+			request.Vcard = opt.Vcard
+		}
+		if opt.DisableNotification {
+			request.DisableNotification = opt.DisableNotification
+		}
+		if opt.ProtectContent {
+			request.ProtectContent = opt.ProtectContent
+		}
+		if opt.AllowPaidBroadcast {
+			request.AllowPaidBroadcast = opt.AllowPaidBroadcast
+		}
+		if opt.MessageEffectId != "" {
+			request.MessageEffectId = opt.MessageEffectId
+		}
+		if opt.SuggestedPostParameters != nil {
+			request.SuggestedPostParameters = opt.SuggestedPostParameters
+		}
+		if opt.ReplyParameters != nil {
+			request.ReplyParameters = opt.ReplyParameters
+		}
+		if opt.ReplyMarkup != nil {
+			request.ReplyMarkup = opt.ReplyMarkup
+		}
+		if opt.EphemeralMessageParameters != nil {
+			request.EphemeralMessageParameters = opt.EphemeralMessageParameters
+		}
+	}
+	return GenericRequest[Request, *Message](ctx, "sendContact", request)
+}
+
+type OptSendContact struct {
+	BusinessConnectionId       string
+	MessageThreadId            int64
+	DirectMessagesTopicId      int64
+	LastName                   string
+	Vcard                      string
+	DisableNotification        bool
+	ProtectContent             bool
+	AllowPaidBroadcast         bool
+	MessageEffectId            string
+	SuggestedPostParameters    *SuggestedPostParameters
+	ReplyParameters            *ReplyParameters
+	ReplyMarkup                VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
+	EphemeralMessageParameters *EphemeralMessageParameters
+}
+
+// SendDice Use this method to send an animated emoji that will display a random value.
+// On success, the sent [Message](https://core.telegram.org/bots/api/#message) is returned.
+func SendDice(ctx context.Context, chatId int64, opts ...*OptSendDice) (*Message, error) {
+	ContextSchedule(ctx, chatId, 1)
+	defer ContextScheduleDone(ctx, chatId, 1)
+	type Request struct {
+		BusinessConnectionId    string                                                                      `json:"business_connection_id,omitempty"`
+		ChatId                  int64                                                                       `json:"chat_id"`
+		MessageThreadId         int64                                                                       `json:"message_thread_id,omitempty"`
+		DirectMessagesTopicId   int64                                                                       `json:"direct_messages_topic_id,omitempty"`
+		Emoji                   string                                                                      `json:"emoji,omitempty"`
+		DisableNotification     bool                                                                        `json:"disable_notification,omitempty"`
+		ProtectContent          bool                                                                        `json:"protect_content,omitempty"`
+		AllowPaidBroadcast      bool                                                                        `json:"allow_paid_broadcast,omitempty"`
+		MessageEffectId         string                                                                      `json:"message_effect_id,omitempty"`
+		SuggestedPostParameters *SuggestedPostParameters                                                    `json:"suggested_post_parameters,omitempty"`
+		ReplyParameters         *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
+		ReplyMarkup             VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
+	}
+	request := &Request{
+		ChatId: chatId,
+	}
+	for _, opt := range opts {
+		if opt.BusinessConnectionId != "" {
+			request.BusinessConnectionId = opt.BusinessConnectionId
+		}
+		if opt.MessageThreadId != 0 {
+			request.MessageThreadId = opt.MessageThreadId
+		}
+		if opt.DirectMessagesTopicId != 0 {
+			request.DirectMessagesTopicId = opt.DirectMessagesTopicId
+		}
+		if opt.Emoji != "" {
+			request.Emoji = opt.Emoji
+		}
+		if opt.DisableNotification {
+			request.DisableNotification = opt.DisableNotification
+		}
+		if opt.ProtectContent {
+			request.ProtectContent = opt.ProtectContent
+		}
+		if opt.AllowPaidBroadcast {
+			request.AllowPaidBroadcast = opt.AllowPaidBroadcast
+		}
+		if opt.MessageEffectId != "" {
+			request.MessageEffectId = opt.MessageEffectId
+		}
+		if opt.SuggestedPostParameters != nil {
+			request.SuggestedPostParameters = opt.SuggestedPostParameters
+		}
+		if opt.ReplyParameters != nil {
+			request.ReplyParameters = opt.ReplyParameters
+		}
+		if opt.ReplyMarkup != nil {
+			request.ReplyMarkup = opt.ReplyMarkup
+		}
+	}
+	return GenericRequest[Request, *Message](ctx, "sendDice", request)
+}
+
+type OptSendDice struct {
+	BusinessConnectionId    string
+	MessageThreadId         int64
+	DirectMessagesTopicId   int64
+	Emoji                   string
+	DisableNotification     bool
+	ProtectContent          bool
+	AllowPaidBroadcast      bool
+	MessageEffectId         string
+	SuggestedPostParameters *SuggestedPostParameters
+	ReplyParameters         *ReplyParameters
+	ReplyMarkup             VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
+}
+
+// SendDocument Use this method to send general files.
+// On success, the sent [Message](https://core.telegram.org/bots/api/#message) is returned.
+// Bots can currently send files of any type of up to 50 MB in size, this limit may be changed in the future.
+func SendDocument(ctx context.Context, chatId int64, document InputFile, opts ...*OptSendDocument) (*Message, error) {
+	ContextSchedule(ctx, chatId, 1)
+	defer ContextScheduleDone(ctx, chatId, 1)
+	type Request struct {
+		BusinessConnectionId        string                                                                      `json:"business_connection_id,omitempty"`
+		ChatId                      int64                                                                       `json:"chat_id"`
+		MessageThreadId             int64                                                                       `json:"message_thread_id,omitempty"`
+		DirectMessagesTopicId       int64                                                                       `json:"direct_messages_topic_id,omitempty"`
+		Document                    InputFile                                                                   `json:"document"`
+		Thumbnail                   InputFile                                                                   `json:"thumbnail,omitempty"`
+		Caption                     string                                                                      `json:"caption,omitempty"`
+		ParseMode                   string                                                                      `json:"parse_mode,omitempty"`
+		CaptionEntities             []*MessageEntity                                                            `json:"caption_entities,omitempty"`
+		DisableContentTypeDetection bool                                                                        `json:"disable_content_type_detection,omitempty"`
+		DisableNotification         bool                                                                        `json:"disable_notification,omitempty"`
+		ProtectContent              bool                                                                        `json:"protect_content,omitempty"`
+		AllowPaidBroadcast          bool                                                                        `json:"allow_paid_broadcast,omitempty"`
+		MessageEffectId             string                                                                      `json:"message_effect_id,omitempty"`
+		SuggestedPostParameters     *SuggestedPostParameters                                                    `json:"suggested_post_parameters,omitempty"`
+		ReplyParameters             *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
+		ReplyMarkup                 VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
+		EphemeralMessageParameters  *EphemeralMessageParameters                                                 `json:"ephemeral_message_parameters,omitempty"`
+	}
+	request := &Request{
+		ChatId:   chatId,
+		Document: document,
+	}
+	for _, opt := range opts {
+		if opt.BusinessConnectionId != "" {
+			request.BusinessConnectionId = opt.BusinessConnectionId
+		}
+		if opt.MessageThreadId != 0 {
+			request.MessageThreadId = opt.MessageThreadId
+		}
+		if opt.DirectMessagesTopicId != 0 {
+			request.DirectMessagesTopicId = opt.DirectMessagesTopicId
+		}
+		if opt.Thumbnail != nil {
+			request.Thumbnail = opt.Thumbnail
+		}
+		if opt.Caption != "" {
+			request.Caption = opt.Caption
+		}
+		if opt.ParseMode != "" {
+			request.ParseMode = opt.ParseMode
+		}
+		if opt.CaptionEntities != nil {
+			request.CaptionEntities = opt.CaptionEntities
+		}
+		if opt.DisableContentTypeDetection {
+			request.DisableContentTypeDetection = opt.DisableContentTypeDetection
+		}
+		if opt.DisableNotification {
+			request.DisableNotification = opt.DisableNotification
+		}
+		if opt.ProtectContent {
+			request.ProtectContent = opt.ProtectContent
+		}
+		if opt.AllowPaidBroadcast {
+			request.AllowPaidBroadcast = opt.AllowPaidBroadcast
+		}
+		if opt.MessageEffectId != "" {
+			request.MessageEffectId = opt.MessageEffectId
+		}
+		if opt.SuggestedPostParameters != nil {
+			request.SuggestedPostParameters = opt.SuggestedPostParameters
+		}
+		if opt.ReplyParameters != nil {
+			request.ReplyParameters = opt.ReplyParameters
+		}
+		if opt.ReplyMarkup != nil {
+			request.ReplyMarkup = opt.ReplyMarkup
+		}
+		if opt.EphemeralMessageParameters != nil {
+			request.EphemeralMessageParameters = opt.EphemeralMessageParameters
+		}
+	}
+	return GenericRequestMultipart[Request, *Message](ctx, "sendDocument", request)
+}
+
+type OptSendDocument struct {
+	BusinessConnectionId        string
+	MessageThreadId             int64
+	DirectMessagesTopicId       int64
+	Thumbnail                   InputFile
+	Caption                     string
+	ParseMode                   string
+	CaptionEntities             []*MessageEntity
+	DisableContentTypeDetection bool
+	DisableNotification         bool
+	ProtectContent              bool
+	AllowPaidBroadcast          bool
+	MessageEffectId             string
+	SuggestedPostParameters     *SuggestedPostParameters
+	ReplyParameters             *ReplyParameters
+	ReplyMarkup                 VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
+	EphemeralMessageParameters  *EphemeralMessageParameters
+}
+
+// SendGame Use this method to send a game.
+// On success, the sent [Message](https://core.telegram.org/bots/api/#message) is returned.
 func SendGame(ctx context.Context, chatId int64, gameShortName string, opts ...*OptSendGame) (*Message, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -2665,23 +3872,33 @@ type OptSendGame struct {
 	ReplyMarkup          *InlineKeyboardMarkup
 }
 
-// SendGift Sends a gift to the given user. The gift can't be converted to Telegram Stars by the user.
-// Returns True on success.
-func SendGift(ctx context.Context, userId int64, giftId string, opts ...*OptSendGift) (bool, error) {
+// SendGift Sends a gift to the given user or channel chat. The gift can't be converted to Telegram Stars by the receiver.
+// Returns *True* on success.
+func SendGift(ctx context.Context, giftId string, opts ...*OptSendGift) (bool, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
 	type Request struct {
-		UserId        int64            `json:"user_id"`
+		UserId        int64            `json:"user_id,omitempty"`
+		ChatId        int64            `json:"chat_id,omitempty"`
 		GiftId        string           `json:"gift_id"`
+		PayForUpgrade bool             `json:"pay_for_upgrade,omitempty"`
 		Text          string           `json:"text,omitempty"`
 		TextParseMode string           `json:"text_parse_mode,omitempty"`
 		TextEntities  []*MessageEntity `json:"text_entities,omitempty"`
 	}
 	request := &Request{
-		UserId: userId,
 		GiftId: giftId,
 	}
 	for _, opt := range opts {
+		if opt.UserId != 0 {
+			request.UserId = opt.UserId
+		}
+		if opt.ChatId != 0 {
+			request.ChatId = opt.ChatId
+		}
+		if opt.PayForUpgrade {
+			request.PayForUpgrade = opt.PayForUpgrade
+		}
 		if opt.Text != "" {
 			request.Text = opt.Text
 		}
@@ -2696,45 +3913,51 @@ func SendGift(ctx context.Context, userId int64, giftId string, opts ...*OptSend
 }
 
 type OptSendGift struct {
+	UserId        int64
+	ChatId        int64
+	PayForUpgrade bool
 	Text          string
 	TextParseMode string
 	TextEntities  []*MessageEntity
 }
 
-// SendInvoice Use this method to send invoices. On success, the sent Message is returned.
+// SendInvoice Use this method to send invoices.
+// On success, the sent [Message](https://core.telegram.org/bots/api/#message) is returned.
 func SendInvoice(ctx context.Context, chatId int64, title string, description string, payload string, currency string, prices []*LabeledPrice, opts ...*OptSendInvoice) (*Message, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
 	type Request struct {
-		ChatId                    int64                 `json:"chat_id"`
-		MessageThreadId           int64                 `json:"message_thread_id,omitempty"`
-		Title                     string                `json:"title"`
-		Description               string                `json:"description"`
-		Payload                   string                `json:"payload"`
-		ProviderToken             string                `json:"provider_token,omitempty"`
-		Currency                  string                `json:"currency"`
-		Prices                    []*LabeledPrice       `json:"prices"`
-		MaxTipAmount              int64                 `json:"max_tip_amount,omitempty"`
-		SuggestedTipAmounts       []int64               `json:"suggested_tip_amounts,omitempty"`
-		StartParameter            string                `json:"start_parameter,omitempty"`
-		ProviderData              string                `json:"provider_data,omitempty"`
-		PhotoUrl                  string                `json:"photo_url,omitempty"`
-		PhotoSize                 int64                 `json:"photo_size,omitempty"`
-		PhotoWidth                int64                 `json:"photo_width,omitempty"`
-		PhotoHeight               int64                 `json:"photo_height,omitempty"`
-		NeedName                  bool                  `json:"need_name,omitempty"`
-		NeedPhoneNumber           bool                  `json:"need_phone_number,omitempty"`
-		NeedEmail                 bool                  `json:"need_email,omitempty"`
-		NeedShippingAddress       bool                  `json:"need_shipping_address,omitempty"`
-		SendPhoneNumberToProvider bool                  `json:"send_phone_number_to_provider,omitempty"`
-		SendEmailToProvider       bool                  `json:"send_email_to_provider,omitempty"`
-		IsFlexible                bool                  `json:"is_flexible,omitempty"`
-		DisableNotification       bool                  `json:"disable_notification,omitempty"`
-		ProtectContent            bool                  `json:"protect_content,omitempty"`
-		AllowPaidBroadcast        bool                  `json:"allow_paid_broadcast,omitempty"`
-		MessageEffectId           string                `json:"message_effect_id,omitempty"`
-		ReplyParameters           *ReplyParameters      `json:"reply_parameters,omitempty"`
-		ReplyMarkup               *InlineKeyboardMarkup `json:"reply_markup,omitempty"`
+		ChatId                    int64                    `json:"chat_id"`
+		MessageThreadId           int64                    `json:"message_thread_id,omitempty"`
+		DirectMessagesTopicId     int64                    `json:"direct_messages_topic_id,omitempty"`
+		Title                     string                   `json:"title"`
+		Description               string                   `json:"description"`
+		Payload                   string                   `json:"payload"`
+		ProviderToken             string                   `json:"provider_token,omitempty"`
+		Currency                  string                   `json:"currency"`
+		Prices                    []*LabeledPrice          `json:"prices"`
+		MaxTipAmount              int64                    `json:"max_tip_amount,omitempty"`
+		SuggestedTipAmounts       []int64                  `json:"suggested_tip_amounts,omitempty"`
+		StartParameter            string                   `json:"start_parameter,omitempty"`
+		ProviderData              string                   `json:"provider_data,omitempty"`
+		PhotoUrl                  string                   `json:"photo_url,omitempty"`
+		PhotoSize                 int64                    `json:"photo_size,omitempty"`
+		PhotoWidth                int64                    `json:"photo_width,omitempty"`
+		PhotoHeight               int64                    `json:"photo_height,omitempty"`
+		NeedName                  bool                     `json:"need_name,omitempty"`
+		NeedPhoneNumber           bool                     `json:"need_phone_number,omitempty"`
+		NeedEmail                 bool                     `json:"need_email,omitempty"`
+		NeedShippingAddress       bool                     `json:"need_shipping_address,omitempty"`
+		SendPhoneNumberToProvider bool                     `json:"send_phone_number_to_provider,omitempty"`
+		SendEmailToProvider       bool                     `json:"send_email_to_provider,omitempty"`
+		IsFlexible                bool                     `json:"is_flexible,omitempty"`
+		DisableNotification       bool                     `json:"disable_notification,omitempty"`
+		ProtectContent            bool                     `json:"protect_content,omitempty"`
+		AllowPaidBroadcast        bool                     `json:"allow_paid_broadcast,omitempty"`
+		MessageEffectId           string                   `json:"message_effect_id,omitempty"`
+		SuggestedPostParameters   *SuggestedPostParameters `json:"suggested_post_parameters,omitempty"`
+		ReplyParameters           *ReplyParameters         `json:"reply_parameters,omitempty"`
+		ReplyMarkup               *InlineKeyboardMarkup    `json:"reply_markup,omitempty"`
 	}
 	request := &Request{
 		ChatId:      chatId,
@@ -2747,6 +3970,9 @@ func SendInvoice(ctx context.Context, chatId int64, title string, description st
 	for _, opt := range opts {
 		if opt.MessageThreadId != 0 {
 			request.MessageThreadId = opt.MessageThreadId
+		}
+		if opt.DirectMessagesTopicId != 0 {
+			request.DirectMessagesTopicId = opt.DirectMessagesTopicId
 		}
 		if opt.ProviderToken != "" {
 			request.ProviderToken = opt.ProviderToken
@@ -2808,6 +4034,9 @@ func SendInvoice(ctx context.Context, chatId int64, title string, description st
 		if opt.MessageEffectId != "" {
 			request.MessageEffectId = opt.MessageEffectId
 		}
+		if opt.SuggestedPostParameters != nil {
+			request.SuggestedPostParameters = opt.SuggestedPostParameters
+		}
 		if opt.ReplyParameters != nil {
 			request.ReplyParameters = opt.ReplyParameters
 		}
@@ -2820,6 +4049,7 @@ func SendInvoice(ctx context.Context, chatId int64, title string, description st
 
 type OptSendInvoice struct {
 	MessageThreadId           int64
+	DirectMessagesTopicId     int64
 	ProviderToken             string
 	MaxTipAmount              int64
 	SuggestedTipAmounts       []int64
@@ -2840,35 +4070,41 @@ type OptSendInvoice struct {
 	ProtectContent            bool
 	AllowPaidBroadcast        bool
 	MessageEffectId           string
+	SuggestedPostParameters   *SuggestedPostParameters
 	ReplyParameters           *ReplyParameters
 	ReplyMarkup               *InlineKeyboardMarkup
 }
 
-// SendLocation Use this method to send point on the map. On success, the sent Message is returned.
-func SendLocation(ctx context.Context, chatId int64, latitude float64, longitude float64, opts ...*OptSendLocation) (*Message, error) {
+// SendLivePhoto Use this method to send live photos.
+// On success, the sent [Message](https://core.telegram.org/bots/api/#message) is returned.
+func SendLivePhoto(ctx context.Context, chatId int64, livePhoto InputFile, photo InputFile, opts ...*OptSendLivePhoto) (*Message, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
 	type Request struct {
-		BusinessConnectionId string                                                                      `json:"business_connection_id,omitempty"`
-		ChatId               int64                                                                       `json:"chat_id"`
-		MessageThreadId      int64                                                                       `json:"message_thread_id,omitempty"`
-		Latitude             float64                                                                     `json:"latitude"`
-		Longitude            float64                                                                     `json:"longitude"`
-		HorizontalAccuracy   float64                                                                     `json:"horizontal_accuracy,omitempty"`
-		LivePeriod           int64                                                                       `json:"live_period,omitempty"`
-		Heading              int64                                                                       `json:"heading,omitempty"`
-		ProximityAlertRadius int64                                                                       `json:"proximity_alert_radius,omitempty"`
-		DisableNotification  bool                                                                        `json:"disable_notification,omitempty"`
-		ProtectContent       bool                                                                        `json:"protect_content,omitempty"`
-		AllowPaidBroadcast   bool                                                                        `json:"allow_paid_broadcast,omitempty"`
-		MessageEffectId      string                                                                      `json:"message_effect_id,omitempty"`
-		ReplyParameters      *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
-		ReplyMarkup          VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
+		BusinessConnectionId       string                                                                      `json:"business_connection_id,omitempty"`
+		ChatId                     int64                                                                       `json:"chat_id"`
+		MessageThreadId            int64                                                                       `json:"message_thread_id,omitempty"`
+		DirectMessagesTopicId      int64                                                                       `json:"direct_messages_topic_id,omitempty"`
+		LivePhoto                  InputFile                                                                   `json:"live_photo"`
+		Photo                      InputFile                                                                   `json:"photo"`
+		Caption                    string                                                                      `json:"caption,omitempty"`
+		ParseMode                  string                                                                      `json:"parse_mode,omitempty"`
+		CaptionEntities            []*MessageEntity                                                            `json:"caption_entities,omitempty"`
+		ShowCaptionAboveMedia      bool                                                                        `json:"show_caption_above_media,omitempty"`
+		HasSpoiler                 bool                                                                        `json:"has_spoiler,omitempty"`
+		DisableNotification        bool                                                                        `json:"disable_notification,omitempty"`
+		ProtectContent             bool                                                                        `json:"protect_content,omitempty"`
+		AllowPaidBroadcast         bool                                                                        `json:"allow_paid_broadcast,omitempty"`
+		MessageEffectId            string                                                                      `json:"message_effect_id,omitempty"`
+		SuggestedPostParameters    *SuggestedPostParameters                                                    `json:"suggested_post_parameters,omitempty"`
+		ReplyParameters            *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
+		ReplyMarkup                VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
+		EphemeralMessageParameters *EphemeralMessageParameters                                                 `json:"ephemeral_message_parameters,omitempty"`
 	}
 	request := &Request{
 		ChatId:    chatId,
-		Latitude:  latitude,
-		Longitude: longitude,
+		LivePhoto: livePhoto,
+		Photo:     photo,
 	}
 	for _, opt := range opts {
 		if opt.BusinessConnectionId != "" {
@@ -2877,295 +4113,8 @@ func SendLocation(ctx context.Context, chatId int64, latitude float64, longitude
 		if opt.MessageThreadId != 0 {
 			request.MessageThreadId = opt.MessageThreadId
 		}
-		if opt.HorizontalAccuracy != 0.0 {
-			request.HorizontalAccuracy = opt.HorizontalAccuracy
-		}
-		if opt.LivePeriod != 0 {
-			request.LivePeriod = opt.LivePeriod
-		}
-		if opt.Heading != 0 {
-			request.Heading = opt.Heading
-		}
-		if opt.ProximityAlertRadius != 0 {
-			request.ProximityAlertRadius = opt.ProximityAlertRadius
-		}
-		if opt.DisableNotification {
-			request.DisableNotification = opt.DisableNotification
-		}
-		if opt.ProtectContent {
-			request.ProtectContent = opt.ProtectContent
-		}
-		if opt.AllowPaidBroadcast {
-			request.AllowPaidBroadcast = opt.AllowPaidBroadcast
-		}
-		if opt.MessageEffectId != "" {
-			request.MessageEffectId = opt.MessageEffectId
-		}
-		if opt.ReplyParameters != nil {
-			request.ReplyParameters = opt.ReplyParameters
-		}
-		if opt.ReplyMarkup != nil {
-			request.ReplyMarkup = opt.ReplyMarkup
-		}
-	}
-	return GenericRequest[Request, *Message](ctx, "sendLocation", request)
-}
-
-type OptSendLocation struct {
-	BusinessConnectionId string
-	MessageThreadId      int64
-	HorizontalAccuracy   float64
-	LivePeriod           int64
-	Heading              int64
-	ProximityAlertRadius int64
-	DisableNotification  bool
-	ProtectContent       bool
-	AllowPaidBroadcast   bool
-	MessageEffectId      string
-	ReplyParameters      *ReplyParameters
-	ReplyMarkup          VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
-}
-
-// SendMediaGroup Use this method to send a group of photos, videos, documents or audios as an album.
-// Documents and audio files can be only grouped in an album with messages of the same type.
-// On success, an array of Messages that were sent is returned.
-func SendMediaGroup(ctx context.Context, chatId int64, media Album, opts ...*OptSendMediaGroup) ([]*Message, error) {
-	ContextSchedule(ctx, chatId, len(media))
-	defer ContextScheduleDone(ctx, chatId, len(media))
-	type Request struct {
-		BusinessConnectionId string           `json:"business_connection_id,omitempty"`
-		ChatId               int64            `json:"chat_id"`
-		MessageThreadId      int64            `json:"message_thread_id,omitempty"`
-		Media                Album            `json:"media"`
-		DisableNotification  bool             `json:"disable_notification,omitempty"`
-		ProtectContent       bool             `json:"protect_content,omitempty"`
-		AllowPaidBroadcast   bool             `json:"allow_paid_broadcast,omitempty"`
-		MessageEffectId      string           `json:"message_effect_id,omitempty"`
-		ReplyParameters      *ReplyParameters `json:"reply_parameters,omitempty"`
-	}
-	request := &Request{
-		ChatId: chatId,
-		Media:  media,
-	}
-	for _, opt := range opts {
-		if opt.BusinessConnectionId != "" {
-			request.BusinessConnectionId = opt.BusinessConnectionId
-		}
-		if opt.MessageThreadId != 0 {
-			request.MessageThreadId = opt.MessageThreadId
-		}
-		if opt.DisableNotification {
-			request.DisableNotification = opt.DisableNotification
-		}
-		if opt.ProtectContent {
-			request.ProtectContent = opt.ProtectContent
-		}
-		if opt.AllowPaidBroadcast {
-			request.AllowPaidBroadcast = opt.AllowPaidBroadcast
-		}
-		if opt.MessageEffectId != "" {
-			request.MessageEffectId = opt.MessageEffectId
-		}
-		if opt.ReplyParameters != nil {
-			request.ReplyParameters = opt.ReplyParameters
-		}
-	}
-	return GenericRequestMultipart[Request, []*Message](ctx, "sendMediaGroup", request)
-}
-
-type OptSendMediaGroup struct {
-	BusinessConnectionId string
-	MessageThreadId      int64
-	DisableNotification  bool
-	ProtectContent       bool
-	AllowPaidBroadcast   bool
-	MessageEffectId      string
-	ReplyParameters      *ReplyParameters
-}
-
-// SendMessage Use this method to send text messages. On success, the sent Message is returned.
-func SendMessage(ctx context.Context, chatId int64, text string, opts ...*OptSendMessage) (*Message, error) {
-	ContextSchedule(ctx, chatId, 1)
-	defer ContextScheduleDone(ctx, chatId, 1)
-	type Request struct {
-		BusinessConnectionId string                                                                      `json:"business_connection_id,omitempty"`
-		ChatId               int64                                                                       `json:"chat_id"`
-		MessageThreadId      int64                                                                       `json:"message_thread_id,omitempty"`
-		Text                 string                                                                      `json:"text"`
-		ParseMode            string                                                                      `json:"parse_mode,omitempty"`
-		Entities             []*MessageEntity                                                            `json:"entities,omitempty"`
-		LinkPreviewOptions   *LinkPreviewOptions                                                         `json:"link_preview_options,omitempty"`
-		DisableNotification  bool                                                                        `json:"disable_notification,omitempty"`
-		ProtectContent       bool                                                                        `json:"protect_content,omitempty"`
-		AllowPaidBroadcast   bool                                                                        `json:"allow_paid_broadcast,omitempty"`
-		MessageEffectId      string                                                                      `json:"message_effect_id,omitempty"`
-		ReplyParameters      *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
-		ReplyMarkup          VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
-	}
-	request := &Request{
-		ChatId: chatId,
-		Text:   text,
-	}
-	for _, opt := range opts {
-		if opt.BusinessConnectionId != "" {
-			request.BusinessConnectionId = opt.BusinessConnectionId
-		}
-		if opt.MessageThreadId != 0 {
-			request.MessageThreadId = opt.MessageThreadId
-		}
-		if opt.ParseMode != "" {
-			request.ParseMode = opt.ParseMode
-		}
-		if opt.Entities != nil {
-			request.Entities = opt.Entities
-		}
-		if opt.LinkPreviewOptions != nil {
-			request.LinkPreviewOptions = opt.LinkPreviewOptions
-		}
-		if opt.DisableNotification {
-			request.DisableNotification = opt.DisableNotification
-		}
-		if opt.ProtectContent {
-			request.ProtectContent = opt.ProtectContent
-		}
-		if opt.AllowPaidBroadcast {
-			request.AllowPaidBroadcast = opt.AllowPaidBroadcast
-		}
-		if opt.MessageEffectId != "" {
-			request.MessageEffectId = opt.MessageEffectId
-		}
-		if opt.ReplyParameters != nil {
-			request.ReplyParameters = opt.ReplyParameters
-		}
-		if opt.ReplyMarkup != nil {
-			request.ReplyMarkup = opt.ReplyMarkup
-		}
-	}
-	return GenericRequest[Request, *Message](ctx, "sendMessage", request)
-}
-
-type OptSendMessage struct {
-	BusinessConnectionId string
-	MessageThreadId      int64
-	ParseMode            string
-	Entities             []*MessageEntity
-	LinkPreviewOptions   *LinkPreviewOptions
-	DisableNotification  bool
-	ProtectContent       bool
-	AllowPaidBroadcast   bool
-	MessageEffectId      string
-	ReplyParameters      *ReplyParameters
-	ReplyMarkup          VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
-}
-
-// SendPaidMedia Use this method to send paid media. On success, the sent Message is returned.
-func SendPaidMedia(ctx context.Context, chatId int64, starCount int64, media []InputPaidMedia, opts ...*OptSendPaidMedia) (*Message, error) {
-	ContextSchedule(ctx, chatId, len(media))
-	defer ContextScheduleDone(ctx, chatId, len(media))
-	type Request struct {
-		BusinessConnectionId  string                                                                      `json:"business_connection_id,omitempty"`
-		ChatId                int64                                                                       `json:"chat_id"`
-		StarCount             int64                                                                       `json:"star_count"`
-		Media                 []InputPaidMedia                                                            `json:"media"`
-		Payload               string                                                                      `json:"payload,omitempty"`
-		Caption               string                                                                      `json:"caption,omitempty"`
-		ParseMode             string                                                                      `json:"parse_mode,omitempty"`
-		CaptionEntities       []*MessageEntity                                                            `json:"caption_entities,omitempty"`
-		ShowCaptionAboveMedia bool                                                                        `json:"show_caption_above_media,omitempty"`
-		DisableNotification   bool                                                                        `json:"disable_notification,omitempty"`
-		ProtectContent        bool                                                                        `json:"protect_content,omitempty"`
-		AllowPaidBroadcast    bool                                                                        `json:"allow_paid_broadcast,omitempty"`
-		ReplyParameters       *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
-		ReplyMarkup           VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
-	}
-	request := &Request{
-		ChatId:    chatId,
-		StarCount: starCount,
-		Media:     media,
-	}
-	for _, opt := range opts {
-		if opt.BusinessConnectionId != "" {
-			request.BusinessConnectionId = opt.BusinessConnectionId
-		}
-		if opt.Payload != "" {
-			request.Payload = opt.Payload
-		}
-		if opt.Caption != "" {
-			request.Caption = opt.Caption
-		}
-		if opt.ParseMode != "" {
-			request.ParseMode = opt.ParseMode
-		}
-		if opt.CaptionEntities != nil {
-			request.CaptionEntities = opt.CaptionEntities
-		}
-		if opt.ShowCaptionAboveMedia {
-			request.ShowCaptionAboveMedia = opt.ShowCaptionAboveMedia
-		}
-		if opt.DisableNotification {
-			request.DisableNotification = opt.DisableNotification
-		}
-		if opt.ProtectContent {
-			request.ProtectContent = opt.ProtectContent
-		}
-		if opt.AllowPaidBroadcast {
-			request.AllowPaidBroadcast = opt.AllowPaidBroadcast
-		}
-		if opt.ReplyParameters != nil {
-			request.ReplyParameters = opt.ReplyParameters
-		}
-		if opt.ReplyMarkup != nil {
-			request.ReplyMarkup = opt.ReplyMarkup
-		}
-	}
-	return GenericRequest[Request, *Message](ctx, "sendPaidMedia", request)
-}
-
-type OptSendPaidMedia struct {
-	BusinessConnectionId  string
-	Payload               string
-	Caption               string
-	ParseMode             string
-	CaptionEntities       []*MessageEntity
-	ShowCaptionAboveMedia bool
-	DisableNotification   bool
-	ProtectContent        bool
-	AllowPaidBroadcast    bool
-	ReplyParameters       *ReplyParameters
-	ReplyMarkup           VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
-}
-
-// SendPhoto Use this method to send photos. On success, the sent Message is returned.
-func SendPhoto(ctx context.Context, chatId int64, photo InputFile, opts ...*OptSendPhoto) (*Message, error) {
-	ContextSchedule(ctx, chatId, 1)
-	defer ContextScheduleDone(ctx, chatId, 1)
-	type Request struct {
-		BusinessConnectionId  string                                                                      `json:"business_connection_id,omitempty"`
-		ChatId                int64                                                                       `json:"chat_id"`
-		MessageThreadId       int64                                                                       `json:"message_thread_id,omitempty"`
-		Photo                 InputFile                                                                   `json:"photo"`
-		Caption               string                                                                      `json:"caption,omitempty"`
-		ParseMode             string                                                                      `json:"parse_mode,omitempty"`
-		CaptionEntities       []*MessageEntity                                                            `json:"caption_entities,omitempty"`
-		ShowCaptionAboveMedia bool                                                                        `json:"show_caption_above_media,omitempty"`
-		HasSpoiler            bool                                                                        `json:"has_spoiler,omitempty"`
-		DisableNotification   bool                                                                        `json:"disable_notification,omitempty"`
-		ProtectContent        bool                                                                        `json:"protect_content,omitempty"`
-		AllowPaidBroadcast    bool                                                                        `json:"allow_paid_broadcast,omitempty"`
-		MessageEffectId       string                                                                      `json:"message_effect_id,omitempty"`
-		ReplyParameters       *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
-		ReplyMarkup           VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
-	}
-	request := &Request{
-		ChatId: chatId,
-		Photo:  photo,
-	}
-	for _, opt := range opts {
-		if opt.BusinessConnectionId != "" {
-			request.BusinessConnectionId = opt.BusinessConnectionId
-		}
-		if opt.MessageThreadId != 0 {
-			request.MessageThreadId = opt.MessageThreadId
+		if opt.DirectMessagesTopicId != 0 {
+			request.DirectMessagesTopicId = opt.DirectMessagesTopicId
 		}
 		if opt.Caption != "" {
 			request.Caption = opt.Caption
@@ -3194,6 +4143,410 @@ func SendPhoto(ctx context.Context, chatId int64, photo InputFile, opts ...*OptS
 		if opt.MessageEffectId != "" {
 			request.MessageEffectId = opt.MessageEffectId
 		}
+		if opt.SuggestedPostParameters != nil {
+			request.SuggestedPostParameters = opt.SuggestedPostParameters
+		}
+		if opt.ReplyParameters != nil {
+			request.ReplyParameters = opt.ReplyParameters
+		}
+		if opt.ReplyMarkup != nil {
+			request.ReplyMarkup = opt.ReplyMarkup
+		}
+		if opt.EphemeralMessageParameters != nil {
+			request.EphemeralMessageParameters = opt.EphemeralMessageParameters
+		}
+	}
+	return GenericRequestMultipart[Request, *Message](ctx, "sendLivePhoto", request)
+}
+
+type OptSendLivePhoto struct {
+	BusinessConnectionId       string
+	MessageThreadId            int64
+	DirectMessagesTopicId      int64
+	Caption                    string
+	ParseMode                  string
+	CaptionEntities            []*MessageEntity
+	ShowCaptionAboveMedia      bool
+	HasSpoiler                 bool
+	DisableNotification        bool
+	ProtectContent             bool
+	AllowPaidBroadcast         bool
+	MessageEffectId            string
+	SuggestedPostParameters    *SuggestedPostParameters
+	ReplyParameters            *ReplyParameters
+	ReplyMarkup                VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
+	EphemeralMessageParameters *EphemeralMessageParameters
+}
+
+// SendLocation Use this method to send point on the map.
+// On success, the sent [Message](https://core.telegram.org/bots/api/#message) is returned.
+func SendLocation(ctx context.Context, chatId int64, latitude float64, longitude float64, opts ...*OptSendLocation) (*Message, error) {
+	ContextSchedule(ctx, chatId, 1)
+	defer ContextScheduleDone(ctx, chatId, 1)
+	type Request struct {
+		BusinessConnectionId       string                                                                      `json:"business_connection_id,omitempty"`
+		ChatId                     int64                                                                       `json:"chat_id"`
+		MessageThreadId            int64                                                                       `json:"message_thread_id,omitempty"`
+		DirectMessagesTopicId      int64                                                                       `json:"direct_messages_topic_id,omitempty"`
+		Latitude                   float64                                                                     `json:"latitude"`
+		Longitude                  float64                                                                     `json:"longitude"`
+		HorizontalAccuracy         float64                                                                     `json:"horizontal_accuracy,omitempty"`
+		LivePeriod                 int64                                                                       `json:"live_period,omitempty"`
+		Heading                    int64                                                                       `json:"heading,omitempty"`
+		ProximityAlertRadius       int64                                                                       `json:"proximity_alert_radius,omitempty"`
+		DisableNotification        bool                                                                        `json:"disable_notification,omitempty"`
+		ProtectContent             bool                                                                        `json:"protect_content,omitempty"`
+		AllowPaidBroadcast         bool                                                                        `json:"allow_paid_broadcast,omitempty"`
+		MessageEffectId            string                                                                      `json:"message_effect_id,omitempty"`
+		SuggestedPostParameters    *SuggestedPostParameters                                                    `json:"suggested_post_parameters,omitempty"`
+		ReplyParameters            *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
+		ReplyMarkup                VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
+		EphemeralMessageParameters *EphemeralMessageParameters                                                 `json:"ephemeral_message_parameters,omitempty"`
+	}
+	request := &Request{
+		ChatId:    chatId,
+		Latitude:  latitude,
+		Longitude: longitude,
+	}
+	for _, opt := range opts {
+		if opt.BusinessConnectionId != "" {
+			request.BusinessConnectionId = opt.BusinessConnectionId
+		}
+		if opt.MessageThreadId != 0 {
+			request.MessageThreadId = opt.MessageThreadId
+		}
+		if opt.DirectMessagesTopicId != 0 {
+			request.DirectMessagesTopicId = opt.DirectMessagesTopicId
+		}
+		if opt.HorizontalAccuracy != 0.0 {
+			request.HorizontalAccuracy = opt.HorizontalAccuracy
+		}
+		if opt.LivePeriod != 0 {
+			request.LivePeriod = opt.LivePeriod
+		}
+		if opt.Heading != 0 {
+			request.Heading = opt.Heading
+		}
+		if opt.ProximityAlertRadius != 0 {
+			request.ProximityAlertRadius = opt.ProximityAlertRadius
+		}
+		if opt.DisableNotification {
+			request.DisableNotification = opt.DisableNotification
+		}
+		if opt.ProtectContent {
+			request.ProtectContent = opt.ProtectContent
+		}
+		if opt.AllowPaidBroadcast {
+			request.AllowPaidBroadcast = opt.AllowPaidBroadcast
+		}
+		if opt.MessageEffectId != "" {
+			request.MessageEffectId = opt.MessageEffectId
+		}
+		if opt.SuggestedPostParameters != nil {
+			request.SuggestedPostParameters = opt.SuggestedPostParameters
+		}
+		if opt.ReplyParameters != nil {
+			request.ReplyParameters = opt.ReplyParameters
+		}
+		if opt.ReplyMarkup != nil {
+			request.ReplyMarkup = opt.ReplyMarkup
+		}
+		if opt.EphemeralMessageParameters != nil {
+			request.EphemeralMessageParameters = opt.EphemeralMessageParameters
+		}
+	}
+	return GenericRequest[Request, *Message](ctx, "sendLocation", request)
+}
+
+type OptSendLocation struct {
+	BusinessConnectionId       string
+	MessageThreadId            int64
+	DirectMessagesTopicId      int64
+	HorizontalAccuracy         float64
+	LivePeriod                 int64
+	Heading                    int64
+	ProximityAlertRadius       int64
+	DisableNotification        bool
+	ProtectContent             bool
+	AllowPaidBroadcast         bool
+	MessageEffectId            string
+	SuggestedPostParameters    *SuggestedPostParameters
+	ReplyParameters            *ReplyParameters
+	ReplyMarkup                VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
+	EphemeralMessageParameters *EphemeralMessageParameters
+}
+
+// SendMediaGroup Use this method to send a group of photos, live photos, videos, documents or audios as an album.
+// Documents and audio files can be only grouped in an album with messages of the same type.
+// On success, an array of [Message](https://core.telegram.org/bots/api/#message) objects that were sent is returned.
+func SendMediaGroup(ctx context.Context, chatId int64, media Album, opts ...*OptSendMediaGroup) ([]*Message, error) {
+	ContextSchedule(ctx, chatId, len(media))
+	defer ContextScheduleDone(ctx, chatId, len(media))
+	type Request struct {
+		BusinessConnectionId  string           `json:"business_connection_id,omitempty"`
+		ChatId                int64            `json:"chat_id"`
+		MessageThreadId       int64            `json:"message_thread_id,omitempty"`
+		DirectMessagesTopicId int64            `json:"direct_messages_topic_id,omitempty"`
+		Media                 Album            `json:"media"`
+		DisableNotification   bool             `json:"disable_notification,omitempty"`
+		ProtectContent        bool             `json:"protect_content,omitempty"`
+		AllowPaidBroadcast    bool             `json:"allow_paid_broadcast,omitempty"`
+		MessageEffectId       string           `json:"message_effect_id,omitempty"`
+		ReplyParameters       *ReplyParameters `json:"reply_parameters,omitempty"`
+	}
+	request := &Request{
+		ChatId: chatId,
+		Media:  media,
+	}
+	for _, opt := range opts {
+		if opt.BusinessConnectionId != "" {
+			request.BusinessConnectionId = opt.BusinessConnectionId
+		}
+		if opt.MessageThreadId != 0 {
+			request.MessageThreadId = opt.MessageThreadId
+		}
+		if opt.DirectMessagesTopicId != 0 {
+			request.DirectMessagesTopicId = opt.DirectMessagesTopicId
+		}
+		if opt.DisableNotification {
+			request.DisableNotification = opt.DisableNotification
+		}
+		if opt.ProtectContent {
+			request.ProtectContent = opt.ProtectContent
+		}
+		if opt.AllowPaidBroadcast {
+			request.AllowPaidBroadcast = opt.AllowPaidBroadcast
+		}
+		if opt.MessageEffectId != "" {
+			request.MessageEffectId = opt.MessageEffectId
+		}
+		if opt.ReplyParameters != nil {
+			request.ReplyParameters = opt.ReplyParameters
+		}
+	}
+	return GenericRequestMultipart[Request, []*Message](ctx, "sendMediaGroup", request)
+}
+
+type OptSendMediaGroup struct {
+	BusinessConnectionId  string
+	MessageThreadId       int64
+	DirectMessagesTopicId int64
+	DisableNotification   bool
+	ProtectContent        bool
+	AllowPaidBroadcast    bool
+	MessageEffectId       string
+	ReplyParameters       *ReplyParameters
+}
+
+// SendMessage Use this method to send text messages.
+// On success, the sent [Message](https://core.telegram.org/bots/api/#message) is returned.
+func SendMessage(ctx context.Context, chatId int64, text string, opts ...*OptSendMessage) (*Message, error) {
+	ContextSchedule(ctx, chatId, 1)
+	defer ContextScheduleDone(ctx, chatId, 1)
+	type Request struct {
+		BusinessConnectionId       string                                                                      `json:"business_connection_id,omitempty"`
+		ChatId                     int64                                                                       `json:"chat_id"`
+		MessageThreadId            int64                                                                       `json:"message_thread_id,omitempty"`
+		DirectMessagesTopicId      int64                                                                       `json:"direct_messages_topic_id,omitempty"`
+		Text                       string                                                                      `json:"text"`
+		ParseMode                  string                                                                      `json:"parse_mode,omitempty"`
+		Entities                   []*MessageEntity                                                            `json:"entities,omitempty"`
+		LinkPreviewOptions         *LinkPreviewOptions                                                         `json:"link_preview_options,omitempty"`
+		DisableNotification        bool                                                                        `json:"disable_notification,omitempty"`
+		ProtectContent             bool                                                                        `json:"protect_content,omitempty"`
+		AllowPaidBroadcast         bool                                                                        `json:"allow_paid_broadcast,omitempty"`
+		MessageEffectId            string                                                                      `json:"message_effect_id,omitempty"`
+		SuggestedPostParameters    *SuggestedPostParameters                                                    `json:"suggested_post_parameters,omitempty"`
+		ReplyParameters            *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
+		ReplyMarkup                VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
+		EphemeralMessageParameters *EphemeralMessageParameters                                                 `json:"ephemeral_message_parameters,omitempty"`
+	}
+	request := &Request{
+		ChatId: chatId,
+		Text:   text,
+	}
+	for _, opt := range opts {
+		if opt.BusinessConnectionId != "" {
+			request.BusinessConnectionId = opt.BusinessConnectionId
+		}
+		if opt.MessageThreadId != 0 {
+			request.MessageThreadId = opt.MessageThreadId
+		}
+		if opt.DirectMessagesTopicId != 0 {
+			request.DirectMessagesTopicId = opt.DirectMessagesTopicId
+		}
+		if opt.ParseMode != "" {
+			request.ParseMode = opt.ParseMode
+		}
+		if opt.Entities != nil {
+			request.Entities = opt.Entities
+		}
+		if opt.LinkPreviewOptions != nil {
+			request.LinkPreviewOptions = opt.LinkPreviewOptions
+		}
+		if opt.DisableNotification {
+			request.DisableNotification = opt.DisableNotification
+		}
+		if opt.ProtectContent {
+			request.ProtectContent = opt.ProtectContent
+		}
+		if opt.AllowPaidBroadcast {
+			request.AllowPaidBroadcast = opt.AllowPaidBroadcast
+		}
+		if opt.MessageEffectId != "" {
+			request.MessageEffectId = opt.MessageEffectId
+		}
+		if opt.SuggestedPostParameters != nil {
+			request.SuggestedPostParameters = opt.SuggestedPostParameters
+		}
+		if opt.ReplyParameters != nil {
+			request.ReplyParameters = opt.ReplyParameters
+		}
+		if opt.ReplyMarkup != nil {
+			request.ReplyMarkup = opt.ReplyMarkup
+		}
+		if opt.EphemeralMessageParameters != nil {
+			request.EphemeralMessageParameters = opt.EphemeralMessageParameters
+		}
+	}
+	return GenericRequest[Request, *Message](ctx, "sendMessage", request)
+}
+
+type OptSendMessage struct {
+	BusinessConnectionId       string
+	MessageThreadId            int64
+	DirectMessagesTopicId      int64
+	ParseMode                  string
+	Entities                   []*MessageEntity
+	LinkPreviewOptions         *LinkPreviewOptions
+	DisableNotification        bool
+	ProtectContent             bool
+	AllowPaidBroadcast         bool
+	MessageEffectId            string
+	SuggestedPostParameters    *SuggestedPostParameters
+	ReplyParameters            *ReplyParameters
+	ReplyMarkup                VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
+	EphemeralMessageParameters *EphemeralMessageParameters
+}
+
+// SendMessageDraft Use this method to stream a partial message to a user while the message is being generated.
+// Note that the streamed draft is ephemeral and acts as a temporary 30-second preview - once the output is finalized, you **must** call [sendMessage](https://core.telegram.org/bots/api/#sendmessage) with the complete message to persist it in the user's chat.
+// Returns *True* on success.
+func SendMessageDraft(ctx context.Context, chatId int64, draftId int64, opts ...*OptSendMessageDraft) (bool, error) {
+	ContextSchedule(ctx, chatId, 1)
+	defer ContextScheduleDone(ctx, chatId, 1)
+	type Request struct {
+		ChatId          int64            `json:"chat_id"`
+		MessageThreadId int64            `json:"message_thread_id,omitempty"`
+		DraftId         int64            `json:"draft_id"`
+		Text            string           `json:"text,omitempty"`
+		ParseMode       string           `json:"parse_mode,omitempty"`
+		Entities        []*MessageEntity `json:"entities,omitempty"`
+		CanStop         bool             `json:"can_stop,omitempty"`
+		KeepOnStop      bool             `json:"keep_on_stop,omitempty"`
+	}
+	request := &Request{
+		ChatId:  chatId,
+		DraftId: draftId,
+	}
+	for _, opt := range opts {
+		if opt.MessageThreadId != 0 {
+			request.MessageThreadId = opt.MessageThreadId
+		}
+		if opt.Text != "" {
+			request.Text = opt.Text
+		}
+		if opt.ParseMode != "" {
+			request.ParseMode = opt.ParseMode
+		}
+		if opt.Entities != nil {
+			request.Entities = opt.Entities
+		}
+		if opt.CanStop {
+			request.CanStop = opt.CanStop
+		}
+		if opt.KeepOnStop {
+			request.KeepOnStop = opt.KeepOnStop
+		}
+	}
+	return GenericRequest[Request, bool](ctx, "sendMessageDraft", request)
+}
+
+type OptSendMessageDraft struct {
+	MessageThreadId int64
+	Text            string
+	ParseMode       string
+	Entities        []*MessageEntity
+	CanStop         bool
+	KeepOnStop      bool
+}
+
+// SendPaidMedia Use this method to send paid media.
+// On success, the sent [Message](https://core.telegram.org/bots/api/#message) is returned.
+func SendPaidMedia(ctx context.Context, chatId int64, starCount int64, media []InputPaidMedia, opts ...*OptSendPaidMedia) (*Message, error) {
+	ContextSchedule(ctx, chatId, len(media))
+	defer ContextScheduleDone(ctx, chatId, len(media))
+	type Request struct {
+		BusinessConnectionId    string                                                                      `json:"business_connection_id,omitempty"`
+		ChatId                  int64                                                                       `json:"chat_id"`
+		MessageThreadId         int64                                                                       `json:"message_thread_id,omitempty"`
+		DirectMessagesTopicId   int64                                                                       `json:"direct_messages_topic_id,omitempty"`
+		StarCount               int64                                                                       `json:"star_count"`
+		Media                   []InputPaidMedia                                                            `json:"media"`
+		Payload                 string                                                                      `json:"payload,omitempty"`
+		Caption                 string                                                                      `json:"caption,omitempty"`
+		ParseMode               string                                                                      `json:"parse_mode,omitempty"`
+		CaptionEntities         []*MessageEntity                                                            `json:"caption_entities,omitempty"`
+		ShowCaptionAboveMedia   bool                                                                        `json:"show_caption_above_media,omitempty"`
+		DisableNotification     bool                                                                        `json:"disable_notification,omitempty"`
+		ProtectContent          bool                                                                        `json:"protect_content,omitempty"`
+		AllowPaidBroadcast      bool                                                                        `json:"allow_paid_broadcast,omitempty"`
+		SuggestedPostParameters *SuggestedPostParameters                                                    `json:"suggested_post_parameters,omitempty"`
+		ReplyParameters         *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
+		ReplyMarkup             VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
+	}
+	request := &Request{
+		ChatId:    chatId,
+		StarCount: starCount,
+		Media:     media,
+	}
+	for _, opt := range opts {
+		if opt.BusinessConnectionId != "" {
+			request.BusinessConnectionId = opt.BusinessConnectionId
+		}
+		if opt.MessageThreadId != 0 {
+			request.MessageThreadId = opt.MessageThreadId
+		}
+		if opt.DirectMessagesTopicId != 0 {
+			request.DirectMessagesTopicId = opt.DirectMessagesTopicId
+		}
+		if opt.Payload != "" {
+			request.Payload = opt.Payload
+		}
+		if opt.Caption != "" {
+			request.Caption = opt.Caption
+		}
+		if opt.ParseMode != "" {
+			request.ParseMode = opt.ParseMode
+		}
+		if opt.CaptionEntities != nil {
+			request.CaptionEntities = opt.CaptionEntities
+		}
+		if opt.ShowCaptionAboveMedia {
+			request.ShowCaptionAboveMedia = opt.ShowCaptionAboveMedia
+		}
+		if opt.DisableNotification {
+			request.DisableNotification = opt.DisableNotification
+		}
+		if opt.ProtectContent {
+			request.ProtectContent = opt.ProtectContent
+		}
+		if opt.AllowPaidBroadcast {
+			request.AllowPaidBroadcast = opt.AllowPaidBroadcast
+		}
+		if opt.SuggestedPostParameters != nil {
+			request.SuggestedPostParameters = opt.SuggestedPostParameters
+		}
 		if opt.ReplyParameters != nil {
 			request.ReplyParameters = opt.ReplyParameters
 		}
@@ -3201,53 +4554,167 @@ func SendPhoto(ctx context.Context, chatId int64, photo InputFile, opts ...*OptS
 			request.ReplyMarkup = opt.ReplyMarkup
 		}
 	}
+	return GenericRequest[Request, *Message](ctx, "sendPaidMedia", request)
+}
+
+type OptSendPaidMedia struct {
+	BusinessConnectionId    string
+	MessageThreadId         int64
+	DirectMessagesTopicId   int64
+	Payload                 string
+	Caption                 string
+	ParseMode               string
+	CaptionEntities         []*MessageEntity
+	ShowCaptionAboveMedia   bool
+	DisableNotification     bool
+	ProtectContent          bool
+	AllowPaidBroadcast      bool
+	SuggestedPostParameters *SuggestedPostParameters
+	ReplyParameters         *ReplyParameters
+	ReplyMarkup             VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
+}
+
+// SendPhoto Use this method to send photos.
+// On success, the sent [Message](https://core.telegram.org/bots/api/#message) is returned.
+func SendPhoto(ctx context.Context, chatId int64, photo InputFile, opts ...*OptSendPhoto) (*Message, error) {
+	ContextSchedule(ctx, chatId, 1)
+	defer ContextScheduleDone(ctx, chatId, 1)
+	type Request struct {
+		BusinessConnectionId       string                                                                      `json:"business_connection_id,omitempty"`
+		ChatId                     int64                                                                       `json:"chat_id"`
+		MessageThreadId            int64                                                                       `json:"message_thread_id,omitempty"`
+		DirectMessagesTopicId      int64                                                                       `json:"direct_messages_topic_id,omitempty"`
+		Photo                      InputFile                                                                   `json:"photo"`
+		Caption                    string                                                                      `json:"caption,omitempty"`
+		ParseMode                  string                                                                      `json:"parse_mode,omitempty"`
+		CaptionEntities            []*MessageEntity                                                            `json:"caption_entities,omitempty"`
+		ShowCaptionAboveMedia      bool                                                                        `json:"show_caption_above_media,omitempty"`
+		HasSpoiler                 bool                                                                        `json:"has_spoiler,omitempty"`
+		DisableNotification        bool                                                                        `json:"disable_notification,omitempty"`
+		ProtectContent             bool                                                                        `json:"protect_content,omitempty"`
+		AllowPaidBroadcast         bool                                                                        `json:"allow_paid_broadcast,omitempty"`
+		MessageEffectId            string                                                                      `json:"message_effect_id,omitempty"`
+		SuggestedPostParameters    *SuggestedPostParameters                                                    `json:"suggested_post_parameters,omitempty"`
+		ReplyParameters            *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
+		ReplyMarkup                VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
+		EphemeralMessageParameters *EphemeralMessageParameters                                                 `json:"ephemeral_message_parameters,omitempty"`
+	}
+	request := &Request{
+		ChatId: chatId,
+		Photo:  photo,
+	}
+	for _, opt := range opts {
+		if opt.BusinessConnectionId != "" {
+			request.BusinessConnectionId = opt.BusinessConnectionId
+		}
+		if opt.MessageThreadId != 0 {
+			request.MessageThreadId = opt.MessageThreadId
+		}
+		if opt.DirectMessagesTopicId != 0 {
+			request.DirectMessagesTopicId = opt.DirectMessagesTopicId
+		}
+		if opt.Caption != "" {
+			request.Caption = opt.Caption
+		}
+		if opt.ParseMode != "" {
+			request.ParseMode = opt.ParseMode
+		}
+		if opt.CaptionEntities != nil {
+			request.CaptionEntities = opt.CaptionEntities
+		}
+		if opt.ShowCaptionAboveMedia {
+			request.ShowCaptionAboveMedia = opt.ShowCaptionAboveMedia
+		}
+		if opt.HasSpoiler {
+			request.HasSpoiler = opt.HasSpoiler
+		}
+		if opt.DisableNotification {
+			request.DisableNotification = opt.DisableNotification
+		}
+		if opt.ProtectContent {
+			request.ProtectContent = opt.ProtectContent
+		}
+		if opt.AllowPaidBroadcast {
+			request.AllowPaidBroadcast = opt.AllowPaidBroadcast
+		}
+		if opt.MessageEffectId != "" {
+			request.MessageEffectId = opt.MessageEffectId
+		}
+		if opt.SuggestedPostParameters != nil {
+			request.SuggestedPostParameters = opt.SuggestedPostParameters
+		}
+		if opt.ReplyParameters != nil {
+			request.ReplyParameters = opt.ReplyParameters
+		}
+		if opt.ReplyMarkup != nil {
+			request.ReplyMarkup = opt.ReplyMarkup
+		}
+		if opt.EphemeralMessageParameters != nil {
+			request.EphemeralMessageParameters = opt.EphemeralMessageParameters
+		}
+	}
 	return GenericRequestMultipart[Request, *Message](ctx, "sendPhoto", request)
 }
 
 type OptSendPhoto struct {
-	BusinessConnectionId  string
-	MessageThreadId       int64
-	Caption               string
-	ParseMode             string
-	CaptionEntities       []*MessageEntity
-	ShowCaptionAboveMedia bool
-	HasSpoiler            bool
-	DisableNotification   bool
-	ProtectContent        bool
-	AllowPaidBroadcast    bool
-	MessageEffectId       string
-	ReplyParameters       *ReplyParameters
-	ReplyMarkup           VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
+	BusinessConnectionId       string
+	MessageThreadId            int64
+	DirectMessagesTopicId      int64
+	Caption                    string
+	ParseMode                  string
+	CaptionEntities            []*MessageEntity
+	ShowCaptionAboveMedia      bool
+	HasSpoiler                 bool
+	DisableNotification        bool
+	ProtectContent             bool
+	AllowPaidBroadcast         bool
+	MessageEffectId            string
+	SuggestedPostParameters    *SuggestedPostParameters
+	ReplyParameters            *ReplyParameters
+	ReplyMarkup                VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
+	EphemeralMessageParameters *EphemeralMessageParameters
 }
 
-// SendPoll Use this method to send a native poll. On success, the sent Message is returned.
+// SendPoll Use this method to send a native poll.
+// On success, the sent [Message](https://core.telegram.org/bots/api/#message) is returned.
 func SendPoll(ctx context.Context, chatId int64, question string, options []*InputPollOption, opts ...*OptSendPoll) (*Message, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
 	type Request struct {
-		BusinessConnectionId  string                                                                      `json:"business_connection_id,omitempty"`
-		ChatId                int64                                                                       `json:"chat_id"`
-		MessageThreadId       int64                                                                       `json:"message_thread_id,omitempty"`
-		Question              string                                                                      `json:"question"`
-		QuestionParseMode     string                                                                      `json:"question_parse_mode,omitempty"`
-		QuestionEntities      []*MessageEntity                                                            `json:"question_entities,omitempty"`
-		Options               []*InputPollOption                                                          `json:"options"`
-		IsAnonymous           bool                                                                        `json:"is_anonymous,omitempty"`
-		Type                  string                                                                      `json:"type,omitempty"`
-		AllowsMultipleAnswers bool                                                                        `json:"allows_multiple_answers,omitempty"`
-		CorrectOptionId       int64                                                                       `json:"correct_option_id,omitempty"`
-		Explanation           string                                                                      `json:"explanation,omitempty"`
-		ExplanationParseMode  string                                                                      `json:"explanation_parse_mode,omitempty"`
-		ExplanationEntities   []*MessageEntity                                                            `json:"explanation_entities,omitempty"`
-		OpenPeriod            int64                                                                       `json:"open_period,omitempty"`
-		CloseDate             int64                                                                       `json:"close_date,omitempty"`
-		IsClosed              bool                                                                        `json:"is_closed,omitempty"`
-		DisableNotification   bool                                                                        `json:"disable_notification,omitempty"`
-		ProtectContent        bool                                                                        `json:"protect_content,omitempty"`
-		AllowPaidBroadcast    bool                                                                        `json:"allow_paid_broadcast,omitempty"`
-		MessageEffectId       string                                                                      `json:"message_effect_id,omitempty"`
-		ReplyParameters       *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
-		ReplyMarkup           VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
+		BusinessConnectionId   string                                                                      `json:"business_connection_id,omitempty"`
+		ChatId                 int64                                                                       `json:"chat_id"`
+		MessageThreadId        int64                                                                       `json:"message_thread_id,omitempty"`
+		Question               string                                                                      `json:"question"`
+		QuestionParseMode      string                                                                      `json:"question_parse_mode,omitempty"`
+		QuestionEntities       []*MessageEntity                                                            `json:"question_entities,omitempty"`
+		Options                []*InputPollOption                                                          `json:"options"`
+		IsAnonymous            bool                                                                        `json:"is_anonymous,omitempty"`
+		Type                   string                                                                      `json:"type,omitempty"`
+		AllowsMultipleAnswers  bool                                                                        `json:"allows_multiple_answers,omitempty"`
+		AllowsRevoting         bool                                                                        `json:"allows_revoting,omitempty"`
+		ShuffleOptions         bool                                                                        `json:"shuffle_options,omitempty"`
+		AllowAddingOptions     bool                                                                        `json:"allow_adding_options,omitempty"`
+		HideResultsUntilCloses bool                                                                        `json:"hide_results_until_closes,omitempty"`
+		MembersOnly            bool                                                                        `json:"members_only,omitempty"`
+		CountryCodes           []string                                                                    `json:"country_codes,omitempty"`
+		CorrectOptionIds       []int64                                                                     `json:"correct_option_ids,omitempty"`
+		Explanation            string                                                                      `json:"explanation,omitempty"`
+		ExplanationParseMode   string                                                                      `json:"explanation_parse_mode,omitempty"`
+		ExplanationEntities    []*MessageEntity                                                            `json:"explanation_entities,omitempty"`
+		ExplanationMedia       InputPollMedia                                                              `json:"explanation_media,omitempty"`
+		OpenPeriod             int64                                                                       `json:"open_period,omitempty"`
+		CloseDate              int64                                                                       `json:"close_date,omitempty"`
+		IsClosed               bool                                                                        `json:"is_closed,omitempty"`
+		Description            string                                                                      `json:"description,omitempty"`
+		DescriptionParseMode   string                                                                      `json:"description_parse_mode,omitempty"`
+		DescriptionEntities    []*MessageEntity                                                            `json:"description_entities,omitempty"`
+		Media                  InputPollMedia                                                              `json:"media,omitempty"`
+		DisableNotification    bool                                                                        `json:"disable_notification,omitempty"`
+		ProtectContent         bool                                                                        `json:"protect_content,omitempty"`
+		AllowPaidBroadcast     bool                                                                        `json:"allow_paid_broadcast,omitempty"`
+		MessageEffectId        string                                                                      `json:"message_effect_id,omitempty"`
+		ReplyParameters        *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
+		ReplyMarkup            VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
 	}
 	request := &Request{
 		ChatId:   chatId,
@@ -3276,8 +4743,26 @@ func SendPoll(ctx context.Context, chatId int64, question string, options []*Inp
 		if opt.AllowsMultipleAnswers {
 			request.AllowsMultipleAnswers = opt.AllowsMultipleAnswers
 		}
-		if opt.CorrectOptionId != 0 {
-			request.CorrectOptionId = opt.CorrectOptionId
+		if opt.AllowsRevoting {
+			request.AllowsRevoting = opt.AllowsRevoting
+		}
+		if opt.ShuffleOptions {
+			request.ShuffleOptions = opt.ShuffleOptions
+		}
+		if opt.AllowAddingOptions {
+			request.AllowAddingOptions = opt.AllowAddingOptions
+		}
+		if opt.HideResultsUntilCloses {
+			request.HideResultsUntilCloses = opt.HideResultsUntilCloses
+		}
+		if opt.MembersOnly {
+			request.MembersOnly = opt.MembersOnly
+		}
+		if opt.CountryCodes != nil {
+			request.CountryCodes = opt.CountryCodes
+		}
+		if opt.CorrectOptionIds != nil {
+			request.CorrectOptionIds = opt.CorrectOptionIds
 		}
 		if opt.Explanation != "" {
 			request.Explanation = opt.Explanation
@@ -3288,6 +4773,9 @@ func SendPoll(ctx context.Context, chatId int64, question string, options []*Inp
 		if opt.ExplanationEntities != nil {
 			request.ExplanationEntities = opt.ExplanationEntities
 		}
+		if opt.ExplanationMedia != nil {
+			request.ExplanationMedia = opt.ExplanationMedia
+		}
 		if opt.OpenPeriod != 0 {
 			request.OpenPeriod = opt.OpenPeriod
 		}
@@ -3296,6 +4784,18 @@ func SendPoll(ctx context.Context, chatId int64, question string, options []*Inp
 		}
 		if opt.IsClosed {
 			request.IsClosed = opt.IsClosed
+		}
+		if opt.Description != "" {
+			request.Description = opt.Description
+		}
+		if opt.DescriptionParseMode != "" {
+			request.DescriptionParseMode = opt.DescriptionParseMode
+		}
+		if opt.DescriptionEntities != nil {
+			request.DescriptionEntities = opt.DescriptionEntities
+		}
+		if opt.Media != nil {
+			request.Media = opt.Media
 		}
 		if opt.DisableNotification {
 			request.DisableNotification = opt.DisableNotification
@@ -3320,45 +4820,59 @@ func SendPoll(ctx context.Context, chatId int64, question string, options []*Inp
 }
 
 type OptSendPoll struct {
-	BusinessConnectionId  string
-	MessageThreadId       int64
-	QuestionParseMode     string
-	QuestionEntities      []*MessageEntity
-	IsAnonymous           bool
-	Type                  string
-	AllowsMultipleAnswers bool
-	CorrectOptionId       int64
-	Explanation           string
-	ExplanationParseMode  string
-	ExplanationEntities   []*MessageEntity
-	OpenPeriod            int64
-	CloseDate             int64
-	IsClosed              bool
-	DisableNotification   bool
-	ProtectContent        bool
-	AllowPaidBroadcast    bool
-	MessageEffectId       string
-	ReplyParameters       *ReplyParameters
-	ReplyMarkup           VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
+	BusinessConnectionId   string
+	MessageThreadId        int64
+	QuestionParseMode      string
+	QuestionEntities       []*MessageEntity
+	IsAnonymous            bool
+	Type                   string
+	AllowsMultipleAnswers  bool
+	AllowsRevoting         bool
+	ShuffleOptions         bool
+	AllowAddingOptions     bool
+	HideResultsUntilCloses bool
+	MembersOnly            bool
+	CountryCodes           []string
+	CorrectOptionIds       []int64
+	Explanation            string
+	ExplanationParseMode   string
+	ExplanationEntities    []*MessageEntity
+	ExplanationMedia       InputPollMedia
+	OpenPeriod             int64
+	CloseDate              int64
+	IsClosed               bool
+	Description            string
+	DescriptionParseMode   string
+	DescriptionEntities    []*MessageEntity
+	Media                  InputPollMedia
+	DisableNotification    bool
+	ProtectContent         bool
+	AllowPaidBroadcast     bool
+	MessageEffectId        string
+	ReplyParameters        *ReplyParameters
+	ReplyMarkup            VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
 }
 
-// SendSticker Use this method to send static .WEBP, animated .TGS, or video .WEBM stickers.
-// On success, the sent Message is returned.
+// SendSticker Use this method to send static .WEBP, [animated](https://telegram.org/blog/animated-stickers) .TGS, or [video](https://telegram.org/blog/video-stickers-better-reactions) .WEBM stickers.
+// On success, the sent [Message](https://core.telegram.org/bots/api/#message) is returned.
 func SendSticker(ctx context.Context, chatId int64, sticker InputFile, opts ...*OptSendSticker) (*Message, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
 	type Request struct {
-		BusinessConnectionId string                                                                      `json:"business_connection_id,omitempty"`
-		ChatId               int64                                                                       `json:"chat_id"`
-		MessageThreadId      int64                                                                       `json:"message_thread_id,omitempty"`
-		Sticker              InputFile                                                                   `json:"sticker"`
-		Emoji                string                                                                      `json:"emoji,omitempty"`
-		DisableNotification  bool                                                                        `json:"disable_notification,omitempty"`
-		ProtectContent       bool                                                                        `json:"protect_content,omitempty"`
-		AllowPaidBroadcast   bool                                                                        `json:"allow_paid_broadcast,omitempty"`
-		MessageEffectId      string                                                                      `json:"message_effect_id,omitempty"`
-		ReplyParameters      *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
-		ReplyMarkup          VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
+		BusinessConnectionId       string                                                                      `json:"business_connection_id,omitempty"`
+		ChatId                     int64                                                                       `json:"chat_id"`
+		MessageThreadId            int64                                                                       `json:"message_thread_id,omitempty"`
+		DirectMessagesTopicId      int64                                                                       `json:"direct_messages_topic_id,omitempty"`
+		Sticker                    InputFile                                                                   `json:"sticker"`
+		Emoji                      string                                                                      `json:"emoji,omitempty"`
+		DisableNotification        bool                                                                        `json:"disable_notification,omitempty"`
+		ProtectContent             bool                                                                        `json:"protect_content,omitempty"`
+		AllowPaidBroadcast         bool                                                                        `json:"allow_paid_broadcast,omitempty"`
+		MessageEffectId            string                                                                      `json:"message_effect_id,omitempty"`
+		SuggestedPostParameters    *SuggestedPostParameters                                                    `json:"suggested_post_parameters,omitempty"`
+		ReplyParameters            *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
+		ReplyMarkup                VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
+		EphemeralMessageParameters *EphemeralMessageParameters                                                 `json:"ephemeral_message_parameters,omitempty"`
 	}
 	request := &Request{
 		ChatId:  chatId,
@@ -3370,6 +4884,9 @@ func SendSticker(ctx context.Context, chatId int64, sticker InputFile, opts ...*
 		}
 		if opt.MessageThreadId != 0 {
 			request.MessageThreadId = opt.MessageThreadId
+		}
+		if opt.DirectMessagesTopicId != 0 {
+			request.DirectMessagesTopicId = opt.DirectMessagesTopicId
 		}
 		if opt.Emoji != "" {
 			request.Emoji = opt.Emoji
@@ -3386,50 +4903,63 @@ func SendSticker(ctx context.Context, chatId int64, sticker InputFile, opts ...*
 		if opt.MessageEffectId != "" {
 			request.MessageEffectId = opt.MessageEffectId
 		}
+		if opt.SuggestedPostParameters != nil {
+			request.SuggestedPostParameters = opt.SuggestedPostParameters
+		}
 		if opt.ReplyParameters != nil {
 			request.ReplyParameters = opt.ReplyParameters
 		}
 		if opt.ReplyMarkup != nil {
 			request.ReplyMarkup = opt.ReplyMarkup
 		}
+		if opt.EphemeralMessageParameters != nil {
+			request.EphemeralMessageParameters = opt.EphemeralMessageParameters
+		}
 	}
 	return GenericRequestMultipart[Request, *Message](ctx, "sendSticker", request)
 }
 
 type OptSendSticker struct {
-	BusinessConnectionId string
-	MessageThreadId      int64
-	Emoji                string
-	DisableNotification  bool
-	ProtectContent       bool
-	AllowPaidBroadcast   bool
-	MessageEffectId      string
-	ReplyParameters      *ReplyParameters
-	ReplyMarkup          VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
+	BusinessConnectionId       string
+	MessageThreadId            int64
+	DirectMessagesTopicId      int64
+	Emoji                      string
+	DisableNotification        bool
+	ProtectContent             bool
+	AllowPaidBroadcast         bool
+	MessageEffectId            string
+	SuggestedPostParameters    *SuggestedPostParameters
+	ReplyParameters            *ReplyParameters
+	ReplyMarkup                VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
+	EphemeralMessageParameters *EphemeralMessageParameters
 }
 
-// SendVenue Use this method to send information about a venue. On success, the sent Message is returned.
+// SendVenue Use this method to send information about a venue.
+// On success, the sent [Message](https://core.telegram.org/bots/api/#message) is returned.
 func SendVenue(ctx context.Context, chatId int64, latitude float64, longitude float64, title string, address string, opts ...*OptSendVenue) (*Message, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
 	type Request struct {
-		BusinessConnectionId string                                                                      `json:"business_connection_id,omitempty"`
-		ChatId               int64                                                                       `json:"chat_id"`
-		MessageThreadId      int64                                                                       `json:"message_thread_id,omitempty"`
-		Latitude             float64                                                                     `json:"latitude"`
-		Longitude            float64                                                                     `json:"longitude"`
-		Title                string                                                                      `json:"title"`
-		Address              string                                                                      `json:"address"`
-		FoursquareId         string                                                                      `json:"foursquare_id,omitempty"`
-		FoursquareType       string                                                                      `json:"foursquare_type,omitempty"`
-		GooglePlaceId        string                                                                      `json:"google_place_id,omitempty"`
-		GooglePlaceType      string                                                                      `json:"google_place_type,omitempty"`
-		DisableNotification  bool                                                                        `json:"disable_notification,omitempty"`
-		ProtectContent       bool                                                                        `json:"protect_content,omitempty"`
-		AllowPaidBroadcast   bool                                                                        `json:"allow_paid_broadcast,omitempty"`
-		MessageEffectId      string                                                                      `json:"message_effect_id,omitempty"`
-		ReplyParameters      *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
-		ReplyMarkup          VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
+		BusinessConnectionId       string                                                                      `json:"business_connection_id,omitempty"`
+		ChatId                     int64                                                                       `json:"chat_id"`
+		MessageThreadId            int64                                                                       `json:"message_thread_id,omitempty"`
+		DirectMessagesTopicId      int64                                                                       `json:"direct_messages_topic_id,omitempty"`
+		Latitude                   float64                                                                     `json:"latitude"`
+		Longitude                  float64                                                                     `json:"longitude"`
+		Title                      string                                                                      `json:"title"`
+		Address                    string                                                                      `json:"address"`
+		FoursquareId               string                                                                      `json:"foursquare_id,omitempty"`
+		FoursquareType             string                                                                      `json:"foursquare_type,omitempty"`
+		GooglePlaceId              string                                                                      `json:"google_place_id,omitempty"`
+		GooglePlaceType            string                                                                      `json:"google_place_type,omitempty"`
+		DisableNotification        bool                                                                        `json:"disable_notification,omitempty"`
+		ProtectContent             bool                                                                        `json:"protect_content,omitempty"`
+		AllowPaidBroadcast         bool                                                                        `json:"allow_paid_broadcast,omitempty"`
+		MessageEffectId            string                                                                      `json:"message_effect_id,omitempty"`
+		SuggestedPostParameters    *SuggestedPostParameters                                                    `json:"suggested_post_parameters,omitempty"`
+		ReplyParameters            *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
+		ReplyMarkup                VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
+		EphemeralMessageParameters *EphemeralMessageParameters                                                 `json:"ephemeral_message_parameters,omitempty"`
 	}
 	request := &Request{
 		ChatId:    chatId,
@@ -3444,6 +4974,9 @@ func SendVenue(ctx context.Context, chatId int64, latitude float64, longitude fl
 		}
 		if opt.MessageThreadId != 0 {
 			request.MessageThreadId = opt.MessageThreadId
+		}
+		if opt.DirectMessagesTopicId != 0 {
+			request.DirectMessagesTopicId = opt.DirectMessagesTopicId
 		}
 		if opt.FoursquareId != "" {
 			request.FoursquareId = opt.FoursquareId
@@ -3469,58 +5002,72 @@ func SendVenue(ctx context.Context, chatId int64, latitude float64, longitude fl
 		if opt.MessageEffectId != "" {
 			request.MessageEffectId = opt.MessageEffectId
 		}
+		if opt.SuggestedPostParameters != nil {
+			request.SuggestedPostParameters = opt.SuggestedPostParameters
+		}
 		if opt.ReplyParameters != nil {
 			request.ReplyParameters = opt.ReplyParameters
 		}
 		if opt.ReplyMarkup != nil {
 			request.ReplyMarkup = opt.ReplyMarkup
 		}
+		if opt.EphemeralMessageParameters != nil {
+			request.EphemeralMessageParameters = opt.EphemeralMessageParameters
+		}
 	}
 	return GenericRequest[Request, *Message](ctx, "sendVenue", request)
 }
 
 type OptSendVenue struct {
-	BusinessConnectionId string
-	MessageThreadId      int64
-	FoursquareId         string
-	FoursquareType       string
-	GooglePlaceId        string
-	GooglePlaceType      string
-	DisableNotification  bool
-	ProtectContent       bool
-	AllowPaidBroadcast   bool
-	MessageEffectId      string
-	ReplyParameters      *ReplyParameters
-	ReplyMarkup          VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
+	BusinessConnectionId       string
+	MessageThreadId            int64
+	DirectMessagesTopicId      int64
+	FoursquareId               string
+	FoursquareType             string
+	GooglePlaceId              string
+	GooglePlaceType            string
+	DisableNotification        bool
+	ProtectContent             bool
+	AllowPaidBroadcast         bool
+	MessageEffectId            string
+	SuggestedPostParameters    *SuggestedPostParameters
+	ReplyParameters            *ReplyParameters
+	ReplyMarkup                VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
+	EphemeralMessageParameters *EphemeralMessageParameters
 }
 
-// SendVideo Use this method to send video files, Telegram clients support MPEG4 videos (other formats may be sent as Document).
-// On success, the sent Message is returned.
+// SendVideo Use this method to send video files, Telegram clients support MPEG4 videos (other formats may be sent as [Document](https://core.telegram.org/bots/api/#document)).
+// On success, the sent [Message](https://core.telegram.org/bots/api/#message) is returned.
 // Bots can currently send video files of up to 50 MB in size, this limit may be changed in the future.
 func SendVideo(ctx context.Context, chatId int64, video InputFile, opts ...*OptSendVideo) (*Message, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
 	type Request struct {
-		BusinessConnectionId  string                                                                      `json:"business_connection_id,omitempty"`
-		ChatId                int64                                                                       `json:"chat_id"`
-		MessageThreadId       int64                                                                       `json:"message_thread_id,omitempty"`
-		Video                 InputFile                                                                   `json:"video"`
-		Duration              int64                                                                       `json:"duration,omitempty"`
-		Width                 int64                                                                       `json:"width,omitempty"`
-		Height                int64                                                                       `json:"height,omitempty"`
-		Thumbnail             InputFile                                                                   `json:"thumbnail,omitempty"`
-		Caption               string                                                                      `json:"caption,omitempty"`
-		ParseMode             string                                                                      `json:"parse_mode,omitempty"`
-		CaptionEntities       []*MessageEntity                                                            `json:"caption_entities,omitempty"`
-		ShowCaptionAboveMedia bool                                                                        `json:"show_caption_above_media,omitempty"`
-		HasSpoiler            bool                                                                        `json:"has_spoiler,omitempty"`
-		SupportsStreaming     bool                                                                        `json:"supports_streaming,omitempty"`
-		DisableNotification   bool                                                                        `json:"disable_notification,omitempty"`
-		ProtectContent        bool                                                                        `json:"protect_content,omitempty"`
-		AllowPaidBroadcast    bool                                                                        `json:"allow_paid_broadcast,omitempty"`
-		MessageEffectId       string                                                                      `json:"message_effect_id,omitempty"`
-		ReplyParameters       *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
-		ReplyMarkup           VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
+		BusinessConnectionId       string                                                                      `json:"business_connection_id,omitempty"`
+		ChatId                     int64                                                                       `json:"chat_id"`
+		MessageThreadId            int64                                                                       `json:"message_thread_id,omitempty"`
+		DirectMessagesTopicId      int64                                                                       `json:"direct_messages_topic_id,omitempty"`
+		Video                      InputFile                                                                   `json:"video"`
+		Duration                   int64                                                                       `json:"duration,omitempty"`
+		Width                      int64                                                                       `json:"width,omitempty"`
+		Height                     int64                                                                       `json:"height,omitempty"`
+		Thumbnail                  InputFile                                                                   `json:"thumbnail,omitempty"`
+		Cover                      InputFile                                                                   `json:"cover,omitempty"`
+		StartTimestamp             int64                                                                       `json:"start_timestamp,omitempty"`
+		Caption                    string                                                                      `json:"caption,omitempty"`
+		ParseMode                  string                                                                      `json:"parse_mode,omitempty"`
+		CaptionEntities            []*MessageEntity                                                            `json:"caption_entities,omitempty"`
+		ShowCaptionAboveMedia      bool                                                                        `json:"show_caption_above_media,omitempty"`
+		HasSpoiler                 bool                                                                        `json:"has_spoiler,omitempty"`
+		SupportsStreaming          bool                                                                        `json:"supports_streaming,omitempty"`
+		DisableNotification        bool                                                                        `json:"disable_notification,omitempty"`
+		ProtectContent             bool                                                                        `json:"protect_content,omitempty"`
+		AllowPaidBroadcast         bool                                                                        `json:"allow_paid_broadcast,omitempty"`
+		MessageEffectId            string                                                                      `json:"message_effect_id,omitempty"`
+		SuggestedPostParameters    *SuggestedPostParameters                                                    `json:"suggested_post_parameters,omitempty"`
+		ReplyParameters            *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
+		ReplyMarkup                VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
+		EphemeralMessageParameters *EphemeralMessageParameters                                                 `json:"ephemeral_message_parameters,omitempty"`
 	}
 	request := &Request{
 		ChatId: chatId,
@@ -3533,6 +5080,9 @@ func SendVideo(ctx context.Context, chatId int64, video InputFile, opts ...*OptS
 		if opt.MessageThreadId != 0 {
 			request.MessageThreadId = opt.MessageThreadId
 		}
+		if opt.DirectMessagesTopicId != 0 {
+			request.DirectMessagesTopicId = opt.DirectMessagesTopicId
+		}
 		if opt.Duration != 0 {
 			request.Duration = opt.Duration
 		}
@@ -3544,6 +5094,12 @@ func SendVideo(ctx context.Context, chatId int64, video InputFile, opts ...*OptS
 		}
 		if opt.Thumbnail != nil {
 			request.Thumbnail = opt.Thumbnail
+		}
+		if opt.Cover != nil {
+			request.Cover = opt.Cover
+		}
+		if opt.StartTimestamp != 0 {
+			request.StartTimestamp = opt.StartTimestamp
 		}
 		if opt.Caption != "" {
 			request.Caption = opt.Caption
@@ -3575,56 +5131,71 @@ func SendVideo(ctx context.Context, chatId int64, video InputFile, opts ...*OptS
 		if opt.MessageEffectId != "" {
 			request.MessageEffectId = opt.MessageEffectId
 		}
+		if opt.SuggestedPostParameters != nil {
+			request.SuggestedPostParameters = opt.SuggestedPostParameters
+		}
 		if opt.ReplyParameters != nil {
 			request.ReplyParameters = opt.ReplyParameters
 		}
 		if opt.ReplyMarkup != nil {
 			request.ReplyMarkup = opt.ReplyMarkup
 		}
+		if opt.EphemeralMessageParameters != nil {
+			request.EphemeralMessageParameters = opt.EphemeralMessageParameters
+		}
 	}
 	return GenericRequestMultipart[Request, *Message](ctx, "sendVideo", request)
 }
 
 type OptSendVideo struct {
-	BusinessConnectionId  string
-	MessageThreadId       int64
-	Duration              int64
-	Width                 int64
-	Height                int64
-	Thumbnail             InputFile
-	Caption               string
-	ParseMode             string
-	CaptionEntities       []*MessageEntity
-	ShowCaptionAboveMedia bool
-	HasSpoiler            bool
-	SupportsStreaming     bool
-	DisableNotification   bool
-	ProtectContent        bool
-	AllowPaidBroadcast    bool
-	MessageEffectId       string
-	ReplyParameters       *ReplyParameters
-	ReplyMarkup           VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
+	BusinessConnectionId       string
+	MessageThreadId            int64
+	DirectMessagesTopicId      int64
+	Duration                   int64
+	Width                      int64
+	Height                     int64
+	Thumbnail                  InputFile
+	Cover                      InputFile
+	StartTimestamp             int64
+	Caption                    string
+	ParseMode                  string
+	CaptionEntities            []*MessageEntity
+	ShowCaptionAboveMedia      bool
+	HasSpoiler                 bool
+	SupportsStreaming          bool
+	DisableNotification        bool
+	ProtectContent             bool
+	AllowPaidBroadcast         bool
+	MessageEffectId            string
+	SuggestedPostParameters    *SuggestedPostParameters
+	ReplyParameters            *ReplyParameters
+	ReplyMarkup                VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
+	EphemeralMessageParameters *EphemeralMessageParameters
 }
 
-// SendVideoNote As of v.4.0, Telegram clients support rounded square MPEG4 videos of up to 1 minute long.
-// Use this method to send video messages. On success, the sent Message is returned.
+// SendVideoNote As of [v.4.0](https://telegram.org/blog/video-messages-and-telescope), Telegram clients support rounded square MPEG4 videos of up to 1 minute long.
+// Use this method to send video messages.
+// On success, the sent [Message](https://core.telegram.org/bots/api/#message) is returned.
 func SendVideoNote(ctx context.Context, chatId int64, videoNote InputFile, opts ...*OptSendVideoNote) (*Message, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
 	type Request struct {
-		BusinessConnectionId string                                                                      `json:"business_connection_id,omitempty"`
-		ChatId               int64                                                                       `json:"chat_id"`
-		MessageThreadId      int64                                                                       `json:"message_thread_id,omitempty"`
-		VideoNote            InputFile                                                                   `json:"video_note"`
-		Duration             int64                                                                       `json:"duration,omitempty"`
-		Length               int64                                                                       `json:"length,omitempty"`
-		Thumbnail            InputFile                                                                   `json:"thumbnail,omitempty"`
-		DisableNotification  bool                                                                        `json:"disable_notification,omitempty"`
-		ProtectContent       bool                                                                        `json:"protect_content,omitempty"`
-		AllowPaidBroadcast   bool                                                                        `json:"allow_paid_broadcast,omitempty"`
-		MessageEffectId      string                                                                      `json:"message_effect_id,omitempty"`
-		ReplyParameters      *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
-		ReplyMarkup          VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
+		BusinessConnectionId       string                                                                      `json:"business_connection_id,omitempty"`
+		ChatId                     int64                                                                       `json:"chat_id"`
+		MessageThreadId            int64                                                                       `json:"message_thread_id,omitempty"`
+		DirectMessagesTopicId      int64                                                                       `json:"direct_messages_topic_id,omitempty"`
+		VideoNote                  InputFile                                                                   `json:"video_note"`
+		Duration                   int64                                                                       `json:"duration,omitempty"`
+		Length                     int64                                                                       `json:"length,omitempty"`
+		Thumbnail                  InputFile                                                                   `json:"thumbnail,omitempty"`
+		DisableNotification        bool                                                                        `json:"disable_notification,omitempty"`
+		ProtectContent             bool                                                                        `json:"protect_content,omitempty"`
+		AllowPaidBroadcast         bool                                                                        `json:"allow_paid_broadcast,omitempty"`
+		MessageEffectId            string                                                                      `json:"message_effect_id,omitempty"`
+		SuggestedPostParameters    *SuggestedPostParameters                                                    `json:"suggested_post_parameters,omitempty"`
+		ReplyParameters            *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
+		ReplyMarkup                VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
+		EphemeralMessageParameters *EphemeralMessageParameters                                                 `json:"ephemeral_message_parameters,omitempty"`
 	}
 	request := &Request{
 		ChatId:    chatId,
@@ -3636,6 +5207,9 @@ func SendVideoNote(ctx context.Context, chatId int64, videoNote InputFile, opts 
 		}
 		if opt.MessageThreadId != 0 {
 			request.MessageThreadId = opt.MessageThreadId
+		}
+		if opt.DirectMessagesTopicId != 0 {
+			request.DirectMessagesTopicId = opt.DirectMessagesTopicId
 		}
 		if opt.Duration != 0 {
 			request.Duration = opt.Duration
@@ -3658,52 +5232,64 @@ func SendVideoNote(ctx context.Context, chatId int64, videoNote InputFile, opts 
 		if opt.MessageEffectId != "" {
 			request.MessageEffectId = opt.MessageEffectId
 		}
+		if opt.SuggestedPostParameters != nil {
+			request.SuggestedPostParameters = opt.SuggestedPostParameters
+		}
 		if opt.ReplyParameters != nil {
 			request.ReplyParameters = opt.ReplyParameters
 		}
 		if opt.ReplyMarkup != nil {
 			request.ReplyMarkup = opt.ReplyMarkup
 		}
+		if opt.EphemeralMessageParameters != nil {
+			request.EphemeralMessageParameters = opt.EphemeralMessageParameters
+		}
 	}
 	return GenericRequestMultipart[Request, *Message](ctx, "sendVideoNote", request)
 }
 
 type OptSendVideoNote struct {
-	BusinessConnectionId string
-	MessageThreadId      int64
-	Duration             int64
-	Length               int64
-	Thumbnail            InputFile
-	DisableNotification  bool
-	ProtectContent       bool
-	AllowPaidBroadcast   bool
-	MessageEffectId      string
-	ReplyParameters      *ReplyParameters
-	ReplyMarkup          VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
+	BusinessConnectionId       string
+	MessageThreadId            int64
+	DirectMessagesTopicId      int64
+	Duration                   int64
+	Length                     int64
+	Thumbnail                  InputFile
+	DisableNotification        bool
+	ProtectContent             bool
+	AllowPaidBroadcast         bool
+	MessageEffectId            string
+	SuggestedPostParameters    *SuggestedPostParameters
+	ReplyParameters            *ReplyParameters
+	ReplyMarkup                VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
+	EphemeralMessageParameters *EphemeralMessageParameters
 }
 
 // SendVoice Use this method to send audio files, if you want Telegram clients to display the file as a playable voice message.
-// For this to work, your audio must be in an .OGG file encoded with OPUS, or in .MP3 format, or in .M4A format (other formats may be sent as Audio or Document).
-// On success, the sent Message is returned.
+// For this to work, your audio must be in an .OGG file encoded with OPUS, or in .MP3 format, or in .M4A format (other formats may be sent as [Audio](https://core.telegram.org/bots/api/#audio) or [Document](https://core.telegram.org/bots/api/#document)).
+// On success, the sent [Message](https://core.telegram.org/bots/api/#message) is returned.
 // Bots can currently send voice messages of up to 50 MB in size, this limit may be changed in the future.
 func SendVoice(ctx context.Context, chatId int64, voice InputFile, opts ...*OptSendVoice) (*Message, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
 	type Request struct {
-		BusinessConnectionId string                                                                      `json:"business_connection_id,omitempty"`
-		ChatId               int64                                                                       `json:"chat_id"`
-		MessageThreadId      int64                                                                       `json:"message_thread_id,omitempty"`
-		Voice                InputFile                                                                   `json:"voice"`
-		Caption              string                                                                      `json:"caption,omitempty"`
-		ParseMode            string                                                                      `json:"parse_mode,omitempty"`
-		CaptionEntities      []*MessageEntity                                                            `json:"caption_entities,omitempty"`
-		Duration             int64                                                                       `json:"duration,omitempty"`
-		DisableNotification  bool                                                                        `json:"disable_notification,omitempty"`
-		ProtectContent       bool                                                                        `json:"protect_content,omitempty"`
-		AllowPaidBroadcast   bool                                                                        `json:"allow_paid_broadcast,omitempty"`
-		MessageEffectId      string                                                                      `json:"message_effect_id,omitempty"`
-		ReplyParameters      *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
-		ReplyMarkup          VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
+		BusinessConnectionId       string                                                                      `json:"business_connection_id,omitempty"`
+		ChatId                     int64                                                                       `json:"chat_id"`
+		MessageThreadId            int64                                                                       `json:"message_thread_id,omitempty"`
+		DirectMessagesTopicId      int64                                                                       `json:"direct_messages_topic_id,omitempty"`
+		Voice                      InputFile                                                                   `json:"voice"`
+		Caption                    string                                                                      `json:"caption,omitempty"`
+		ParseMode                  string                                                                      `json:"parse_mode,omitempty"`
+		CaptionEntities            []*MessageEntity                                                            `json:"caption_entities,omitempty"`
+		Duration                   int64                                                                       `json:"duration,omitempty"`
+		DisableNotification        bool                                                                        `json:"disable_notification,omitempty"`
+		ProtectContent             bool                                                                        `json:"protect_content,omitempty"`
+		AllowPaidBroadcast         bool                                                                        `json:"allow_paid_broadcast,omitempty"`
+		MessageEffectId            string                                                                      `json:"message_effect_id,omitempty"`
+		SuggestedPostParameters    *SuggestedPostParameters                                                    `json:"suggested_post_parameters,omitempty"`
+		ReplyParameters            *ReplyParameters                                                            `json:"reply_parameters,omitempty"`
+		ReplyMarkup                VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply `json:"reply_markup,omitempty"`
+		EphemeralMessageParameters *EphemeralMessageParameters                                                 `json:"ephemeral_message_parameters,omitempty"`
 	}
 	request := &Request{
 		ChatId: chatId,
@@ -3715,6 +5301,9 @@ func SendVoice(ctx context.Context, chatId int64, voice InputFile, opts ...*OptS
 		}
 		if opt.MessageThreadId != 0 {
 			request.MessageThreadId = opt.MessageThreadId
+		}
+		if opt.DirectMessagesTopicId != 0 {
+			request.DirectMessagesTopicId = opt.DirectMessagesTopicId
 		}
 		if opt.Caption != "" {
 			request.Caption = opt.Caption
@@ -3740,33 +5329,160 @@ func SendVoice(ctx context.Context, chatId int64, voice InputFile, opts ...*OptS
 		if opt.MessageEffectId != "" {
 			request.MessageEffectId = opt.MessageEffectId
 		}
+		if opt.SuggestedPostParameters != nil {
+			request.SuggestedPostParameters = opt.SuggestedPostParameters
+		}
 		if opt.ReplyParameters != nil {
 			request.ReplyParameters = opt.ReplyParameters
 		}
 		if opt.ReplyMarkup != nil {
 			request.ReplyMarkup = opt.ReplyMarkup
 		}
+		if opt.EphemeralMessageParameters != nil {
+			request.EphemeralMessageParameters = opt.EphemeralMessageParameters
+		}
 	}
 	return GenericRequestMultipart[Request, *Message](ctx, "sendVoice", request)
 }
 
 type OptSendVoice struct {
-	BusinessConnectionId string
-	MessageThreadId      int64
-	Caption              string
-	ParseMode            string
-	CaptionEntities      []*MessageEntity
-	Duration             int64
-	DisableNotification  bool
-	ProtectContent       bool
-	AllowPaidBroadcast   bool
-	MessageEffectId      string
-	ReplyParameters      *ReplyParameters
-	ReplyMarkup          VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
+	BusinessConnectionId       string
+	MessageThreadId            int64
+	DirectMessagesTopicId      int64
+	Caption                    string
+	ParseMode                  string
+	CaptionEntities            []*MessageEntity
+	Duration                   int64
+	DisableNotification        bool
+	ProtectContent             bool
+	AllowPaidBroadcast         bool
+	MessageEffectId            string
+	SuggestedPostParameters    *SuggestedPostParameters
+	ReplyParameters            *ReplyParameters
+	ReplyMarkup                VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
+	EphemeralMessageParameters *EphemeralMessageParameters
+}
+
+// SetBusinessAccountBio Changes the bio of a managed business account. Requires the *can\_change\_bio* business bot right.
+// Returns *True* on success.
+func SetBusinessAccountBio(ctx context.Context, businessConnectionId string, opts ...*OptSetBusinessAccountBio) (bool, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId string `json:"business_connection_id"`
+		Bio                  string `json:"bio,omitempty"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+	}
+	for _, opt := range opts {
+		if opt.Bio != "" {
+			request.Bio = opt.Bio
+		}
+	}
+	return GenericRequest[Request, bool](ctx, "setBusinessAccountBio", request)
+}
+
+type OptSetBusinessAccountBio struct {
+	Bio string
+}
+
+// SetBusinessAccountGiftSettings Changes the privacy settings pertaining to incoming gifts in a managed business account.
+// Requires the *can\_change\_gift\_settings* business bot right. Returns *True* on success.
+func SetBusinessAccountGiftSettings(ctx context.Context, businessConnectionId string, showGiftButton bool, acceptedGiftTypes *AcceptedGiftTypes) (bool, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId string             `json:"business_connection_id"`
+		ShowGiftButton       bool               `json:"show_gift_button"`
+		AcceptedGiftTypes    *AcceptedGiftTypes `json:"accepted_gift_types"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+		ShowGiftButton:       showGiftButton,
+		AcceptedGiftTypes:    acceptedGiftTypes,
+	}
+	return GenericRequest[Request, bool](ctx, "setBusinessAccountGiftSettings", request)
+}
+
+// SetBusinessAccountName Changes the first and last name of a managed business account. Requires the *can\_change\_name* business bot right.
+// Returns *True* on success.
+func SetBusinessAccountName(ctx context.Context, businessConnectionId string, firstName string, opts ...*OptSetBusinessAccountName) (bool, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId string `json:"business_connection_id"`
+		FirstName            string `json:"first_name"`
+		LastName             string `json:"last_name,omitempty"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+		FirstName:            firstName,
+	}
+	for _, opt := range opts {
+		if opt.LastName != "" {
+			request.LastName = opt.LastName
+		}
+	}
+	return GenericRequest[Request, bool](ctx, "setBusinessAccountName", request)
+}
+
+type OptSetBusinessAccountName struct {
+	LastName string
+}
+
+// SetBusinessAccountProfilePhoto Changes the profile photo of a managed business account. Requires the *can\_edit\_profile\_photo* business bot right.
+// Returns *True* on success.
+func SetBusinessAccountProfilePhoto(ctx context.Context, businessConnectionId string, photo InputProfilePhoto, opts ...*OptSetBusinessAccountProfilePhoto) (bool, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId string            `json:"business_connection_id"`
+		Photo                InputProfilePhoto `json:"photo"`
+		IsPublic             bool              `json:"is_public,omitempty"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+		Photo:                photo,
+	}
+	for _, opt := range opts {
+		if opt.IsPublic {
+			request.IsPublic = opt.IsPublic
+		}
+	}
+	return GenericRequest[Request, bool](ctx, "setBusinessAccountProfilePhoto", request)
+}
+
+type OptSetBusinessAccountProfilePhoto struct {
+	IsPublic bool
+}
+
+// SetBusinessAccountUsername Changes the username of a managed business account. Requires the *can\_change\_username* business bot right.
+// Returns *True* on success.
+func SetBusinessAccountUsername(ctx context.Context, businessConnectionId string, opts ...*OptSetBusinessAccountUsername) (bool, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId string `json:"business_connection_id"`
+		Username             string `json:"username,omitempty"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+	}
+	for _, opt := range opts {
+		if opt.Username != "" {
+			request.Username = opt.Username
+		}
+	}
+	return GenericRequest[Request, bool](ctx, "setBusinessAccountUsername", request)
+}
+
+type OptSetBusinessAccountUsername struct {
+	Username string
 }
 
 // SetChatAdministratorCustomTitle Use this method to set a custom title for an administrator in a supergroup promoted by the bot.
-// Returns True on success.
+// Returns *True* on success.
 func SetChatAdministratorCustomTitle(ctx context.Context, chatId int64, userId int64, customTitle string) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -3785,7 +5501,7 @@ func SetChatAdministratorCustomTitle(ctx context.Context, chatId int64, userId i
 
 // SetChatDescription Use this method to change the description of a group, a supergroup or a channel.
 // The bot must be an administrator in the chat for this to work and must have the appropriate administrator rights.
-// Returns True on success.
+// Returns *True* on success.
 func SetChatDescription(ctx context.Context, chatId int64, opts ...*OptSetChatDescription) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -3808,8 +5524,34 @@ type OptSetChatDescription struct {
 	Description string
 }
 
+// SetChatMemberTag Use this method to set a tag for a regular member in a group or a supergroup. Returns *True* on success.
+// The bot must be an administrator in the chat for this to work and must have the *can\_manage\_tags* administrator right.
+func SetChatMemberTag(ctx context.Context, chatId int64, userId int64, opts ...*OptSetChatMemberTag) (bool, error) {
+	ContextSchedule(ctx, chatId, 1)
+	defer ContextScheduleDone(ctx, chatId, 1)
+	type Request struct {
+		ChatId int64  `json:"chat_id"`
+		UserId int64  `json:"user_id"`
+		Tag    string `json:"tag,omitempty"`
+	}
+	request := &Request{
+		ChatId: chatId,
+		UserId: userId,
+	}
+	for _, opt := range opts {
+		if opt.Tag != "" {
+			request.Tag = opt.Tag
+		}
+	}
+	return GenericRequest[Request, bool](ctx, "setChatMemberTag", request)
+}
+
+type OptSetChatMemberTag struct {
+	Tag string
+}
+
 // SetChatMenuButton Use this method to change the bot's menu button in a private chat, or the default menu button.
-// Returns True on success.
+// Returns *True* on success.
 func SetChatMenuButton(ctx context.Context, opts ...*OptSetChatMenuButton) (bool, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -3834,8 +5576,8 @@ type OptSetChatMenuButton struct {
 	MenuButton MenuButton
 }
 
-// SetChatPermissions Use this method to set default chat permissions for all members. Returns True on success.
-// The bot must be an administrator in the group or a supergroup for this to work and must have the can_restrict_members administrator rights.
+// SetChatPermissions Use this method to set default chat permissions for all members. Returns *True* on success.
+// The bot must be an administrator in the group or a supergroup for this to work and must have the *can\_restrict\_members* administrator rights.
 func SetChatPermissions(ctx context.Context, chatId int64, permissions *ChatPermissions, opts ...*OptSetChatPermissions) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -3862,7 +5604,7 @@ type OptSetChatPermissions struct {
 
 // SetChatPhoto Use this method to set a new profile photo for the chat. Photos can't be changed for private chats.
 // The bot must be an administrator in the chat for this to work and must have the appropriate administrator rights.
-// Returns True on success.
+// Returns *True* on success.
 func SetChatPhoto(ctx context.Context, chatId int64, photo *LocalFile) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -3877,9 +5619,9 @@ func SetChatPhoto(ctx context.Context, chatId int64, photo *LocalFile) (bool, er
 	return GenericRequestMultipart[Request, bool](ctx, "setChatPhoto", request)
 }
 
-// SetChatStickerSet Use this method to set a new group sticker set for a supergroup. Returns True on success.
+// SetChatStickerSet Use this method to set a new group sticker set for a supergroup. Returns *True* on success.
 // The bot must be an administrator in the chat for this to work and must have the appropriate administrator rights.
-// Use the field can_set_sticker_set optionally returned in getChat requests to check if the bot can use this method.
+// Use the field *can\_set\_sticker\_set* optionally returned in [getChat](https://core.telegram.org/bots/api/#getchat) requests to check if the bot can use this method.
 func SetChatStickerSet(ctx context.Context, chatId int64, stickerSetName string) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -3896,7 +5638,7 @@ func SetChatStickerSet(ctx context.Context, chatId int64, stickerSetName string)
 
 // SetChatTitle Use this method to change the title of a chat. Titles can't be changed for private chats.
 // The bot must be an administrator in the chat for this to work and must have the appropriate administrator rights.
-// Returns True on success.
+// Returns *True* on success.
 func SetChatTitle(ctx context.Context, chatId int64, title string) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -3911,7 +5653,7 @@ func SetChatTitle(ctx context.Context, chatId int64, title string) (bool, error)
 	return GenericRequest[Request, bool](ctx, "setChatTitle", request)
 }
 
-// SetCustomEmojiStickerSetThumbnail Use this method to set the thumbnail of a custom emoji sticker set. Returns True on success.
+// SetCustomEmojiStickerSetThumbnail Use this method to set the thumbnail of a custom emoji sticker set. Returns *True* on success.
 func SetCustomEmojiStickerSetThumbnail(ctx context.Context, name string, opts ...*OptSetCustomEmojiStickerSetThumbnail) (bool, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -3935,8 +5677,8 @@ type OptSetCustomEmojiStickerSetThumbnail struct {
 }
 
 // SetGameScore Use this method to set the score of the specified user in a game message.
-// On success, if the message is not an inline message, the Message is returned, otherwise True is returned.
-// Returns an error, if the new score is not greater than the user's current score in the chat and force is False.
+// On success, if the message is not an inline message, the [Message](https://core.telegram.org/bots/api/#message) is returned, otherwise *True* is returned.
+// Returns an error, if the new score is not greater than the user's current score in the chat and *force* is *False*.
 func SetGameScore(ctx context.Context, userId int64, score int64, opts ...*OptSetGameScore) (*Message, error) /* >> either: [bool] */ {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -3981,9 +5723,34 @@ type OptSetGameScore struct {
 	InlineMessageId    string
 }
 
-// SetMessageReaction Use this method to change the chosen reactions on a message. Service messages can't be reacted to.
+// SetManagedBotAccessSettings Use this method to change the access settings of a managed bot. Returns *True* on success.
+func SetManagedBotAccessSettings(ctx context.Context, userId int64, isAccessRestricted bool, opts ...*OptSetManagedBotAccessSettings) (bool, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+		UserId             int64   `json:"user_id"`
+		IsAccessRestricted bool    `json:"is_access_restricted"`
+		AddedUserIds       []int64 `json:"added_user_ids,omitempty"`
+	}
+	request := &Request{
+		UserId:             userId,
+		IsAccessRestricted: isAccessRestricted,
+	}
+	for _, opt := range opts {
+		if opt.AddedUserIds != nil {
+			request.AddedUserIds = opt.AddedUserIds
+		}
+	}
+	return GenericRequest[Request, bool](ctx, "setManagedBotAccessSettings", request)
+}
+
+type OptSetManagedBotAccessSettings struct {
+	AddedUserIds []int64
+}
+
+// SetMessageReaction Use this method to change the chosen reactions on a message. Service messages of some types can't be reacted to.
 // Automatically forwarded messages from a channel to its discussion group have the same available reactions as messages in the channel.
-// Bots can't use paid reactions. Returns True on success.
+// Bots can't use paid reactions. Returns *True* on success.
 func SetMessageReaction(ctx context.Context, chatId int64, messageId int64, opts ...*OptSetMessageReaction) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -4013,8 +5780,8 @@ type OptSetMessageReaction struct {
 	IsBig    bool
 }
 
-// SetMyCommands Use this method to change the list of the bot's commands. See this manual for more details about bot commands.
-// Returns True on success.
+// SetMyCommands Use this method to change the list of the bot's commands. Returns *True* on success.
+// See [this manual](https://core.telegram.org/bots/features#commands) for more details about bot commands.
 func SetMyCommands(ctx context.Context, commands []*BotCommand, opts ...*OptSetMyCommands) (bool, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -4044,7 +5811,7 @@ type OptSetMyCommands struct {
 
 // SetMyDefaultAdministratorRights Use this method to change the default administrator rights requested by the bot when it's added as an administrator to groups or channels.
 // These rights will be suggested to users, but they are free to modify the list before adding the bot.
-// Returns True on success.
+// Returns *True* on success.
 func SetMyDefaultAdministratorRights(ctx context.Context, opts ...*OptSetMyDefaultAdministratorRights) (bool, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -4070,7 +5837,7 @@ type OptSetMyDefaultAdministratorRights struct {
 }
 
 // SetMyDescription Use this method to change the bot's description, which is shown in the chat with the bot if the chat is empty.
-// Returns True on success.
+// Returns *True* on success.
 func SetMyDescription(ctx context.Context, opts ...*OptSetMyDescription) (bool, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -4095,7 +5862,7 @@ type OptSetMyDescription struct {
 	LanguageCode string
 }
 
-// SetMyName Use this method to change the bot's name. Returns True on success.
+// SetMyName Use this method to change the bot's name. Returns *True* on success.
 func SetMyName(ctx context.Context, opts ...*OptSetMyName) (bool, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -4120,8 +5887,21 @@ type OptSetMyName struct {
 	LanguageCode string
 }
 
+// SetMyProfilePhoto Changes the profile photo of the bot. Returns *True* on success.
+func SetMyProfilePhoto(ctx context.Context, photo InputProfilePhoto) (bool, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+		Photo InputProfilePhoto `json:"photo"`
+	}
+	request := &Request{
+		Photo: photo,
+	}
+	return GenericRequest[Request, bool](ctx, "setMyProfilePhoto", request)
+}
+
 // SetMyShortDescription Use this method to change the bot's short description, which is shown on the bot's profile page and is sent together with the link when users share the bot.
-// Returns True on success.
+// Returns *True* on success.
 func SetMyShortDescription(ctx context.Context, opts ...*OptSetMyShortDescription) (bool, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -4146,7 +5926,7 @@ type OptSetMyShortDescription struct {
 	LanguageCode     string
 }
 
-// SetPassportDataErrors Informs a user that some of the Telegram Passport elements they provided contains errors. The user will not be able to re-submit their Passport to you until the errors are fixed (the contents of the field for which you returned the error must change). Returns True on success.
+// SetPassportDataErrors Informs a user that some of the Telegram Passport elements they provided contains errors. The user will not be able to re-submit their Passport to you until the errors are fixed (the contents of the field for which you returned the error must change). Returns *True* on success.
 // Use this if the data submitted by the user doesn't satisfy the standards your service requires for any reason. For example, if a birthday date seems invalid, a submitted document is blurry, a scan shows evidence of tampering, etc. Supply some details in the error message to make sure the user knows how to correct the issues.
 func SetPassportDataErrors(ctx context.Context, userId int64, errors []PassportElementError) (bool, error) {
 	ContextSchedule(ctx, 0, 1)
@@ -4163,7 +5943,7 @@ func SetPassportDataErrors(ctx context.Context, userId int64, errors []PassportE
 }
 
 // SetStickerEmojiList Use this method to change the list of emoji assigned to a regular or custom emoji sticker.
-// The sticker must belong to a sticker set created by the bot. Returns True on success.
+// The sticker must belong to a sticker set created by the bot. Returns *True* on success.
 func SetStickerEmojiList(ctx context.Context, sticker string, emojiList []string) (bool, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -4179,7 +5959,7 @@ func SetStickerEmojiList(ctx context.Context, sticker string, emojiList []string
 }
 
 // SetStickerKeywords Use this method to change search keywords assigned to a regular or custom emoji sticker.
-// The sticker must belong to a sticker set created by the bot. Returns True on success.
+// The sticker must belong to a sticker set created by the bot. Returns *True* on success.
 func SetStickerKeywords(ctx context.Context, sticker string, opts ...*OptSetStickerKeywords) (bool, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -4202,8 +5982,8 @@ type OptSetStickerKeywords struct {
 	Keywords []string
 }
 
-// SetStickerMaskPosition Use this method to change the mask position of a mask sticker. Returns True on success.
-// The sticker must belong to a sticker set that was created by the bot.
+// SetStickerMaskPosition Use this method to change the [mask position](https://core.telegram.org/bots/api/#maskposition) of a mask sticker.
+// The sticker must belong to a sticker set that was created by the bot. Returns *True* on success.
 func SetStickerMaskPosition(ctx context.Context, sticker string, opts ...*OptSetStickerMaskPosition) (bool, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -4227,7 +6007,7 @@ type OptSetStickerMaskPosition struct {
 }
 
 // SetStickerPositionInSet Use this method to move a sticker in a set created by the bot to a specific position.
-// Returns True on success.
+// Returns *True* on success.
 func SetStickerPositionInSet(ctx context.Context, sticker string, position int64) (bool, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -4242,7 +6022,7 @@ func SetStickerPositionInSet(ctx context.Context, sticker string, position int64
 	return GenericRequest[Request, bool](ctx, "setStickerPositionInSet", request)
 }
 
-// SetStickerSetThumbnail Use this method to set the thumbnail of a regular or mask sticker set. Returns True on success.
+// SetStickerSetThumbnail Use this method to set the thumbnail of a regular or mask sticker set. Returns *True* on success.
 // The format of the thumbnail file must match the format of the stickers in the set.
 func SetStickerSetThumbnail(ctx context.Context, name string, userId int64, format string, opts ...*OptSetStickerSetThumbnail) (bool, error) {
 	ContextSchedule(ctx, 0, 1)
@@ -4270,7 +6050,7 @@ type OptSetStickerSetThumbnail struct {
 	Thumbnail InputFile
 }
 
-// SetStickerSetTitle Use this method to set the title of a created sticker set. Returns True on success.
+// SetStickerSetTitle Use this method to set the title of a created sticker set. Returns *True* on success.
 func SetStickerSetTitle(ctx context.Context, name string, title string) (bool, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -4285,8 +6065,8 @@ func SetStickerSetTitle(ctx context.Context, name string, title string) (bool, e
 	return GenericRequest[Request, bool](ctx, "setStickerSetTitle", request)
 }
 
-// SetUserEmojiStatus Changes the emoji status for a given user that previously allowed the bot to manage their emoji status via the Mini App method requestEmojiStatusAccess.
-// Returns True on success.
+// SetUserEmojiStatus Changes the emoji status for a given user that previously allowed the bot to manage their emoji status via the Mini App method [requestEmojiStatusAccess](https://core.telegram.org/bots/webapps#initializing-mini-apps).
+// Returns *True* on success.
 func SetUserEmojiStatus(ctx context.Context, userId int64, opts ...*OptSetUserEmojiStatus) (bool, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -4314,8 +6094,8 @@ type OptSetUserEmojiStatus struct {
 	EmojiStatusExpirationDate int64
 }
 
-// SetWebhook Use this method to specify a URL and receive incoming updates via an outgoing webhook. Whenever there is an update for the bot, we will send an HTTPS POST request to the specified URL, containing a JSON-serialized Update. In case of an unsuccessful request, we will give up after a reasonable amount of attempts. Returns True on success.
-// If you'd like to make sure that the webhook was set by you, you can specify secret data in the parameter secret_token. If specified, the request will contain a header "X-Telegram-Bot-Api-Secret-Token" with the secret token as content.
+// SetWebhook Use this method to specify a URL and receive incoming updates via an outgoing webhook. Whenever there is an update for the bot, we will send an HTTPS POST request to the specified URL, containing a JSON-serialized [Update](https://core.telegram.org/bots/api/#update). In case of an unsuccessful request (a request with response [HTTP status code](https://en.wikipedia.org/wiki/List_of_HTTP_status_codes) different from `2XY`), we will repeat the request and give up after a reasonable amount of attempts. Returns *True* on success.
+// If you'd like to make sure that the webhook was set by you, you can specify secret data in the parameter *secret\_token*. If specified, the request will contain a header “X-Telegram-Bot-Api-Secret-Token” with the secret token as content.
 func SetWebhook(ctx context.Context, url string, opts ...*OptSetWebhook) (bool, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -4363,8 +6143,8 @@ type OptSetWebhook struct {
 	SecretToken        string
 }
 
-// StopMessageLiveLocation Use this method to stop updating a live location message before live_period expires.
-// On success, if the message is not an inline message, the edited Message is returned, otherwise True is returned.
+// StopMessageLiveLocation Use this method to stop updating a live location message before *live\_period* expires.
+// On success, if the message is not an inline message, the edited [Message](https://core.telegram.org/bots/api/#message) is returned, otherwise *True* is returned.
 func StopMessageLiveLocation(ctx context.Context, opts ...*OptStopMessageLiveLocation) (*Message, error) /* >> either: [bool] */ {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -4404,7 +6184,8 @@ type OptStopMessageLiveLocation struct {
 	ReplyMarkup          *InlineKeyboardMarkup
 }
 
-// StopPoll Use this method to stop a poll which was sent by the bot. On success, the stopped Poll is returned.
+// StopPoll Use this method to stop a poll which was sent by the bot.
+// On success, the stopped [Poll](https://core.telegram.org/bots/api/#poll) is returned.
 func StopPoll(ctx context.Context, chatId int64, messageId int64, opts ...*OptStopPoll) (*Poll, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -4434,12 +6215,56 @@ type OptStopPoll struct {
 	ReplyMarkup          *InlineKeyboardMarkup
 }
 
-// UnbanChatMember Use this method to unban a previously banned user in a supergroup or channel. Returns True on success.
-// The user will not return to the group or channel automatically, but will be able to join via link, etc.
+// TransferBusinessAccountStars Transfers Telegram Stars from the business account balance to the bot's balance.
+// Requires the *can\_transfer\_stars* business bot right. Returns *True* on success.
+func TransferBusinessAccountStars(ctx context.Context, businessConnectionId string, starCount int64) (bool, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId string `json:"business_connection_id"`
+		StarCount            int64  `json:"star_count"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+		StarCount:            starCount,
+	}
+	return GenericRequest[Request, bool](ctx, "transferBusinessAccountStars", request)
+}
+
+// TransferGift Transfers an owned unique gift to another user. Requires the *can\_transfer\_and\_upgrade\_gifts* business bot right.
+// Requires *can\_transfer\_stars* business bot right if the transfer is paid. Returns *True* on success.
+func TransferGift(ctx context.Context, businessConnectionId string, ownedGiftId string, newOwnerChatId int64, opts ...*OptTransferGift) (bool, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId string `json:"business_connection_id"`
+		OwnedGiftId          string `json:"owned_gift_id"`
+		NewOwnerChatId       int64  `json:"new_owner_chat_id"`
+		StarCount            int64  `json:"star_count,omitempty"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+		OwnedGiftId:          ownedGiftId,
+		NewOwnerChatId:       newOwnerChatId,
+	}
+	for _, opt := range opts {
+		if opt.StarCount != 0 {
+			request.StarCount = opt.StarCount
+		}
+	}
+	return GenericRequest[Request, bool](ctx, "transferGift", request)
+}
+
+type OptTransferGift struct {
+	StarCount int64
+}
+
+// UnbanChatMember Use this method to unban a previously banned user in a supergroup or channel. Returns *True* on success.
+// The user will **not** return to the group or channel automatically, but will be able to join via link, etc.
 // The bot must be an administrator for this to work.
 // By default, this method guarantees that after the call the user is not a member of the chat, but will be able to join it.
-// So if the user is a member of the chat they will also be removed from the chat.
-// If you don't want this, use the parameter only_if_banned.
+// So if the user is a member of the chat they will also be **removed** from the chat.
+// If you don't want this, use the parameter *only\_if\_banned*.
 func UnbanChatMember(ctx context.Context, chatId int64, userId int64, opts ...*OptUnbanChatMember) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -4466,7 +6291,7 @@ type OptUnbanChatMember struct {
 
 // UnbanChatSenderChat Use this method to unban a previously banned channel chat in a supergroup or channel.
 // The bot must be an administrator for this to work and must have the appropriate administrator rights.
-// Returns True on success.
+// Returns *True* on success.
 func UnbanChatSenderChat(ctx context.Context, chatId int64, senderChatId int64) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -4481,8 +6306,8 @@ func UnbanChatSenderChat(ctx context.Context, chatId int64, senderChatId int64) 
 	return GenericRequest[Request, bool](ctx, "unbanChatSenderChat", request)
 }
 
-// UnhideGeneralForumTopic Use this method to unhide the 'General' topic in a forum supergroup chat. Returns True on success.
-// The bot must be an administrator in the chat for this to work and must have the can_manage_topics administrator rights.
+// UnhideGeneralForumTopic Use this method to unhide the 'General' topic in a forum supergroup chat. Returns *True* on success.
+// The bot must be an administrator in the chat for this to work and must have the *can\_manage\_topics* administrator rights.
 func UnhideGeneralForumTopic(ctx context.Context, chatId int64) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -4495,8 +6320,9 @@ func UnhideGeneralForumTopic(ctx context.Context, chatId int64) (bool, error) {
 	return GenericRequest[Request, bool](ctx, "unhideGeneralForumTopic", request)
 }
 
-// UnpinAllChatMessages Use this method to clear the list of pinned messages in a chat. Returns True on success.
-// If the chat is not a private chat, the bot must be an administrator in the chat for this to work and must have the 'can_pin_messages' administrator right in a supergroup or 'can_edit_messages' administrator right in a channel.
+// UnpinAllChatMessages Use this method to clear the list of pinned messages in a chat. Returns *True* on success.
+// In private chats and channel direct messages chats, no additional rights are required to unpin all pinned messages.
+// Conversely, the bot must be an administrator with the 'can\_pin\_messages' right or the 'can\_edit\_messages' right to unpin all pinned messages in groups and channels respectively.
 func UnpinAllChatMessages(ctx context.Context, chatId int64) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -4509,8 +6335,9 @@ func UnpinAllChatMessages(ctx context.Context, chatId int64) (bool, error) {
 	return GenericRequest[Request, bool](ctx, "unpinAllChatMessages", request)
 }
 
-// UnpinAllForumTopicMessages Use this method to clear the list of pinned messages in a forum topic. Returns True on success.
-// The bot must be an administrator in the chat for this to work and must have the can_pin_messages administrator right in the supergroup.
+// UnpinAllForumTopicMessages Use this method to clear the list of pinned messages in a forum topic in a forum supergroup chat or a private chat with a user.
+// In the case of a supergroup chat the bot must be an administrator in the chat for this to work and must have the *can\_pin\_messages* administrator right in the supergroup.
+// Returns *True* on success.
 func UnpinAllForumTopicMessages(ctx context.Context, chatId int64, messageThreadId int64) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -4525,8 +6352,8 @@ func UnpinAllForumTopicMessages(ctx context.Context, chatId int64, messageThread
 	return GenericRequest[Request, bool](ctx, "unpinAllForumTopicMessages", request)
 }
 
-// UnpinAllGeneralForumTopicMessages Use this method to clear the list of pinned messages in a General forum topic. Returns True on success.
-// The bot must be an administrator in the chat for this to work and must have the can_pin_messages administrator right in the supergroup.
+// UnpinAllGeneralForumTopicMessages Use this method to clear the list of pinned messages in a General forum topic. Returns *True* on success.
+// The bot must be an administrator in the chat for this to work and must have the *can\_pin\_messages* administrator right in the supergroup.
 func UnpinAllGeneralForumTopicMessages(ctx context.Context, chatId int64) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -4539,8 +6366,9 @@ func UnpinAllGeneralForumTopicMessages(ctx context.Context, chatId int64) (bool,
 	return GenericRequest[Request, bool](ctx, "unpinAllGeneralForumTopicMessages", request)
 }
 
-// UnpinChatMessage Use this method to remove a message from the list of pinned messages in a chat. Returns True on success.
-// If the chat is not a private chat, the bot must be an administrator in the chat for this to work and must have the 'can_pin_messages' administrator right in a supergroup or 'can_edit_messages' administrator right in a channel.
+// UnpinChatMessage Use this method to remove a message from the list of pinned messages in a chat. Returns *True* on success.
+// In private chats and channel direct messages chats, all messages can be unpinned.
+// Conversely, the bot must be an administrator with the 'can\_pin\_messages' right or the 'can\_edit\_messages' right to unpin messages in groups and channels respectively.
 func UnpinChatMessage(ctx context.Context, chatId int64, opts ...*OptUnpinChatMessage) (bool, error) {
 	ContextSchedule(ctx, chatId, 1)
 	defer ContextScheduleDone(ctx, chatId, 1)
@@ -4568,8 +6396,40 @@ type OptUnpinChatMessage struct {
 	MessageId            int64
 }
 
-// UploadStickerFile Use this method to upload a file with a sticker for later use in the createNewStickerSet, addStickerToSet, or replaceStickerInSet methods (the file can be used multiple times).
-// Returns the uploaded File on success.
+// UpgradeGift Upgrades a given regular gift to a unique gift. Requires the *can\_transfer\_and\_upgrade\_gifts* business bot right.
+// Additionally requires the *can\_transfer\_stars* business bot right if the upgrade is paid.
+// Returns *True* on success.
+func UpgradeGift(ctx context.Context, businessConnectionId string, ownedGiftId string, opts ...*OptUpgradeGift) (bool, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+		BusinessConnectionId string `json:"business_connection_id"`
+		OwnedGiftId          string `json:"owned_gift_id"`
+		KeepOriginalDetails  bool   `json:"keep_original_details,omitempty"`
+		StarCount            int64  `json:"star_count,omitempty"`
+	}
+	request := &Request{
+		BusinessConnectionId: businessConnectionId,
+		OwnedGiftId:          ownedGiftId,
+	}
+	for _, opt := range opts {
+		if opt.KeepOriginalDetails {
+			request.KeepOriginalDetails = opt.KeepOriginalDetails
+		}
+		if opt.StarCount != 0 {
+			request.StarCount = opt.StarCount
+		}
+	}
+	return GenericRequest[Request, bool](ctx, "upgradeGift", request)
+}
+
+type OptUpgradeGift struct {
+	KeepOriginalDetails bool
+	StarCount           int64
+}
+
+// UploadStickerFile Use this method to upload a file with a sticker for later use in the [createNewStickerSet](https://core.telegram.org/bots/api/#createnewstickerset), [addStickerToSet](https://core.telegram.org/bots/api/#addstickertoset), or [replaceStickerInSet](https://core.telegram.org/bots/api/#replacestickerinset) methods (the file can be used multiple times).
+// Returns the uploaded [File](https://core.telegram.org/bots/api/#file) on success.
 func UploadStickerFile(ctx context.Context, userId int64, sticker *LocalFile, stickerFormat string) (*File, error) {
 	ContextSchedule(ctx, 0, 1)
 	defer ContextScheduleDone(ctx, 0, 1)
@@ -4584,4 +6444,52 @@ func UploadStickerFile(ctx context.Context, userId int64, sticker *LocalFile, st
 		StickerFormat: stickerFormat,
 	}
 	return GenericRequestMultipart[Request, *File](ctx, "uploadStickerFile", request)
+}
+
+// VerifyChat Verifies a chat [on behalf of the organization](https://telegram.org/verify#third-party-verification) which is represented by the bot.
+// Returns *True* on success.
+func VerifyChat(ctx context.Context, chatId int64, opts ...*OptVerifyChat) (bool, error) {
+	ContextSchedule(ctx, chatId, 1)
+	defer ContextScheduleDone(ctx, chatId, 1)
+	type Request struct {
+		ChatId            int64  `json:"chat_id"`
+		CustomDescription string `json:"custom_description,omitempty"`
+	}
+	request := &Request{
+		ChatId: chatId,
+	}
+	for _, opt := range opts {
+		if opt.CustomDescription != "" {
+			request.CustomDescription = opt.CustomDescription
+		}
+	}
+	return GenericRequest[Request, bool](ctx, "verifyChat", request)
+}
+
+type OptVerifyChat struct {
+	CustomDescription string
+}
+
+// VerifyUser Verifies a user [on behalf of the organization](https://telegram.org/verify#third-party-verification) which is represented by the bot.
+// Returns *True* on success.
+func VerifyUser(ctx context.Context, userId int64, opts ...*OptVerifyUser) (bool, error) {
+	ContextSchedule(ctx, 0, 1)
+	defer ContextScheduleDone(ctx, 0, 1)
+	type Request struct {
+		UserId            int64  `json:"user_id"`
+		CustomDescription string `json:"custom_description,omitempty"`
+	}
+	request := &Request{
+		UserId: userId,
+	}
+	for _, opt := range opts {
+		if opt.CustomDescription != "" {
+			request.CustomDescription = opt.CustomDescription
+		}
+	}
+	return GenericRequest[Request, bool](ctx, "verifyUser", request)
+}
+
+type OptVerifyUser struct {
+	CustomDescription string
 }

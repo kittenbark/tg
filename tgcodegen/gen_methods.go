@@ -162,8 +162,8 @@ func (fn *goFunc) build() string {
 
 	result = append(result,
 		fmt.Sprintf("func %s(%s) %s {", fn.name, strings.Join(arguments, ", "), funcReturns),
-		fmt.Sprintf("schedule(ctx, %s, %s)", schedulerChatId, schedulerWeight),
-		fmt.Sprintf("defer scheduleDone(ctx, %s, %s)", schedulerChatId, schedulerWeight),
+		fmt.Sprintf("ContextSchedule(ctx, %s, %s)", schedulerChatId, schedulerWeight),
+		fmt.Sprintf("defer ContextScheduleDone(ctx, %s, %s)", schedulerChatId, schedulerWeight),
 		strings.TrimSpace(fn.requestStruct.build()),
 		fmt.Sprintf("request := &Request{\n%s\n}", strings.Join(reqArgumentsFill, "\n")),
 	)
