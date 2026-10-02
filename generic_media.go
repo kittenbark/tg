@@ -96,6 +96,8 @@ func GenericRequestMultipart[Request any, Result any](ctx context.Context, metho
 	}
 
 	prepared := defaults(request)
+	cleanupThumbnail := autoFillMediaMetadata(ctx, prepared)
+	defer cleanupThumbnail()
 	if getOrDefault(ctx, ContextRedactToken, true) {
 		redactToken(prepared, token)
 	}

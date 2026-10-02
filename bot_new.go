@@ -29,6 +29,7 @@ const (
 	defaultHandleTimeout = time.Hour
 
 	EnvDisableTokenRedaction = "DISABLE_TOKEN_REDACTION"
+	EnvDisableMediaAutofill  = "DISABLE_MEDIA_AUTOFILL"
 
 	EnvTimeoutPolling     = "TIMEOUT_POLL"
 	defaultPollingTimeout = 100 * time.Millisecond
@@ -65,6 +66,12 @@ type Config struct {
 	// DisableTokenRedaction turns off scrubbing the bot token out of outgoing
 	// message text (see RedactToken). Zero value (false) means redaction stays enabled.
 	DisableTokenRedaction bool `json:"disable_token_redaction,omitempty"`
+
+	// DisableMediaAutofill turns off automatically generating a thumbnail and
+	// filling width/height/duration when sending a local video/document/
+	// animation/audio/video-note file (see MediaAutofill). Zero value (false)
+	// means autofill stays enabled.
+	DisableMediaAutofill bool `json:"disable_media_autofill,omitempty"`
 
 	buildType int
 }
@@ -111,6 +118,7 @@ func TryNew(cfg *Config) (*Bot, error) {
 		ctx = context.WithValue(ctx, ContextApiUrl, cfg.ApiURL)
 	}
 	ctx = context.WithValue(ctx, ContextRedactToken, !cfg.DisableTokenRedaction)
+	ctx = context.WithValue(ctx, ContextMediaAutofill, !cfg.DisableMediaAutofill)
 	if len(cfg.ExtraHeaders) > 0 {
 		ctx = context.WithValue(ctx, ContextExtraHeaders, cfg.ExtraHeaders)
 	}
@@ -266,6 +274,9 @@ func configFromEnv() (config *Config, err error) {
 		return nil, err
 	}
 	if config.DisableTokenRedaction, err = parseFromEnvBool(EnvDisableTokenRedaction, false); err != nil {
+		return nil, err
+	}
+	if config.DisableMediaAutofill, err = parseFromEnvBool(EnvDisableMediaAutofill, false); err != nil {
 		return nil, err
 	}
 	if config.TimeoutHandle, err = parseFromEnvDuration(EnvTimeoutHandle, -1); err != nil {

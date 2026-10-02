@@ -15,6 +15,7 @@ const (
 	ContextFileDownloadType = contextPrefix + "file_downloader"
 	ContextScheduler        = contextPrefix + "scheduler"
 	ContextRedactToken      = contextPrefix + "redact_token"
+	ContextMediaAutofill    = contextPrefix + "media_autofill"
 
 	contextPrefix = "kittenbark_"
 )

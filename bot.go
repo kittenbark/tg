@@ -131,6 +131,15 @@ func (bot *Bot) RedactToken(enabled ...bool) *Bot {
 	return bot
 }
 
+// MediaAutofill controls whether sending a local video/document/animation/
+// audio/video-note file automatically generates a thumbnail and fills
+// width/height/duration when the caller didn't already set them —
+// enabled by default.
+func (bot *Bot) MediaAutofill(enabled ...bool) *Bot {
+	bot.context = context.WithValue(bot.context, ContextMediaAutofill, at(enabled, 0, true))
+	return bot
+}
+
 // ContextWithCancel build new Context with a fresh timeout.
 func (bot *Bot) ContextWithCancel() (ctx context.Context, cancel context.CancelFunc) {
 	if bot.contextTimeout == 0 {
