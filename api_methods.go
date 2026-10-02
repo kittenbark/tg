@@ -2,6 +2,10 @@ package tg
 
 import (
 	"context"
+
+	"encoding/json"
+
+	"fmt"
 )
 
 // AddStickerToSet Use this method to add a new sticker to a set created by the bot. Emoji sticker sets can have up to 200 stickers.
@@ -1980,7 +1984,11 @@ func GetChatAdministrators(ctx context.Context, chatId int64, opts ...*OptGetCha
 			request.ReturnBots = opt.ReturnBots
 		}
 	}
-	return GenericRequest[Request, []ChatMember](ctx, "getChatAdministrators", request)
+	rawResult, err := GenericRequest[Request, []json.RawMessage](ctx, "getChatAdministrators", request)
+	if err != nil {
+		return nil, err
+	}
+	return unmarshalEach(rawResult, UnmarshalChatMember)
 }
 
 type OptGetChatAdministrators struct {
@@ -2069,7 +2077,11 @@ func GetChatMember(ctx context.Context, chatId int64, userId int64) (ChatMember,
 		ChatId: chatId,
 		UserId: userId,
 	}
-	return GenericRequest[Request, ChatMember](ctx, "getChatMember", request)
+	rawResult, err := GenericRequest[Request, json.RawMessage](ctx, "getChatMember", request)
+	if err != nil {
+		return nil, err
+	}
+	return UnmarshalChatMember(rawResult)
 }
 
 // GetChatMemberCount Use this method to get the number of members in a chat. Returns *Int* on success.
@@ -2099,7 +2111,11 @@ func GetChatMenuButton(ctx context.Context, opts ...*OptGetChatMenuButton) (Menu
 			request.ChatId = opt.ChatId
 		}
 	}
-	return GenericRequest[Request, MenuButton](ctx, "getChatMenuButton", request)
+	rawResult, err := GenericRequest[Request, json.RawMessage](ctx, "getChatMenuButton", request)
+	if err != nil {
+		return nil, err
+	}
+	return UnmarshalMenuButton(rawResult)
 }
 
 type OptGetChatMenuButton struct {
@@ -3281,6 +3297,72 @@ type OptSendAnimation struct {
 	ReplyParameters            *ReplyParameters
 	ReplyMarkup                VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
 	EphemeralMessageParameters *EphemeralMessageParameters
+}
+
+type VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply interface {
+	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup
+	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup
+	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove
+	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply
+}
+
+var (
+	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &InlineKeyboardMarkup{}
+	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ReplyKeyboardMarkup{}
+	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ReplyKeyboardRemove{}
+	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ForceReply{}
+)
+
+func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
+	return impl
+}
+func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
+	return nil
+}
+func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
+	return nil
+}
+func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
+	return nil
+}
+
+func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
+	return nil
+}
+func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
+	return impl
+}
+func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
+	return nil
+}
+func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
+	return nil
+}
+
+func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
+	return nil
+}
+func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
+	return nil
+}
+func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
+	return impl
+}
+func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
+	return nil
+}
+
+func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
+	return nil
+}
+func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
+	return nil
+}
+func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
+	return nil
+}
+func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
+	return impl
 }
 
 // SendAudio Use this method to send audio files, if you want Telegram clients to display them in the music player. Your audio must be in the .MP3 or .M4A format. On success, the sent [Message](https://core.telegram.org/bots/api/#message) is returned. Bots can currently send audio files of up to 50 MB in size, this limit may be changed in the future.
@@ -4871,72 +4953,6 @@ type OptSendRichMessage struct {
 	SuggestedPostParameters    *SuggestedPostParameters
 	ReplyParameters            *ReplyParameters
 	ReplyMarkup                VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply
-}
-
-type VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply interface {
-	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup
-	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup
-	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove
-	variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply
-}
-
-var (
-	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &InlineKeyboardMarkup{}
-	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ReplyKeyboardMarkup{}
-	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ReplyKeyboardRemove{}
-	_ VariantInlineKeyboardMarkupReplyKeyboardMarkupReplyKeyboardRemoveForceReply = &ForceReply{}
-)
-
-func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
-	return impl
-}
-func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
-	return nil
-}
-func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
-	return nil
-}
-func (impl *InlineKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
-	return nil
-}
-
-func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
-	return nil
-}
-func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
-	return impl
-}
-func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
-	return nil
-}
-func (impl *ReplyKeyboardMarkup) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
-	return nil
-}
-
-func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
-	return nil
-}
-func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
-	return nil
-}
-func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
-	return impl
-}
-func (impl *ReplyKeyboardRemove) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
-	return nil
-}
-
-func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyInlineKeyboardMarkup() *InlineKeyboardMarkup {
-	return nil
-}
-func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardMarkup() *ReplyKeyboardMarkup {
-	return nil
-}
-func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyReplyKeyboardRemove() *ReplyKeyboardRemove {
-	return nil
-}
-func (impl *ForceReply) variantinlinekeyboardmarkupreplykeyboardmarkupreplykeyboardremoveforcereplyForceReply() *ForceReply {
-	return impl
 }
 
 // SendRichMessageDraft Use this method to stream a partial rich message to a user while the message is being generated.
@@ -6617,4 +6633,162 @@ func VerifyUser(ctx context.Context, userId int64, opts ...*OptVerifyUser) (bool
 
 type OptVerifyUser struct {
 	CustomDescription string
+}
+
+func UnmarshalChatMember(data []byte) (ChatMember, error) {
+	type ChatMemberUnmarshalJoined struct {
+		Status                  *string `json:"status"`
+		User                    **User  `json:"user"`
+		UntilDate               *int64  `json:"until_date"`
+		IsAnonymous             *bool   `json:"is_anonymous"`
+		CustomTitle             *string `json:"custom_title"`
+		Tag                     *string `json:"tag"`
+		IsMember                *bool   `json:"is_member"`
+		CanSendMessages         *bool   `json:"can_send_messages"`
+		CanSendAudios           *bool   `json:"can_send_audios"`
+		CanSendDocuments        *bool   `json:"can_send_documents"`
+		CanSendPhotos           *bool   `json:"can_send_photos"`
+		CanSendVideos           *bool   `json:"can_send_videos"`
+		CanSendVideoNotes       *bool   `json:"can_send_video_notes"`
+		CanSendVoiceNotes       *bool   `json:"can_send_voice_notes"`
+		CanSendPolls            *bool   `json:"can_send_polls"`
+		CanSendOtherMessages    *bool   `json:"can_send_other_messages"`
+		CanAddWebPagePreviews   *bool   `json:"can_add_web_page_previews"`
+		CanReactToMessages      *bool   `json:"can_react_to_messages"`
+		CanEditTag              *bool   `json:"can_edit_tag"`
+		CanChangeInfo           *bool   `json:"can_change_info"`
+		CanInviteUsers          *bool   `json:"can_invite_users"`
+		CanPinMessages          *bool   `json:"can_pin_messages"`
+		CanManageTopics         *bool   `json:"can_manage_topics"`
+		CanBeEdited             *bool   `json:"can_be_edited"`
+		CanManageChat           *bool   `json:"can_manage_chat"`
+		CanDeleteMessages       *bool   `json:"can_delete_messages"`
+		CanManageVideoChats     *bool   `json:"can_manage_video_chats"`
+		CanRestrictMembers      *bool   `json:"can_restrict_members"`
+		CanPromoteMembers       *bool   `json:"can_promote_members"`
+		CanPostStories          *bool   `json:"can_post_stories"`
+		CanEditStories          *bool   `json:"can_edit_stories"`
+		CanDeleteStories        *bool   `json:"can_delete_stories"`
+		CanPostMessages         *bool   `json:"can_post_messages"`
+		CanEditMessages         *bool   `json:"can_edit_messages"`
+		CanManageDirectMessages *bool   `json:"can_manage_direct_messages"`
+		CanManageTags           *bool   `json:"can_manage_tags"`
+		CanSendWelcomeMessages  *bool   `json:"can_send_welcome_messages"`
+	}
+	var inst ChatMemberUnmarshalJoined
+	if err := json.Unmarshal(data, &inst); err != nil {
+		return nil, err
+	}
+	if inst.Status == nil {
+		return nil, fmt.Errorf("tg: unmarshal ChatMember: missing %q", "status")
+	}
+	switch *inst.Status {
+	case "administrator":
+		return &ChatMemberAdministrator{
+			Status:                  deref(inst.Status),
+			User:                    deref(inst.User),
+			CanBeEdited:             deref(inst.CanBeEdited),
+			IsAnonymous:             deref(inst.IsAnonymous),
+			CanManageChat:           deref(inst.CanManageChat),
+			CanDeleteMessages:       deref(inst.CanDeleteMessages),
+			CanManageVideoChats:     deref(inst.CanManageVideoChats),
+			CanRestrictMembers:      deref(inst.CanRestrictMembers),
+			CanPromoteMembers:       deref(inst.CanPromoteMembers),
+			CanChangeInfo:           deref(inst.CanChangeInfo),
+			CanInviteUsers:          deref(inst.CanInviteUsers),
+			CanPostStories:          deref(inst.CanPostStories),
+			CanEditStories:          deref(inst.CanEditStories),
+			CanDeleteStories:        deref(inst.CanDeleteStories),
+			CanPostMessages:         deref(inst.CanPostMessages),
+			CanEditMessages:         deref(inst.CanEditMessages),
+			CanPinMessages:          deref(inst.CanPinMessages),
+			CanManageTopics:         deref(inst.CanManageTopics),
+			CanManageDirectMessages: deref(inst.CanManageDirectMessages),
+			CanManageTags:           deref(inst.CanManageTags),
+			CustomTitle:             deref(inst.CustomTitle),
+			CanSendWelcomeMessages:  deref(inst.CanSendWelcomeMessages),
+		}, nil
+	case "creator":
+		return &ChatMemberOwner{
+			Status:      deref(inst.Status),
+			User:        deref(inst.User),
+			IsAnonymous: deref(inst.IsAnonymous),
+			CustomTitle: deref(inst.CustomTitle),
+		}, nil
+	case "kicked":
+		return &ChatMemberBanned{
+			Status:    deref(inst.Status),
+			User:      deref(inst.User),
+			UntilDate: deref(inst.UntilDate),
+		}, nil
+	case "left":
+		return &ChatMemberLeft{
+			Status: deref(inst.Status),
+			User:   deref(inst.User),
+		}, nil
+	case "member":
+		return &ChatMemberMember{
+			Status:    deref(inst.Status),
+			Tag:       deref(inst.Tag),
+			User:      deref(inst.User),
+			UntilDate: deref(inst.UntilDate),
+		}, nil
+	case "restricted":
+		return &ChatMemberRestricted{
+			Status:                deref(inst.Status),
+			Tag:                   deref(inst.Tag),
+			User:                  deref(inst.User),
+			IsMember:              deref(inst.IsMember),
+			CanSendMessages:       deref(inst.CanSendMessages),
+			CanSendAudios:         deref(inst.CanSendAudios),
+			CanSendDocuments:      deref(inst.CanSendDocuments),
+			CanSendPhotos:         deref(inst.CanSendPhotos),
+			CanSendVideos:         deref(inst.CanSendVideos),
+			CanSendVideoNotes:     deref(inst.CanSendVideoNotes),
+			CanSendVoiceNotes:     deref(inst.CanSendVoiceNotes),
+			CanSendPolls:          deref(inst.CanSendPolls),
+			CanSendOtherMessages:  deref(inst.CanSendOtherMessages),
+			CanAddWebPagePreviews: deref(inst.CanAddWebPagePreviews),
+			CanReactToMessages:    deref(inst.CanReactToMessages),
+			CanEditTag:            deref(inst.CanEditTag),
+			CanChangeInfo:         deref(inst.CanChangeInfo),
+			CanInviteUsers:        deref(inst.CanInviteUsers),
+			CanPinMessages:        deref(inst.CanPinMessages),
+			CanManageTopics:       deref(inst.CanManageTopics),
+			UntilDate:             deref(inst.UntilDate),
+		}, nil
+	}
+	return nil, fmt.Errorf("tg: unmarshal ChatMember: unknown %q %q", "status", *inst.Status)
+}
+
+func UnmarshalMenuButton(data []byte) (MenuButton, error) {
+	type MenuButtonUnmarshalJoined struct {
+		Type   *string      `json:"type"`
+		Text   *string      `json:"text"`
+		WebApp **WebAppInfo `json:"web_app"`
+	}
+	var inst MenuButtonUnmarshalJoined
+	if err := json.Unmarshal(data, &inst); err != nil {
+		return nil, err
+	}
+	if inst.Type == nil {
+		return nil, fmt.Errorf("tg: unmarshal MenuButton: missing %q", "type")
+	}
+	switch *inst.Type {
+	case "commands":
+		return &MenuButtonCommands{
+			Type: deref(inst.Type),
+		}, nil
+	case "default":
+		return &MenuButtonDefault{
+			Type: deref(inst.Type),
+		}, nil
+	case "web_app":
+		return &MenuButtonWebApp{
+			Type:   deref(inst.Type),
+			Text:   deref(inst.Text),
+			WebApp: deref(inst.WebApp),
+		}, nil
+	}
+	return nil, fmt.Errorf("tg: unmarshal MenuButton: unknown %q %q", "type", *inst.Type)
 }

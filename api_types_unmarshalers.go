@@ -25,8 +25,13 @@ func (impl *BackgroundTypeFill) UnmarshalJSON(data []byte) error {
 	}
 	impl.Type = inst.Type
 	impl.DarkThemeDimming = inst.DarkThemeDimming
-	if inst.Fill != nil && inst.Fill.Type == nil {
+	if inst.Fill != nil && inst.Fill.Type != nil {
 		switch *inst.Fill.Type {
+		case "freeform_gradient":
+			impl.Fill = &BackgroundFillFreeformGradient{
+				Type:   deref(inst.Fill.Type),
+				Colors: deref(inst.Fill.Colors),
+			}
 		case "gradient":
 			impl.Fill = &BackgroundFillGradient{
 				Type:          deref(inst.Fill.Type),
@@ -38,11 +43,6 @@ func (impl *BackgroundTypeFill) UnmarshalJSON(data []byte) error {
 			impl.Fill = &BackgroundFillSolid{
 				Type:  deref(inst.Fill.Type),
 				Color: deref(inst.Fill.Color),
-			}
-		case "freeform_gradient":
-			impl.Fill = &BackgroundFillFreeformGradient{
-				Type:   deref(inst.Fill.Type),
-				Colors: deref(inst.Fill.Colors),
 			}
 		}
 	}
@@ -82,7 +82,7 @@ func (impl *BackgroundTypePattern) UnmarshalJSON(data []byte) error {
 	impl.Intensity = inst.Intensity
 	impl.IsInverted = inst.IsInverted
 	impl.IsMoving = inst.IsMoving
-	if inst.Fill != nil && inst.Fill.Type == nil {
+	if inst.Fill != nil && inst.Fill.Type != nil {
 		switch *inst.Fill.Type {
 		case "freeform_gradient":
 			impl.Fill = &BackgroundFillFreeformGradient{
@@ -127,7 +127,7 @@ func (impl *ChatBackground) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &inst); err != nil {
 		return err
 	}
-	if inst.Type != nil && inst.Type.Type == nil {
+	if inst.Type != nil && inst.Type.Type != nil {
 		switch *inst.Type.Type {
 		case "chat_theme":
 			impl.Type = &BackgroundTypeChatTheme{
@@ -187,7 +187,7 @@ func (impl *ChatBoost) UnmarshalJSON(data []byte) error {
 	impl.BoostId = inst.BoostId
 	impl.AddDate = inst.AddDate
 	impl.ExpirationDate = inst.ExpirationDate
-	if inst.Source != nil && inst.Source.Source == nil {
+	if inst.Source != nil && inst.Source.Source != nil {
 		switch *inst.Source.Source {
 		case "gift_code":
 			impl.Source = &ChatBoostSourceGiftCode{
@@ -237,7 +237,7 @@ func (impl *ChatBoostRemoved) UnmarshalJSON(data []byte) error {
 	impl.Chat = inst.Chat
 	impl.BoostId = inst.BoostId
 	impl.RemoveDate = inst.RemoveDate
-	if inst.Source != nil && inst.Source.Source == nil {
+	if inst.Source != nil && inst.Source.Source != nil {
 		switch *inst.Source.Source {
 		case "gift_code":
 			impl.Source = &ChatBoostSourceGiftCode{
@@ -586,7 +586,7 @@ func (impl *ChatMemberUpdated) UnmarshalJSON(data []byte) error {
 	impl.InviteLink = inst.InviteLink
 	impl.ViaJoinRequest = inst.ViaJoinRequest
 	impl.ViaChatFolderInviteLink = inst.ViaChatFolderInviteLink
-	if inst.OldChatMember != nil && inst.OldChatMember.Status == nil {
+	if inst.OldChatMember != nil && inst.OldChatMember.Status != nil {
 		switch *inst.OldChatMember.Status {
 		case "administrator":
 			impl.OldChatMember = &ChatMemberAdministrator{
@@ -664,8 +664,40 @@ func (impl *ChatMemberUpdated) UnmarshalJSON(data []byte) error {
 			}
 		}
 	}
-	if inst.NewChatMember != nil && inst.NewChatMember.Status == nil {
+	if inst.NewChatMember != nil && inst.NewChatMember.Status != nil {
 		switch *inst.NewChatMember.Status {
+		case "administrator":
+			impl.NewChatMember = &ChatMemberAdministrator{
+				Status:                  deref(inst.NewChatMember.Status),
+				User:                    deref(inst.NewChatMember.User),
+				CanBeEdited:             deref(inst.NewChatMember.CanBeEdited),
+				IsAnonymous:             deref(inst.NewChatMember.IsAnonymous),
+				CanManageChat:           deref(inst.NewChatMember.CanManageChat),
+				CanDeleteMessages:       deref(inst.NewChatMember.CanDeleteMessages),
+				CanManageVideoChats:     deref(inst.NewChatMember.CanManageVideoChats),
+				CanRestrictMembers:      deref(inst.NewChatMember.CanRestrictMembers),
+				CanPromoteMembers:       deref(inst.NewChatMember.CanPromoteMembers),
+				CanChangeInfo:           deref(inst.NewChatMember.CanChangeInfo),
+				CanInviteUsers:          deref(inst.NewChatMember.CanInviteUsers),
+				CanPostStories:          deref(inst.NewChatMember.CanPostStories),
+				CanEditStories:          deref(inst.NewChatMember.CanEditStories),
+				CanDeleteStories:        deref(inst.NewChatMember.CanDeleteStories),
+				CanPostMessages:         deref(inst.NewChatMember.CanPostMessages),
+				CanEditMessages:         deref(inst.NewChatMember.CanEditMessages),
+				CanPinMessages:          deref(inst.NewChatMember.CanPinMessages),
+				CanManageTopics:         deref(inst.NewChatMember.CanManageTopics),
+				CanManageDirectMessages: deref(inst.NewChatMember.CanManageDirectMessages),
+				CanManageTags:           deref(inst.NewChatMember.CanManageTags),
+				CustomTitle:             deref(inst.NewChatMember.CustomTitle),
+				CanSendWelcomeMessages:  deref(inst.NewChatMember.CanSendWelcomeMessages),
+			}
+		case "creator":
+			impl.NewChatMember = &ChatMemberOwner{
+				Status:      deref(inst.NewChatMember.Status),
+				User:        deref(inst.NewChatMember.User),
+				IsAnonymous: deref(inst.NewChatMember.IsAnonymous),
+				CustomTitle: deref(inst.NewChatMember.CustomTitle),
+			}
 		case "kicked":
 			impl.NewChatMember = &ChatMemberBanned{
 				Status:    deref(inst.NewChatMember.Status),
@@ -707,38 +739,6 @@ func (impl *ChatMemberUpdated) UnmarshalJSON(data []byte) error {
 				CanPinMessages:        deref(inst.NewChatMember.CanPinMessages),
 				CanManageTopics:       deref(inst.NewChatMember.CanManageTopics),
 				UntilDate:             deref(inst.NewChatMember.UntilDate),
-			}
-		case "administrator":
-			impl.NewChatMember = &ChatMemberAdministrator{
-				Status:                  deref(inst.NewChatMember.Status),
-				User:                    deref(inst.NewChatMember.User),
-				CanBeEdited:             deref(inst.NewChatMember.CanBeEdited),
-				IsAnonymous:             deref(inst.NewChatMember.IsAnonymous),
-				CanManageChat:           deref(inst.NewChatMember.CanManageChat),
-				CanDeleteMessages:       deref(inst.NewChatMember.CanDeleteMessages),
-				CanManageVideoChats:     deref(inst.NewChatMember.CanManageVideoChats),
-				CanRestrictMembers:      deref(inst.NewChatMember.CanRestrictMembers),
-				CanPromoteMembers:       deref(inst.NewChatMember.CanPromoteMembers),
-				CanChangeInfo:           deref(inst.NewChatMember.CanChangeInfo),
-				CanInviteUsers:          deref(inst.NewChatMember.CanInviteUsers),
-				CanPostStories:          deref(inst.NewChatMember.CanPostStories),
-				CanEditStories:          deref(inst.NewChatMember.CanEditStories),
-				CanDeleteStories:        deref(inst.NewChatMember.CanDeleteStories),
-				CanPostMessages:         deref(inst.NewChatMember.CanPostMessages),
-				CanEditMessages:         deref(inst.NewChatMember.CanEditMessages),
-				CanPinMessages:          deref(inst.NewChatMember.CanPinMessages),
-				CanManageTopics:         deref(inst.NewChatMember.CanManageTopics),
-				CanManageDirectMessages: deref(inst.NewChatMember.CanManageDirectMessages),
-				CanManageTags:           deref(inst.NewChatMember.CanManageTags),
-				CustomTitle:             deref(inst.NewChatMember.CustomTitle),
-				CanSendWelcomeMessages:  deref(inst.NewChatMember.CanSendWelcomeMessages),
-			}
-		case "creator":
-			impl.NewChatMember = &ChatMemberOwner{
-				Status:      deref(inst.NewChatMember.Status),
-				User:        deref(inst.NewChatMember.User),
-				IsAnonymous: deref(inst.NewChatMember.IsAnonymous),
-				CustomTitle: deref(inst.NewChatMember.CustomTitle),
 			}
 		}
 	}
@@ -843,7 +843,7 @@ func (impl *ExternalReplyInfo) UnmarshalJSON(data []byte) error {
 	impl.Location = inst.Location
 	impl.Poll = inst.Poll
 	impl.Venue = inst.Venue
-	if inst.Origin != nil && inst.Origin.Type == nil {
+	if inst.Origin != nil && inst.Origin.Type != nil {
 		switch *inst.Origin.Type {
 		case "channel":
 			impl.Origin = &MessageOriginChannel{
@@ -6339,6 +6339,17 @@ func (impl *InputRichBlockBlockQuotation) UnmarshalJSON(data []byte) error {
 				continue
 			}
 			switch *item.Type {
+			case "anchor":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockAnchor{
+					Type: deref(item.Type),
+					Name: deref(item.Name),
+				})
+			case "animation":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockAnimation{
+					Type:      deref(item.Type),
+					Animation: deref(item.Animation),
+					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
 			case "audio":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockAudio{
 					Type:    deref(item.Type),
@@ -6351,11 +6362,28 @@ func (impl *InputRichBlockBlockQuotation) UnmarshalJSON(data []byte) error {
 					Blocks: deref(item.Blocks),
 					Credit: deref(item.Credit),
 				})
+			case "buttons":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockButtons{
+					Type:    deref(item.Type),
+					Buttons: deref(item.Buttons),
+					Align:   deref(item.Align),
+				})
 			case "collage":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockCollage{
 					Type:    deref(item.Type),
 					Blocks:  deref(item.Blocks),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "details":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockDetails{
+					Type:    deref(item.Type),
+					Summary: deref(item.Summary),
+					Blocks:  deref(item.Blocks),
+					IsOpen:  deref(item.IsOpen),
+				})
+			case "divider":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockDivider{
+					Type: deref(item.Type),
 				})
 			case "document":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockDocument{
@@ -6369,94 +6397,16 @@ func (impl *InputRichBlockBlockQuotation) UnmarshalJSON(data []byte) error {
 					Text:   deref(item.Text),
 					Credit: deref(item.Credit),
 				})
+			case "footer":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockFooter{
+					Type: deref(item.Type),
+					Text: deref(item.Text),
+				})
 			case "heading":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockSectionHeading{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 					Size: deref(item.Size),
-				})
-			case "photo":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockPhoto{
-					Type:    deref(item.Type),
-					Photo:   deref(item.Photo),
-					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "pullquote":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockPullQuotation{
-					Type:   deref(item.Type),
-					Text:   deref(item.Text),
-					Credit: deref(item.Credit),
-				})
-			case "buttons":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockButtons{
-					Type:    deref(item.Type),
-					Buttons: deref(item.Buttons),
-					Align:   deref(item.Align),
-				})
-			case "pre":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockPreformatted{
-					Type:     deref(item.Type),
-					Text:     deref(item.Text),
-					Language: deref(item.Language),
-				})
-			case "slideshow":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockSlideshow{
-					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
-					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "thinking":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockThinking{
-					Type: deref(item.Type),
-					Text: deref(item.Text),
-				})
-			case "video":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockVideo{
-					Type:    deref(item.Type),
-					Video:   deref(item.Video),
-					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "details":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockDetails{
-					Type:    deref(item.Type),
-					Summary: deref(item.Summary),
-					Blocks:  deref(item.Blocks),
-					IsOpen:  deref(item.IsOpen),
-				})
-			case "table":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockTable{
-					Type:       deref(item.Type),
-					Cells:      deref(item.Cells),
-					IsBordered: deref(item.IsBordered),
-					IsStriped:  deref(item.IsStriped),
-					IsCompact:  deref(item.IsCompact),
-					Caption:    unmarshalRawOrZero[any](item.Caption),
-				})
-			case "voice_note":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockVoiceNote{
-					Type:      deref(item.Type),
-					VoiceNote: deref(item.VoiceNote),
-					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "anchor":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockAnchor{
-					Type: deref(item.Type),
-					Name: deref(item.Name),
-				})
-			case "animation":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockAnimation{
-					Type:      deref(item.Type),
-					Animation: deref(item.Animation),
-					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "divider":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockDivider{
-					Type: deref(item.Type),
-				})
-			case "footer":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockFooter{
-					Type: deref(item.Type),
-					Text: deref(item.Text),
 				})
 			case "list":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockList{
@@ -6481,6 +6431,56 @@ func (impl *InputRichBlockBlockQuotation) UnmarshalJSON(data []byte) error {
 				impl.Blocks = append(impl.Blocks, &InputRichBlockParagraph{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
+				})
+			case "photo":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockPhoto{
+					Type:    deref(item.Type),
+					Photo:   deref(item.Photo),
+					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "pre":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockPreformatted{
+					Type:     deref(item.Type),
+					Text:     deref(item.Text),
+					Language: deref(item.Language),
+				})
+			case "pullquote":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockPullQuotation{
+					Type:   deref(item.Type),
+					Text:   deref(item.Text),
+					Credit: deref(item.Credit),
+				})
+			case "slideshow":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockSlideshow{
+					Type:    deref(item.Type),
+					Blocks:  deref(item.Blocks),
+					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "table":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockTable{
+					Type:       deref(item.Type),
+					Cells:      deref(item.Cells),
+					IsBordered: deref(item.IsBordered),
+					IsStriped:  deref(item.IsStriped),
+					IsCompact:  deref(item.IsCompact),
+					Caption:    unmarshalRawOrZero[any](item.Caption),
+				})
+			case "thinking":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockThinking{
+					Type: deref(item.Type),
+					Text: deref(item.Text),
+				})
+			case "video":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockVideo{
+					Type:    deref(item.Type),
+					Video:   deref(item.Video),
+					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "voice_note":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockVoiceNote{
+					Type:      deref(item.Type),
+					VoiceNote: deref(item.VoiceNote),
+					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			}
 		}
@@ -6540,69 +6540,6 @@ func (impl *InputRichBlockCollage) UnmarshalJSON(data []byte) error {
 				continue
 			}
 			switch *item.Type {
-			case "photo":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockPhoto{
-					Type:    deref(item.Type),
-					Photo:   deref(item.Photo),
-					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "pullquote":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockPullQuotation{
-					Type:   deref(item.Type),
-					Text:   deref(item.Text),
-					Credit: deref(item.Credit),
-				})
-			case "buttons":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockButtons{
-					Type:    deref(item.Type),
-					Buttons: deref(item.Buttons),
-					Align:   deref(item.Align),
-				})
-			case "pre":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockPreformatted{
-					Type:     deref(item.Type),
-					Text:     deref(item.Text),
-					Language: deref(item.Language),
-				})
-			case "slideshow":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockSlideshow{
-					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
-					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "thinking":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockThinking{
-					Type: deref(item.Type),
-					Text: deref(item.Text),
-				})
-			case "video":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockVideo{
-					Type:    deref(item.Type),
-					Video:   deref(item.Video),
-					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "details":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockDetails{
-					Type:    deref(item.Type),
-					Summary: deref(item.Summary),
-					Blocks:  deref(item.Blocks),
-					IsOpen:  deref(item.IsOpen),
-				})
-			case "table":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockTable{
-					Type:       deref(item.Type),
-					Cells:      deref(item.Cells),
-					IsBordered: deref(item.IsBordered),
-					IsStriped:  deref(item.IsStriped),
-					IsCompact:  deref(item.IsCompact),
-					Caption:    unmarshalRawOrZero[any](item.Caption),
-				})
-			case "voice_note":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockVoiceNote{
-					Type:      deref(item.Type),
-					VoiceNote: deref(item.VoiceNote),
-					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
 			case "anchor":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockAnchor{
 					Type: deref(item.Type),
@@ -6614,14 +6551,63 @@ func (impl *InputRichBlockCollage) UnmarshalJSON(data []byte) error {
 					Animation: deref(item.Animation),
 					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
+			case "audio":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockAudio{
+					Type:    deref(item.Type),
+					Audio:   deref(item.Audio),
+					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "blockquote":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockBlockQuotation{
+					Type:   deref(item.Type),
+					Blocks: deref(item.Blocks),
+					Credit: deref(item.Credit),
+				})
+			case "buttons":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockButtons{
+					Type:    deref(item.Type),
+					Buttons: deref(item.Buttons),
+					Align:   deref(item.Align),
+				})
+			case "collage":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockCollage{
+					Type:    deref(item.Type),
+					Blocks:  deref(item.Blocks),
+					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "details":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockDetails{
+					Type:    deref(item.Type),
+					Summary: deref(item.Summary),
+					Blocks:  deref(item.Blocks),
+					IsOpen:  deref(item.IsOpen),
+				})
 			case "divider":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockDivider{
 					Type: deref(item.Type),
+				})
+			case "document":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockDocument{
+					Type:     deref(item.Type),
+					Document: deref(item.Document),
+					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "expandable_blockquote":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockExpandableBlockQuotation{
+					Type:   deref(item.Type),
+					Text:   deref(item.Text),
+					Credit: deref(item.Credit),
 				})
 			case "footer":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockFooter{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
+				})
+			case "heading":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockSectionHeading{
+					Type: deref(item.Type),
+					Text: deref(item.Text),
+					Size: deref(item.Size),
 				})
 			case "list":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockList{
@@ -6647,41 +6633,55 @@ func (impl *InputRichBlockCollage) UnmarshalJSON(data []byte) error {
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
-			case "audio":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockAudio{
+			case "photo":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockPhoto{
 					Type:    deref(item.Type),
-					Audio:   deref(item.Audio),
+					Photo:   deref(item.Photo),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
-			case "blockquote":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockBlockQuotation{
-					Type:   deref(item.Type),
-					Blocks: deref(item.Blocks),
-					Credit: deref(item.Credit),
-				})
-			case "collage":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockCollage{
-					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
-					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "document":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockDocument{
+			case "pre":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockPreformatted{
 					Type:     deref(item.Type),
-					Document: deref(item.Document),
-					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+					Text:     deref(item.Text),
+					Language: deref(item.Language),
 				})
-			case "expandable_blockquote":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockExpandableBlockQuotation{
+			case "pullquote":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockPullQuotation{
 					Type:   deref(item.Type),
 					Text:   deref(item.Text),
 					Credit: deref(item.Credit),
 				})
-			case "heading":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockSectionHeading{
+			case "slideshow":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockSlideshow{
+					Type:    deref(item.Type),
+					Blocks:  deref(item.Blocks),
+					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "table":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockTable{
+					Type:       deref(item.Type),
+					Cells:      deref(item.Cells),
+					IsBordered: deref(item.IsBordered),
+					IsStriped:  deref(item.IsStriped),
+					IsCompact:  deref(item.IsCompact),
+					Caption:    unmarshalRawOrZero[any](item.Caption),
+				})
+			case "thinking":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockThinking{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
-					Size: deref(item.Size),
+				})
+			case "video":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockVideo{
+					Type:    deref(item.Type),
+					Video:   deref(item.Video),
+					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "voice_note":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockVoiceNote{
+					Type:      deref(item.Type),
+					VoiceNote: deref(item.VoiceNote),
+					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			}
 		}
@@ -6744,10 +6744,16 @@ func (impl *InputRichBlockDetails) UnmarshalJSON(data []byte) error {
 				continue
 			}
 			switch *item.Type {
-			case "paragraph":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockParagraph{
+			case "anchor":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockAnchor{
 					Type: deref(item.Type),
-					Text: deref(item.Text),
+					Name: deref(item.Name),
+				})
+			case "animation":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockAnimation{
+					Type:      deref(item.Type),
+					Animation: deref(item.Animation),
+					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "audio":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockAudio{
@@ -6761,11 +6767,28 @@ func (impl *InputRichBlockDetails) UnmarshalJSON(data []byte) error {
 					Blocks: deref(item.Blocks),
 					Credit: deref(item.Credit),
 				})
+			case "buttons":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockButtons{
+					Type:    deref(item.Type),
+					Buttons: deref(item.Buttons),
+					Align:   deref(item.Align),
+				})
 			case "collage":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockCollage{
 					Type:    deref(item.Type),
 					Blocks:  deref(item.Blocks),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "details":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockDetails{
+					Type:    deref(item.Type),
+					Summary: deref(item.Summary),
+					Blocks:  deref(item.Blocks),
+					IsOpen:  deref(item.IsOpen),
+				})
+			case "divider":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockDivider{
+					Type: deref(item.Type),
 				})
 			case "document":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockDocument{
@@ -6779,94 +6802,16 @@ func (impl *InputRichBlockDetails) UnmarshalJSON(data []byte) error {
 					Text:   deref(item.Text),
 					Credit: deref(item.Credit),
 				})
+			case "footer":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockFooter{
+					Type: deref(item.Type),
+					Text: deref(item.Text),
+				})
 			case "heading":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockSectionHeading{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 					Size: deref(item.Size),
-				})
-			case "photo":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockPhoto{
-					Type:    deref(item.Type),
-					Photo:   deref(item.Photo),
-					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "pullquote":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockPullQuotation{
-					Type:   deref(item.Type),
-					Text:   deref(item.Text),
-					Credit: deref(item.Credit),
-				})
-			case "buttons":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockButtons{
-					Type:    deref(item.Type),
-					Buttons: deref(item.Buttons),
-					Align:   deref(item.Align),
-				})
-			case "pre":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockPreformatted{
-					Type:     deref(item.Type),
-					Text:     deref(item.Text),
-					Language: deref(item.Language),
-				})
-			case "slideshow":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockSlideshow{
-					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
-					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "thinking":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockThinking{
-					Type: deref(item.Type),
-					Text: deref(item.Text),
-				})
-			case "video":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockVideo{
-					Type:    deref(item.Type),
-					Video:   deref(item.Video),
-					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "details":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockDetails{
-					Type:    deref(item.Type),
-					Summary: deref(item.Summary),
-					Blocks:  deref(item.Blocks),
-					IsOpen:  deref(item.IsOpen),
-				})
-			case "table":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockTable{
-					Type:       deref(item.Type),
-					Cells:      deref(item.Cells),
-					IsBordered: deref(item.IsBordered),
-					IsStriped:  deref(item.IsStriped),
-					IsCompact:  deref(item.IsCompact),
-					Caption:    unmarshalRawOrZero[any](item.Caption),
-				})
-			case "voice_note":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockVoiceNote{
-					Type:      deref(item.Type),
-					VoiceNote: deref(item.VoiceNote),
-					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "anchor":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockAnchor{
-					Type: deref(item.Type),
-					Name: deref(item.Name),
-				})
-			case "animation":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockAnimation{
-					Type:      deref(item.Type),
-					Animation: deref(item.Animation),
-					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "divider":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockDivider{
-					Type: deref(item.Type),
-				})
-			case "footer":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockFooter{
-					Type: deref(item.Type),
-					Text: deref(item.Text),
 				})
 			case "list":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockList{
@@ -6886,6 +6831,61 @@ func (impl *InputRichBlockDetails) UnmarshalJSON(data []byte) error {
 				impl.Blocks = append(impl.Blocks, &InputRichBlockMathematicalExpression{
 					Type:       deref(item.Type),
 					Expression: deref(item.Expression),
+				})
+			case "paragraph":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockParagraph{
+					Type: deref(item.Type),
+					Text: deref(item.Text),
+				})
+			case "photo":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockPhoto{
+					Type:    deref(item.Type),
+					Photo:   deref(item.Photo),
+					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "pre":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockPreformatted{
+					Type:     deref(item.Type),
+					Text:     deref(item.Text),
+					Language: deref(item.Language),
+				})
+			case "pullquote":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockPullQuotation{
+					Type:   deref(item.Type),
+					Text:   deref(item.Text),
+					Credit: deref(item.Credit),
+				})
+			case "slideshow":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockSlideshow{
+					Type:    deref(item.Type),
+					Blocks:  deref(item.Blocks),
+					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "table":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockTable{
+					Type:       deref(item.Type),
+					Cells:      deref(item.Cells),
+					IsBordered: deref(item.IsBordered),
+					IsStriped:  deref(item.IsStriped),
+					IsCompact:  deref(item.IsCompact),
+					Caption:    unmarshalRawOrZero[any](item.Caption),
+				})
+			case "thinking":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockThinking{
+					Type: deref(item.Type),
+					Text: deref(item.Text),
+				})
+			case "video":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockVideo{
+					Type:    deref(item.Type),
+					Video:   deref(item.Video),
+					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "voice_note":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockVoiceNote{
+					Type:      deref(item.Type),
+					VoiceNote: deref(item.VoiceNote),
+					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			}
 		}
@@ -6952,28 +6952,6 @@ func (impl *InputRichBlockListItem) UnmarshalJSON(data []byte) error {
 				continue
 			}
 			switch *item.Type {
-			case "details":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockDetails{
-					Type:    deref(item.Type),
-					Summary: deref(item.Summary),
-					Blocks:  deref(item.Blocks),
-					IsOpen:  deref(item.IsOpen),
-				})
-			case "table":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockTable{
-					Type:       deref(item.Type),
-					Cells:      deref(item.Cells),
-					IsBordered: deref(item.IsBordered),
-					IsStriped:  deref(item.IsStriped),
-					IsCompact:  deref(item.IsCompact),
-					Caption:    unmarshalRawOrZero[any](item.Caption),
-				})
-			case "voice_note":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockVoiceNote{
-					Type:      deref(item.Type),
-					VoiceNote: deref(item.VoiceNote),
-					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
 			case "anchor":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockAnchor{
 					Type: deref(item.Type),
@@ -6985,14 +6963,63 @@ func (impl *InputRichBlockListItem) UnmarshalJSON(data []byte) error {
 					Animation: deref(item.Animation),
 					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
+			case "audio":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockAudio{
+					Type:    deref(item.Type),
+					Audio:   deref(item.Audio),
+					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "blockquote":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockBlockQuotation{
+					Type:   deref(item.Type),
+					Blocks: deref(item.Blocks),
+					Credit: deref(item.Credit),
+				})
+			case "buttons":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockButtons{
+					Type:    deref(item.Type),
+					Buttons: deref(item.Buttons),
+					Align:   deref(item.Align),
+				})
+			case "collage":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockCollage{
+					Type:    deref(item.Type),
+					Blocks:  deref(item.Blocks),
+					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "details":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockDetails{
+					Type:    deref(item.Type),
+					Summary: deref(item.Summary),
+					Blocks:  deref(item.Blocks),
+					IsOpen:  deref(item.IsOpen),
+				})
 			case "divider":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockDivider{
 					Type: deref(item.Type),
+				})
+			case "document":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockDocument{
+					Type:     deref(item.Type),
+					Document: deref(item.Document),
+					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "expandable_blockquote":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockExpandableBlockQuotation{
+					Type:   deref(item.Type),
+					Text:   deref(item.Text),
+					Credit: deref(item.Credit),
 				})
 			case "footer":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockFooter{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
+				})
+			case "heading":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockSectionHeading{
+					Type: deref(item.Type),
+					Text: deref(item.Text),
+					Size: deref(item.Size),
 				})
 			case "list":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockList{
@@ -7018,59 +7045,11 @@ func (impl *InputRichBlockListItem) UnmarshalJSON(data []byte) error {
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
-			case "audio":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockAudio{
-					Type:    deref(item.Type),
-					Audio:   deref(item.Audio),
-					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "blockquote":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockBlockQuotation{
-					Type:   deref(item.Type),
-					Blocks: deref(item.Blocks),
-					Credit: deref(item.Credit),
-				})
-			case "collage":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockCollage{
-					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
-					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "document":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockDocument{
-					Type:     deref(item.Type),
-					Document: deref(item.Document),
-					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "expandable_blockquote":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockExpandableBlockQuotation{
-					Type:   deref(item.Type),
-					Text:   deref(item.Text),
-					Credit: deref(item.Credit),
-				})
-			case "heading":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockSectionHeading{
-					Type: deref(item.Type),
-					Text: deref(item.Text),
-					Size: deref(item.Size),
-				})
 			case "photo":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockPhoto{
 					Type:    deref(item.Type),
 					Photo:   deref(item.Photo),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "pullquote":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockPullQuotation{
-					Type:   deref(item.Type),
-					Text:   deref(item.Text),
-					Credit: deref(item.Credit),
-				})
-			case "buttons":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockButtons{
-					Type:    deref(item.Type),
-					Buttons: deref(item.Buttons),
-					Align:   deref(item.Align),
 				})
 			case "pre":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockPreformatted{
@@ -7078,11 +7057,26 @@ func (impl *InputRichBlockListItem) UnmarshalJSON(data []byte) error {
 					Text:     deref(item.Text),
 					Language: deref(item.Language),
 				})
+			case "pullquote":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockPullQuotation{
+					Type:   deref(item.Type),
+					Text:   deref(item.Text),
+					Credit: deref(item.Credit),
+				})
 			case "slideshow":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockSlideshow{
 					Type:    deref(item.Type),
 					Blocks:  deref(item.Blocks),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "table":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockTable{
+					Type:       deref(item.Type),
+					Cells:      deref(item.Cells),
+					IsBordered: deref(item.IsBordered),
+					IsStriped:  deref(item.IsStriped),
+					IsCompact:  deref(item.IsCompact),
+					Caption:    unmarshalRawOrZero[any](item.Caption),
 				})
 			case "thinking":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockThinking{
@@ -7094,6 +7088,12 @@ func (impl *InputRichBlockListItem) UnmarshalJSON(data []byte) error {
 					Type:    deref(item.Type),
 					Video:   deref(item.Video),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "voice_note":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockVoiceNote{
+					Type:      deref(item.Type),
+					VoiceNote: deref(item.VoiceNote),
+					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			}
 		}
@@ -7153,34 +7153,6 @@ func (impl *InputRichBlockSlideshow) UnmarshalJSON(data []byte) error {
 				continue
 			}
 			switch *item.Type {
-			case "video":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockVideo{
-					Type:    deref(item.Type),
-					Video:   deref(item.Video),
-					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "details":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockDetails{
-					Type:    deref(item.Type),
-					Summary: deref(item.Summary),
-					Blocks:  deref(item.Blocks),
-					IsOpen:  deref(item.IsOpen),
-				})
-			case "table":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockTable{
-					Type:       deref(item.Type),
-					Cells:      deref(item.Cells),
-					IsBordered: deref(item.IsBordered),
-					IsStriped:  deref(item.IsStriped),
-					IsCompact:  deref(item.IsCompact),
-					Caption:    unmarshalRawOrZero[any](item.Caption),
-				})
-			case "voice_note":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockVoiceNote{
-					Type:      deref(item.Type),
-					VoiceNote: deref(item.VoiceNote),
-					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
 			case "anchor":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockAnchor{
 					Type: deref(item.Type),
@@ -7192,14 +7164,63 @@ func (impl *InputRichBlockSlideshow) UnmarshalJSON(data []byte) error {
 					Animation: deref(item.Animation),
 					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
+			case "audio":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockAudio{
+					Type:    deref(item.Type),
+					Audio:   deref(item.Audio),
+					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "blockquote":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockBlockQuotation{
+					Type:   deref(item.Type),
+					Blocks: deref(item.Blocks),
+					Credit: deref(item.Credit),
+				})
+			case "buttons":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockButtons{
+					Type:    deref(item.Type),
+					Buttons: deref(item.Buttons),
+					Align:   deref(item.Align),
+				})
+			case "collage":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockCollage{
+					Type:    deref(item.Type),
+					Blocks:  deref(item.Blocks),
+					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "details":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockDetails{
+					Type:    deref(item.Type),
+					Summary: deref(item.Summary),
+					Blocks:  deref(item.Blocks),
+					IsOpen:  deref(item.IsOpen),
+				})
 			case "divider":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockDivider{
 					Type: deref(item.Type),
+				})
+			case "document":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockDocument{
+					Type:     deref(item.Type),
+					Document: deref(item.Document),
+					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "expandable_blockquote":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockExpandableBlockQuotation{
+					Type:   deref(item.Type),
+					Text:   deref(item.Text),
+					Credit: deref(item.Credit),
 				})
 			case "footer":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockFooter{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
+				})
+			case "heading":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockSectionHeading{
+					Type: deref(item.Type),
+					Text: deref(item.Text),
+					Size: deref(item.Size),
 				})
 			case "list":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockList{
@@ -7225,59 +7246,11 @@ func (impl *InputRichBlockSlideshow) UnmarshalJSON(data []byte) error {
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
-			case "audio":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockAudio{
-					Type:    deref(item.Type),
-					Audio:   deref(item.Audio),
-					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "blockquote":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockBlockQuotation{
-					Type:   deref(item.Type),
-					Blocks: deref(item.Blocks),
-					Credit: deref(item.Credit),
-				})
-			case "collage":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockCollage{
-					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
-					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "document":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockDocument{
-					Type:     deref(item.Type),
-					Document: deref(item.Document),
-					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "expandable_blockquote":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockExpandableBlockQuotation{
-					Type:   deref(item.Type),
-					Text:   deref(item.Text),
-					Credit: deref(item.Credit),
-				})
-			case "heading":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockSectionHeading{
-					Type: deref(item.Type),
-					Text: deref(item.Text),
-					Size: deref(item.Size),
-				})
 			case "photo":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockPhoto{
 					Type:    deref(item.Type),
 					Photo:   deref(item.Photo),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "pullquote":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockPullQuotation{
-					Type:   deref(item.Type),
-					Text:   deref(item.Text),
-					Credit: deref(item.Credit),
-				})
-			case "buttons":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockButtons{
-					Type:    deref(item.Type),
-					Buttons: deref(item.Buttons),
-					Align:   deref(item.Align),
 				})
 			case "pre":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockPreformatted{
@@ -7285,16 +7258,43 @@ func (impl *InputRichBlockSlideshow) UnmarshalJSON(data []byte) error {
 					Text:     deref(item.Text),
 					Language: deref(item.Language),
 				})
+			case "pullquote":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockPullQuotation{
+					Type:   deref(item.Type),
+					Text:   deref(item.Text),
+					Credit: deref(item.Credit),
+				})
 			case "slideshow":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockSlideshow{
 					Type:    deref(item.Type),
 					Blocks:  deref(item.Blocks),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
+			case "table":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockTable{
+					Type:       deref(item.Type),
+					Cells:      deref(item.Cells),
+					IsBordered: deref(item.IsBordered),
+					IsStriped:  deref(item.IsStriped),
+					IsCompact:  deref(item.IsCompact),
+					Caption:    unmarshalRawOrZero[any](item.Caption),
+				})
 			case "thinking":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockThinking{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
+				})
+			case "video":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockVideo{
+					Type:    deref(item.Type),
+					Video:   deref(item.Video),
+					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "voice_note":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockVoiceNote{
+					Type:      deref(item.Type),
+					VoiceNote: deref(item.VoiceNote),
+					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			}
 		}
@@ -7368,45 +7368,6 @@ func (impl *InputRichMessage) UnmarshalJSON(data []byte) error {
 				continue
 			}
 			switch *item.Type {
-			case "slideshow":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockSlideshow{
-					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
-					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "thinking":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockThinking{
-					Type: deref(item.Type),
-					Text: deref(item.Text),
-				})
-			case "video":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockVideo{
-					Type:    deref(item.Type),
-					Video:   deref(item.Video),
-					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "details":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockDetails{
-					Type:    deref(item.Type),
-					Summary: deref(item.Summary),
-					Blocks:  deref(item.Blocks),
-					IsOpen:  deref(item.IsOpen),
-				})
-			case "table":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockTable{
-					Type:       deref(item.Type),
-					Cells:      deref(item.Cells),
-					IsBordered: deref(item.IsBordered),
-					IsStriped:  deref(item.IsStriped),
-					IsCompact:  deref(item.IsCompact),
-					Caption:    unmarshalRawOrZero[any](item.Caption),
-				})
-			case "voice_note":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockVoiceNote{
-					Type:      deref(item.Type),
-					VoiceNote: deref(item.VoiceNote),
-					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
 			case "anchor":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockAnchor{
 					Type: deref(item.Type),
@@ -7418,14 +7379,63 @@ func (impl *InputRichMessage) UnmarshalJSON(data []byte) error {
 					Animation: deref(item.Animation),
 					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
+			case "audio":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockAudio{
+					Type:    deref(item.Type),
+					Audio:   deref(item.Audio),
+					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "blockquote":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockBlockQuotation{
+					Type:   deref(item.Type),
+					Blocks: deref(item.Blocks),
+					Credit: deref(item.Credit),
+				})
+			case "buttons":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockButtons{
+					Type:    deref(item.Type),
+					Buttons: deref(item.Buttons),
+					Align:   deref(item.Align),
+				})
+			case "collage":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockCollage{
+					Type:    deref(item.Type),
+					Blocks:  deref(item.Blocks),
+					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "details":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockDetails{
+					Type:    deref(item.Type),
+					Summary: deref(item.Summary),
+					Blocks:  deref(item.Blocks),
+					IsOpen:  deref(item.IsOpen),
+				})
 			case "divider":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockDivider{
 					Type: deref(item.Type),
+				})
+			case "document":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockDocument{
+					Type:     deref(item.Type),
+					Document: deref(item.Document),
+					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "expandable_blockquote":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockExpandableBlockQuotation{
+					Type:   deref(item.Type),
+					Text:   deref(item.Text),
+					Credit: deref(item.Credit),
 				})
 			case "footer":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockFooter{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
+				})
+			case "heading":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockSectionHeading{
+					Type: deref(item.Type),
+					Text: deref(item.Text),
+					Size: deref(item.Size),
 				})
 			case "list":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockList{
@@ -7451,47 +7461,17 @@ func (impl *InputRichMessage) UnmarshalJSON(data []byte) error {
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
-			case "audio":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockAudio{
-					Type:    deref(item.Type),
-					Audio:   deref(item.Audio),
-					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "blockquote":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockBlockQuotation{
-					Type:   deref(item.Type),
-					Blocks: deref(item.Blocks),
-					Credit: deref(item.Credit),
-				})
-			case "collage":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockCollage{
-					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
-					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "document":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockDocument{
-					Type:     deref(item.Type),
-					Document: deref(item.Document),
-					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "expandable_blockquote":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockExpandableBlockQuotation{
-					Type:   deref(item.Type),
-					Text:   deref(item.Text),
-					Credit: deref(item.Credit),
-				})
-			case "heading":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockSectionHeading{
-					Type: deref(item.Type),
-					Text: deref(item.Text),
-					Size: deref(item.Size),
-				})
 			case "photo":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockPhoto{
 					Type:    deref(item.Type),
 					Photo:   deref(item.Photo),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "pre":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockPreformatted{
+					Type:     deref(item.Type),
+					Text:     deref(item.Text),
+					Language: deref(item.Language),
 				})
 			case "pullquote":
 				impl.Blocks = append(impl.Blocks, &InputRichBlockPullQuotation{
@@ -7499,17 +7479,37 @@ func (impl *InputRichMessage) UnmarshalJSON(data []byte) error {
 					Text:   deref(item.Text),
 					Credit: deref(item.Credit),
 				})
-			case "buttons":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockButtons{
+			case "slideshow":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockSlideshow{
 					Type:    deref(item.Type),
-					Buttons: deref(item.Buttons),
-					Align:   deref(item.Align),
+					Blocks:  deref(item.Blocks),
+					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
-			case "pre":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockPreformatted{
-					Type:     deref(item.Type),
-					Text:     deref(item.Text),
-					Language: deref(item.Language),
+			case "table":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockTable{
+					Type:       deref(item.Type),
+					Cells:      deref(item.Cells),
+					IsBordered: deref(item.IsBordered),
+					IsStriped:  deref(item.IsStriped),
+					IsCompact:  deref(item.IsCompact),
+					Caption:    unmarshalRawOrZero[any](item.Caption),
+				})
+			case "thinking":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockThinking{
+					Type: deref(item.Type),
+					Text: deref(item.Text),
+				})
+			case "video":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockVideo{
+					Type:    deref(item.Type),
+					Video:   deref(item.Video),
+					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "voice_note":
+				impl.Blocks = append(impl.Blocks, &InputRichBlockVoiceNote{
+					Type:      deref(item.Type),
+					VoiceNote: deref(item.VoiceNote),
+					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			}
 		}
@@ -7935,7 +7935,7 @@ func (impl *Message) UnmarshalJSON(data []byte) error {
 	impl.ReceiverUser = inst.ReceiverUser
 	impl.EphemeralMessageId = inst.EphemeralMessageId
 	impl.RichMessage = inst.RichMessage
-	if inst.ForwardOrigin != nil && inst.ForwardOrigin.Type == nil {
+	if inst.ForwardOrigin != nil && inst.ForwardOrigin.Type != nil {
 		switch *inst.ForwardOrigin.Type {
 		case "channel":
 			impl.ForwardOrigin = &MessageOriginChannel{
@@ -8283,7 +8283,7 @@ func (impl *ReactionCount) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	impl.TotalCount = inst.TotalCount
-	if inst.Type != nil && inst.Type.Type == nil {
+	if inst.Type != nil && inst.Type.Type != nil {
 		switch *inst.Type.Type {
 		case "custom_emoji":
 			impl.Type = &ReactionTypeCustomEmoji{
@@ -8357,6 +8357,18 @@ func (impl *RichBlockBlockQuotation) UnmarshalJSON(data []byte) error {
 				continue
 			}
 			switch *item.Type {
+			case "anchor":
+				impl.Blocks = append(impl.Blocks, &RichBlockAnchor{
+					Type: deref(item.Type),
+					Name: deref(item.Name),
+				})
+			case "animation":
+				impl.Blocks = append(impl.Blocks, &RichBlockAnimation{
+					Type:       deref(item.Type),
+					Animation:  deref(item.Animation),
+					HasSpoiler: deref(item.HasSpoiler),
+					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
 			case "audio":
 				impl.Blocks = append(impl.Blocks, &RichBlockAudio{
 					Type:    deref(item.Type),
@@ -8369,30 +8381,11 @@ func (impl *RichBlockBlockQuotation) UnmarshalJSON(data []byte) error {
 					Blocks: deref(item.Blocks),
 					Credit: deref(item.Credit),
 				})
-			case "mathematical_expression":
-				impl.Blocks = append(impl.Blocks, &RichBlockMathematicalExpression{
-					Type:       deref(item.Type),
-					Expression: deref(item.Expression),
-				})
-			case "paragraph":
-				impl.Blocks = append(impl.Blocks, &RichBlockParagraph{
-					Type: deref(item.Type),
-					Text: deref(item.Text),
-				})
-			case "table":
-				impl.Blocks = append(impl.Blocks, &RichBlockTable{
-					Type:       deref(item.Type),
-					Cells:      deref(item.Cells),
-					IsBordered: deref(item.IsBordered),
-					IsStriped:  deref(item.IsStriped),
-					IsCompact:  deref(item.IsCompact),
-					Caption:    unmarshalRawOrZero[any](item.Caption),
-				})
-			case "voice_note":
-				impl.Blocks = append(impl.Blocks, &RichBlockVoiceNote{
-					Type:      deref(item.Type),
-					VoiceNote: deref(item.VoiceNote),
-					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+			case "buttons":
+				impl.Blocks = append(impl.Blocks, &RichBlockButtons{
+					Type:    deref(item.Type),
+					Buttons: deref(item.Buttons),
+					Align:   deref(item.Align),
 				})
 			case "collage":
 				impl.Blocks = append(impl.Blocks, &RichBlockCollage{
@@ -8407,32 +8400,9 @@ func (impl *RichBlockBlockQuotation) UnmarshalJSON(data []byte) error {
 					Blocks:  deref(item.Blocks),
 					IsOpen:  deref(item.IsOpen),
 				})
-			case "map":
-				impl.Blocks = append(impl.Blocks, &RichBlockMap{
-					Type:     deref(item.Type),
-					Location: deref(item.Location),
-					Zoom:     deref(item.Zoom),
-					Width:    deref(item.Width),
-					Height:   deref(item.Height),
-					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "photo":
-				impl.Blocks = append(impl.Blocks, &RichBlockPhoto{
-					Type:       deref(item.Type),
-					Photo:      deref(item.Photo),
-					HasSpoiler: deref(item.HasSpoiler),
-					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "pullquote":
-				impl.Blocks = append(impl.Blocks, &RichBlockPullQuotation{
-					Type:   deref(item.Type),
-					Text:   deref(item.Text),
-					Credit: deref(item.Credit),
-				})
-			case "anchor":
-				impl.Blocks = append(impl.Blocks, &RichBlockAnchor{
+			case "divider":
+				impl.Blocks = append(impl.Blocks, &RichBlockDivider{
 					Type: deref(item.Type),
-					Name: deref(item.Name),
 				})
 			case "document":
 				impl.Blocks = append(impl.Blocks, &RichBlockDocument{
@@ -8457,11 +8427,48 @@ func (impl *RichBlockBlockQuotation) UnmarshalJSON(data []byte) error {
 					Text: deref(item.Text),
 					Size: deref(item.Size),
 				})
+			case "list":
+				impl.Blocks = append(impl.Blocks, &RichBlockList{
+					Type:  deref(item.Type),
+					Items: deref(item.Items),
+				})
+			case "map":
+				impl.Blocks = append(impl.Blocks, &RichBlockMap{
+					Type:     deref(item.Type),
+					Location: deref(item.Location),
+					Zoom:     deref(item.Zoom),
+					Width:    deref(item.Width),
+					Height:   deref(item.Height),
+					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "mathematical_expression":
+				impl.Blocks = append(impl.Blocks, &RichBlockMathematicalExpression{
+					Type:       deref(item.Type),
+					Expression: deref(item.Expression),
+				})
+			case "paragraph":
+				impl.Blocks = append(impl.Blocks, &RichBlockParagraph{
+					Type: deref(item.Type),
+					Text: deref(item.Text),
+				})
+			case "photo":
+				impl.Blocks = append(impl.Blocks, &RichBlockPhoto{
+					Type:       deref(item.Type),
+					Photo:      deref(item.Photo),
+					HasSpoiler: deref(item.HasSpoiler),
+					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
 			case "pre":
 				impl.Blocks = append(impl.Blocks, &RichBlockPreformatted{
 					Type:     deref(item.Type),
 					Text:     deref(item.Text),
 					Language: deref(item.Language),
+				})
+			case "pullquote":
+				impl.Blocks = append(impl.Blocks, &RichBlockPullQuotation{
+					Type:   deref(item.Type),
+					Text:   deref(item.Text),
+					Credit: deref(item.Credit),
 				})
 			case "slideshow":
 				impl.Blocks = append(impl.Blocks, &RichBlockSlideshow{
@@ -8469,32 +8476,19 @@ func (impl *RichBlockBlockQuotation) UnmarshalJSON(data []byte) error {
 					Blocks:  deref(item.Blocks),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
+			case "table":
+				impl.Blocks = append(impl.Blocks, &RichBlockTable{
+					Type:       deref(item.Type),
+					Cells:      deref(item.Cells),
+					IsBordered: deref(item.IsBordered),
+					IsStriped:  deref(item.IsStriped),
+					IsCompact:  deref(item.IsCompact),
+					Caption:    unmarshalRawOrZero[any](item.Caption),
+				})
 			case "thinking":
 				impl.Blocks = append(impl.Blocks, &RichBlockThinking{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
-				})
-			case "animation":
-				impl.Blocks = append(impl.Blocks, &RichBlockAnimation{
-					Type:       deref(item.Type),
-					Animation:  deref(item.Animation),
-					HasSpoiler: deref(item.HasSpoiler),
-					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "buttons":
-				impl.Blocks = append(impl.Blocks, &RichBlockButtons{
-					Type:    deref(item.Type),
-					Buttons: deref(item.Buttons),
-					Align:   deref(item.Align),
-				})
-			case "divider":
-				impl.Blocks = append(impl.Blocks, &RichBlockDivider{
-					Type: deref(item.Type),
-				})
-			case "list":
-				impl.Blocks = append(impl.Blocks, &RichBlockList{
-					Type:  deref(item.Type),
-					Items: deref(item.Items),
 				})
 			case "video":
 				impl.Blocks = append(impl.Blocks, &RichBlockVideo{
@@ -8502,6 +8496,12 @@ func (impl *RichBlockBlockQuotation) UnmarshalJSON(data []byte) error {
 					Video:      deref(item.Video),
 					HasSpoiler: deref(item.HasSpoiler),
 					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "voice_note":
+				impl.Blocks = append(impl.Blocks, &RichBlockVoiceNote{
+					Type:      deref(item.Type),
+					VoiceNote: deref(item.VoiceNote),
+					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			}
 		}
@@ -8562,25 +8562,15 @@ func (impl *RichBlockCollage) UnmarshalJSON(data []byte) error {
 				continue
 			}
 			switch *item.Type {
-			case "buttons":
-				impl.Blocks = append(impl.Blocks, &RichBlockButtons{
-					Type:    deref(item.Type),
-					Buttons: deref(item.Buttons),
-					Align:   deref(item.Align),
-				})
-			case "divider":
-				impl.Blocks = append(impl.Blocks, &RichBlockDivider{
+			case "anchor":
+				impl.Blocks = append(impl.Blocks, &RichBlockAnchor{
 					Type: deref(item.Type),
+					Name: deref(item.Name),
 				})
-			case "list":
-				impl.Blocks = append(impl.Blocks, &RichBlockList{
-					Type:  deref(item.Type),
-					Items: deref(item.Items),
-				})
-			case "video":
-				impl.Blocks = append(impl.Blocks, &RichBlockVideo{
+			case "animation":
+				impl.Blocks = append(impl.Blocks, &RichBlockAnimation{
 					Type:       deref(item.Type),
-					Video:      deref(item.Video),
+					Animation:  deref(item.Animation),
 					HasSpoiler: deref(item.HasSpoiler),
 					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
@@ -8596,30 +8586,11 @@ func (impl *RichBlockCollage) UnmarshalJSON(data []byte) error {
 					Blocks: deref(item.Blocks),
 					Credit: deref(item.Credit),
 				})
-			case "mathematical_expression":
-				impl.Blocks = append(impl.Blocks, &RichBlockMathematicalExpression{
-					Type:       deref(item.Type),
-					Expression: deref(item.Expression),
-				})
-			case "paragraph":
-				impl.Blocks = append(impl.Blocks, &RichBlockParagraph{
-					Type: deref(item.Type),
-					Text: deref(item.Text),
-				})
-			case "table":
-				impl.Blocks = append(impl.Blocks, &RichBlockTable{
-					Type:       deref(item.Type),
-					Cells:      deref(item.Cells),
-					IsBordered: deref(item.IsBordered),
-					IsStriped:  deref(item.IsStriped),
-					IsCompact:  deref(item.IsCompact),
-					Caption:    unmarshalRawOrZero[any](item.Caption),
-				})
-			case "voice_note":
-				impl.Blocks = append(impl.Blocks, &RichBlockVoiceNote{
-					Type:      deref(item.Type),
-					VoiceNote: deref(item.VoiceNote),
-					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+			case "buttons":
+				impl.Blocks = append(impl.Blocks, &RichBlockButtons{
+					Type:    deref(item.Type),
+					Buttons: deref(item.Buttons),
+					Align:   deref(item.Align),
 				})
 			case "collage":
 				impl.Blocks = append(impl.Blocks, &RichBlockCollage{
@@ -8634,32 +8605,9 @@ func (impl *RichBlockCollage) UnmarshalJSON(data []byte) error {
 					Blocks:  deref(item.Blocks),
 					IsOpen:  deref(item.IsOpen),
 				})
-			case "map":
-				impl.Blocks = append(impl.Blocks, &RichBlockMap{
-					Type:     deref(item.Type),
-					Location: deref(item.Location),
-					Zoom:     deref(item.Zoom),
-					Width:    deref(item.Width),
-					Height:   deref(item.Height),
-					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "photo":
-				impl.Blocks = append(impl.Blocks, &RichBlockPhoto{
-					Type:       deref(item.Type),
-					Photo:      deref(item.Photo),
-					HasSpoiler: deref(item.HasSpoiler),
-					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "pullquote":
-				impl.Blocks = append(impl.Blocks, &RichBlockPullQuotation{
-					Type:   deref(item.Type),
-					Text:   deref(item.Text),
-					Credit: deref(item.Credit),
-				})
-			case "anchor":
-				impl.Blocks = append(impl.Blocks, &RichBlockAnchor{
+			case "divider":
+				impl.Blocks = append(impl.Blocks, &RichBlockDivider{
 					Type: deref(item.Type),
-					Name: deref(item.Name),
 				})
 			case "document":
 				impl.Blocks = append(impl.Blocks, &RichBlockDocument{
@@ -8684,11 +8632,48 @@ func (impl *RichBlockCollage) UnmarshalJSON(data []byte) error {
 					Text: deref(item.Text),
 					Size: deref(item.Size),
 				})
+			case "list":
+				impl.Blocks = append(impl.Blocks, &RichBlockList{
+					Type:  deref(item.Type),
+					Items: deref(item.Items),
+				})
+			case "map":
+				impl.Blocks = append(impl.Blocks, &RichBlockMap{
+					Type:     deref(item.Type),
+					Location: deref(item.Location),
+					Zoom:     deref(item.Zoom),
+					Width:    deref(item.Width),
+					Height:   deref(item.Height),
+					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "mathematical_expression":
+				impl.Blocks = append(impl.Blocks, &RichBlockMathematicalExpression{
+					Type:       deref(item.Type),
+					Expression: deref(item.Expression),
+				})
+			case "paragraph":
+				impl.Blocks = append(impl.Blocks, &RichBlockParagraph{
+					Type: deref(item.Type),
+					Text: deref(item.Text),
+				})
+			case "photo":
+				impl.Blocks = append(impl.Blocks, &RichBlockPhoto{
+					Type:       deref(item.Type),
+					Photo:      deref(item.Photo),
+					HasSpoiler: deref(item.HasSpoiler),
+					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
 			case "pre":
 				impl.Blocks = append(impl.Blocks, &RichBlockPreformatted{
 					Type:     deref(item.Type),
 					Text:     deref(item.Text),
 					Language: deref(item.Language),
+				})
+			case "pullquote":
+				impl.Blocks = append(impl.Blocks, &RichBlockPullQuotation{
+					Type:   deref(item.Type),
+					Text:   deref(item.Text),
+					Credit: deref(item.Credit),
 				})
 			case "slideshow":
 				impl.Blocks = append(impl.Blocks, &RichBlockSlideshow{
@@ -8696,17 +8681,32 @@ func (impl *RichBlockCollage) UnmarshalJSON(data []byte) error {
 					Blocks:  deref(item.Blocks),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
+			case "table":
+				impl.Blocks = append(impl.Blocks, &RichBlockTable{
+					Type:       deref(item.Type),
+					Cells:      deref(item.Cells),
+					IsBordered: deref(item.IsBordered),
+					IsStriped:  deref(item.IsStriped),
+					IsCompact:  deref(item.IsCompact),
+					Caption:    unmarshalRawOrZero[any](item.Caption),
+				})
 			case "thinking":
 				impl.Blocks = append(impl.Blocks, &RichBlockThinking{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
-			case "animation":
-				impl.Blocks = append(impl.Blocks, &RichBlockAnimation{
+			case "video":
+				impl.Blocks = append(impl.Blocks, &RichBlockVideo{
 					Type:       deref(item.Type),
-					Animation:  deref(item.Animation),
+					Video:      deref(item.Video),
 					HasSpoiler: deref(item.HasSpoiler),
 					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "voice_note":
+				impl.Blocks = append(impl.Blocks, &RichBlockVoiceNote{
+					Type:      deref(item.Type),
+					VoiceNote: deref(item.VoiceNote),
+					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			}
 		}
@@ -8770,30 +8770,35 @@ func (impl *RichBlockDetails) UnmarshalJSON(data []byte) error {
 				continue
 			}
 			switch *item.Type {
-			case "mathematical_expression":
-				impl.Blocks = append(impl.Blocks, &RichBlockMathematicalExpression{
-					Type:       deref(item.Type),
-					Expression: deref(item.Expression),
-				})
-			case "paragraph":
-				impl.Blocks = append(impl.Blocks, &RichBlockParagraph{
+			case "anchor":
+				impl.Blocks = append(impl.Blocks, &RichBlockAnchor{
 					Type: deref(item.Type),
-					Text: deref(item.Text),
+					Name: deref(item.Name),
 				})
-			case "table":
-				impl.Blocks = append(impl.Blocks, &RichBlockTable{
+			case "animation":
+				impl.Blocks = append(impl.Blocks, &RichBlockAnimation{
 					Type:       deref(item.Type),
-					Cells:      deref(item.Cells),
-					IsBordered: deref(item.IsBordered),
-					IsStriped:  deref(item.IsStriped),
-					IsCompact:  deref(item.IsCompact),
-					Caption:    unmarshalRawOrZero[any](item.Caption),
+					Animation:  deref(item.Animation),
+					HasSpoiler: deref(item.HasSpoiler),
+					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
-			case "voice_note":
-				impl.Blocks = append(impl.Blocks, &RichBlockVoiceNote{
-					Type:      deref(item.Type),
-					VoiceNote: deref(item.VoiceNote),
-					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+			case "audio":
+				impl.Blocks = append(impl.Blocks, &RichBlockAudio{
+					Type:    deref(item.Type),
+					Audio:   deref(item.Audio),
+					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "blockquote":
+				impl.Blocks = append(impl.Blocks, &RichBlockBlockQuotation{
+					Type:   deref(item.Type),
+					Blocks: deref(item.Blocks),
+					Credit: deref(item.Credit),
+				})
+			case "buttons":
+				impl.Blocks = append(impl.Blocks, &RichBlockButtons{
+					Type:    deref(item.Type),
+					Buttons: deref(item.Buttons),
+					Align:   deref(item.Align),
 				})
 			case "collage":
 				impl.Blocks = append(impl.Blocks, &RichBlockCollage{
@@ -8808,32 +8813,9 @@ func (impl *RichBlockDetails) UnmarshalJSON(data []byte) error {
 					Blocks:  deref(item.Blocks),
 					IsOpen:  deref(item.IsOpen),
 				})
-			case "map":
-				impl.Blocks = append(impl.Blocks, &RichBlockMap{
-					Type:     deref(item.Type),
-					Location: deref(item.Location),
-					Zoom:     deref(item.Zoom),
-					Width:    deref(item.Width),
-					Height:   deref(item.Height),
-					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "photo":
-				impl.Blocks = append(impl.Blocks, &RichBlockPhoto{
-					Type:       deref(item.Type),
-					Photo:      deref(item.Photo),
-					HasSpoiler: deref(item.HasSpoiler),
-					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "pullquote":
-				impl.Blocks = append(impl.Blocks, &RichBlockPullQuotation{
-					Type:   deref(item.Type),
-					Text:   deref(item.Text),
-					Credit: deref(item.Credit),
-				})
-			case "anchor":
-				impl.Blocks = append(impl.Blocks, &RichBlockAnchor{
+			case "divider":
+				impl.Blocks = append(impl.Blocks, &RichBlockDivider{
 					Type: deref(item.Type),
-					Name: deref(item.Name),
 				})
 			case "document":
 				impl.Blocks = append(impl.Blocks, &RichBlockDocument{
@@ -8858,11 +8840,48 @@ func (impl *RichBlockDetails) UnmarshalJSON(data []byte) error {
 					Text: deref(item.Text),
 					Size: deref(item.Size),
 				})
+			case "list":
+				impl.Blocks = append(impl.Blocks, &RichBlockList{
+					Type:  deref(item.Type),
+					Items: deref(item.Items),
+				})
+			case "map":
+				impl.Blocks = append(impl.Blocks, &RichBlockMap{
+					Type:     deref(item.Type),
+					Location: deref(item.Location),
+					Zoom:     deref(item.Zoom),
+					Width:    deref(item.Width),
+					Height:   deref(item.Height),
+					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "mathematical_expression":
+				impl.Blocks = append(impl.Blocks, &RichBlockMathematicalExpression{
+					Type:       deref(item.Type),
+					Expression: deref(item.Expression),
+				})
+			case "paragraph":
+				impl.Blocks = append(impl.Blocks, &RichBlockParagraph{
+					Type: deref(item.Type),
+					Text: deref(item.Text),
+				})
+			case "photo":
+				impl.Blocks = append(impl.Blocks, &RichBlockPhoto{
+					Type:       deref(item.Type),
+					Photo:      deref(item.Photo),
+					HasSpoiler: deref(item.HasSpoiler),
+					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
 			case "pre":
 				impl.Blocks = append(impl.Blocks, &RichBlockPreformatted{
 					Type:     deref(item.Type),
 					Text:     deref(item.Text),
 					Language: deref(item.Language),
+				})
+			case "pullquote":
+				impl.Blocks = append(impl.Blocks, &RichBlockPullQuotation{
+					Type:   deref(item.Type),
+					Text:   deref(item.Text),
+					Credit: deref(item.Credit),
 				})
 			case "slideshow":
 				impl.Blocks = append(impl.Blocks, &RichBlockSlideshow{
@@ -8870,32 +8889,19 @@ func (impl *RichBlockDetails) UnmarshalJSON(data []byte) error {
 					Blocks:  deref(item.Blocks),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
+			case "table":
+				impl.Blocks = append(impl.Blocks, &RichBlockTable{
+					Type:       deref(item.Type),
+					Cells:      deref(item.Cells),
+					IsBordered: deref(item.IsBordered),
+					IsStriped:  deref(item.IsStriped),
+					IsCompact:  deref(item.IsCompact),
+					Caption:    unmarshalRawOrZero[any](item.Caption),
+				})
 			case "thinking":
 				impl.Blocks = append(impl.Blocks, &RichBlockThinking{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
-				})
-			case "animation":
-				impl.Blocks = append(impl.Blocks, &RichBlockAnimation{
-					Type:       deref(item.Type),
-					Animation:  deref(item.Animation),
-					HasSpoiler: deref(item.HasSpoiler),
-					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "buttons":
-				impl.Blocks = append(impl.Blocks, &RichBlockButtons{
-					Type:    deref(item.Type),
-					Buttons: deref(item.Buttons),
-					Align:   deref(item.Align),
-				})
-			case "divider":
-				impl.Blocks = append(impl.Blocks, &RichBlockDivider{
-					Type: deref(item.Type),
-				})
-			case "list":
-				impl.Blocks = append(impl.Blocks, &RichBlockList{
-					Type:  deref(item.Type),
-					Items: deref(item.Items),
 				})
 			case "video":
 				impl.Blocks = append(impl.Blocks, &RichBlockVideo{
@@ -8904,17 +8910,11 @@ func (impl *RichBlockDetails) UnmarshalJSON(data []byte) error {
 					HasSpoiler: deref(item.HasSpoiler),
 					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
-			case "audio":
-				impl.Blocks = append(impl.Blocks, &RichBlockAudio{
-					Type:    deref(item.Type),
-					Audio:   deref(item.Audio),
-					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "blockquote":
-				impl.Blocks = append(impl.Blocks, &RichBlockBlockQuotation{
-					Type:   deref(item.Type),
-					Blocks: deref(item.Blocks),
-					Credit: deref(item.Credit),
+			case "voice_note":
+				impl.Blocks = append(impl.Blocks, &RichBlockVoiceNote{
+					Type:      deref(item.Type),
+					VoiceNote: deref(item.VoiceNote),
+					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			}
 		}
@@ -8985,15 +8985,15 @@ func (impl *RichBlockListItem) UnmarshalJSON(data []byte) error {
 				continue
 			}
 			switch *item.Type {
-			case "list":
-				impl.Blocks = append(impl.Blocks, &RichBlockList{
-					Type:  deref(item.Type),
-					Items: deref(item.Items),
+			case "anchor":
+				impl.Blocks = append(impl.Blocks, &RichBlockAnchor{
+					Type: deref(item.Type),
+					Name: deref(item.Name),
 				})
-			case "video":
-				impl.Blocks = append(impl.Blocks, &RichBlockVideo{
+			case "animation":
+				impl.Blocks = append(impl.Blocks, &RichBlockAnimation{
 					Type:       deref(item.Type),
-					Video:      deref(item.Video),
+					Animation:  deref(item.Animation),
 					HasSpoiler: deref(item.HasSpoiler),
 					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
@@ -9009,30 +9009,11 @@ func (impl *RichBlockListItem) UnmarshalJSON(data []byte) error {
 					Blocks: deref(item.Blocks),
 					Credit: deref(item.Credit),
 				})
-			case "mathematical_expression":
-				impl.Blocks = append(impl.Blocks, &RichBlockMathematicalExpression{
-					Type:       deref(item.Type),
-					Expression: deref(item.Expression),
-				})
-			case "paragraph":
-				impl.Blocks = append(impl.Blocks, &RichBlockParagraph{
-					Type: deref(item.Type),
-					Text: deref(item.Text),
-				})
-			case "table":
-				impl.Blocks = append(impl.Blocks, &RichBlockTable{
-					Type:       deref(item.Type),
-					Cells:      deref(item.Cells),
-					IsBordered: deref(item.IsBordered),
-					IsStriped:  deref(item.IsStriped),
-					IsCompact:  deref(item.IsCompact),
-					Caption:    unmarshalRawOrZero[any](item.Caption),
-				})
-			case "voice_note":
-				impl.Blocks = append(impl.Blocks, &RichBlockVoiceNote{
-					Type:      deref(item.Type),
-					VoiceNote: deref(item.VoiceNote),
-					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+			case "buttons":
+				impl.Blocks = append(impl.Blocks, &RichBlockButtons{
+					Type:    deref(item.Type),
+					Buttons: deref(item.Buttons),
+					Align:   deref(item.Align),
 				})
 			case "collage":
 				impl.Blocks = append(impl.Blocks, &RichBlockCollage{
@@ -9047,32 +9028,9 @@ func (impl *RichBlockListItem) UnmarshalJSON(data []byte) error {
 					Blocks:  deref(item.Blocks),
 					IsOpen:  deref(item.IsOpen),
 				})
-			case "map":
-				impl.Blocks = append(impl.Blocks, &RichBlockMap{
-					Type:     deref(item.Type),
-					Location: deref(item.Location),
-					Zoom:     deref(item.Zoom),
-					Width:    deref(item.Width),
-					Height:   deref(item.Height),
-					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "photo":
-				impl.Blocks = append(impl.Blocks, &RichBlockPhoto{
-					Type:       deref(item.Type),
-					Photo:      deref(item.Photo),
-					HasSpoiler: deref(item.HasSpoiler),
-					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "pullquote":
-				impl.Blocks = append(impl.Blocks, &RichBlockPullQuotation{
-					Type:   deref(item.Type),
-					Text:   deref(item.Text),
-					Credit: deref(item.Credit),
-				})
-			case "anchor":
-				impl.Blocks = append(impl.Blocks, &RichBlockAnchor{
+			case "divider":
+				impl.Blocks = append(impl.Blocks, &RichBlockDivider{
 					Type: deref(item.Type),
-					Name: deref(item.Name),
 				})
 			case "document":
 				impl.Blocks = append(impl.Blocks, &RichBlockDocument{
@@ -9097,11 +9055,48 @@ func (impl *RichBlockListItem) UnmarshalJSON(data []byte) error {
 					Text: deref(item.Text),
 					Size: deref(item.Size),
 				})
+			case "list":
+				impl.Blocks = append(impl.Blocks, &RichBlockList{
+					Type:  deref(item.Type),
+					Items: deref(item.Items),
+				})
+			case "map":
+				impl.Blocks = append(impl.Blocks, &RichBlockMap{
+					Type:     deref(item.Type),
+					Location: deref(item.Location),
+					Zoom:     deref(item.Zoom),
+					Width:    deref(item.Width),
+					Height:   deref(item.Height),
+					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "mathematical_expression":
+				impl.Blocks = append(impl.Blocks, &RichBlockMathematicalExpression{
+					Type:       deref(item.Type),
+					Expression: deref(item.Expression),
+				})
+			case "paragraph":
+				impl.Blocks = append(impl.Blocks, &RichBlockParagraph{
+					Type: deref(item.Type),
+					Text: deref(item.Text),
+				})
+			case "photo":
+				impl.Blocks = append(impl.Blocks, &RichBlockPhoto{
+					Type:       deref(item.Type),
+					Photo:      deref(item.Photo),
+					HasSpoiler: deref(item.HasSpoiler),
+					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
 			case "pre":
 				impl.Blocks = append(impl.Blocks, &RichBlockPreformatted{
 					Type:     deref(item.Type),
 					Text:     deref(item.Text),
 					Language: deref(item.Language),
+				})
+			case "pullquote":
+				impl.Blocks = append(impl.Blocks, &RichBlockPullQuotation{
+					Type:   deref(item.Type),
+					Text:   deref(item.Text),
+					Credit: deref(item.Credit),
 				})
 			case "slideshow":
 				impl.Blocks = append(impl.Blocks, &RichBlockSlideshow{
@@ -9109,27 +9104,32 @@ func (impl *RichBlockListItem) UnmarshalJSON(data []byte) error {
 					Blocks:  deref(item.Blocks),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
+			case "table":
+				impl.Blocks = append(impl.Blocks, &RichBlockTable{
+					Type:       deref(item.Type),
+					Cells:      deref(item.Cells),
+					IsBordered: deref(item.IsBordered),
+					IsStriped:  deref(item.IsStriped),
+					IsCompact:  deref(item.IsCompact),
+					Caption:    unmarshalRawOrZero[any](item.Caption),
+				})
 			case "thinking":
 				impl.Blocks = append(impl.Blocks, &RichBlockThinking{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
-			case "animation":
-				impl.Blocks = append(impl.Blocks, &RichBlockAnimation{
+			case "video":
+				impl.Blocks = append(impl.Blocks, &RichBlockVideo{
 					Type:       deref(item.Type),
-					Animation:  deref(item.Animation),
+					Video:      deref(item.Video),
 					HasSpoiler: deref(item.HasSpoiler),
 					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
-			case "buttons":
-				impl.Blocks = append(impl.Blocks, &RichBlockButtons{
-					Type:    deref(item.Type),
-					Buttons: deref(item.Buttons),
-					Align:   deref(item.Align),
-				})
-			case "divider":
-				impl.Blocks = append(impl.Blocks, &RichBlockDivider{
-					Type: deref(item.Type),
+			case "voice_note":
+				impl.Blocks = append(impl.Blocks, &RichBlockVoiceNote{
+					Type:      deref(item.Type),
+					VoiceNote: deref(item.VoiceNote),
+					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			}
 		}
@@ -9190,60 +9190,15 @@ func (impl *RichBlockSlideshow) UnmarshalJSON(data []byte) error {
 				continue
 			}
 			switch *item.Type {
-			case "footer":
-				impl.Blocks = append(impl.Blocks, &RichBlockFooter{
+			case "anchor":
+				impl.Blocks = append(impl.Blocks, &RichBlockAnchor{
 					Type: deref(item.Type),
-					Text: deref(item.Text),
-				})
-			case "heading":
-				impl.Blocks = append(impl.Blocks, &RichBlockSectionHeading{
-					Type: deref(item.Type),
-					Text: deref(item.Text),
-					Size: deref(item.Size),
-				})
-			case "pre":
-				impl.Blocks = append(impl.Blocks, &RichBlockPreformatted{
-					Type:     deref(item.Type),
-					Text:     deref(item.Text),
-					Language: deref(item.Language),
-				})
-			case "slideshow":
-				impl.Blocks = append(impl.Blocks, &RichBlockSlideshow{
-					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
-					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "thinking":
-				impl.Blocks = append(impl.Blocks, &RichBlockThinking{
-					Type: deref(item.Type),
-					Text: deref(item.Text),
+					Name: deref(item.Name),
 				})
 			case "animation":
 				impl.Blocks = append(impl.Blocks, &RichBlockAnimation{
 					Type:       deref(item.Type),
 					Animation:  deref(item.Animation),
-					HasSpoiler: deref(item.HasSpoiler),
-					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "buttons":
-				impl.Blocks = append(impl.Blocks, &RichBlockButtons{
-					Type:    deref(item.Type),
-					Buttons: deref(item.Buttons),
-					Align:   deref(item.Align),
-				})
-			case "divider":
-				impl.Blocks = append(impl.Blocks, &RichBlockDivider{
-					Type: deref(item.Type),
-				})
-			case "list":
-				impl.Blocks = append(impl.Blocks, &RichBlockList{
-					Type:  deref(item.Type),
-					Items: deref(item.Items),
-				})
-			case "video":
-				impl.Blocks = append(impl.Blocks, &RichBlockVideo{
-					Type:       deref(item.Type),
-					Video:      deref(item.Video),
 					HasSpoiler: deref(item.HasSpoiler),
 					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
@@ -9259,30 +9214,11 @@ func (impl *RichBlockSlideshow) UnmarshalJSON(data []byte) error {
 					Blocks: deref(item.Blocks),
 					Credit: deref(item.Credit),
 				})
-			case "mathematical_expression":
-				impl.Blocks = append(impl.Blocks, &RichBlockMathematicalExpression{
-					Type:       deref(item.Type),
-					Expression: deref(item.Expression),
-				})
-			case "paragraph":
-				impl.Blocks = append(impl.Blocks, &RichBlockParagraph{
-					Type: deref(item.Type),
-					Text: deref(item.Text),
-				})
-			case "table":
-				impl.Blocks = append(impl.Blocks, &RichBlockTable{
-					Type:       deref(item.Type),
-					Cells:      deref(item.Cells),
-					IsBordered: deref(item.IsBordered),
-					IsStriped:  deref(item.IsStriped),
-					IsCompact:  deref(item.IsCompact),
-					Caption:    unmarshalRawOrZero[any](item.Caption),
-				})
-			case "voice_note":
-				impl.Blocks = append(impl.Blocks, &RichBlockVoiceNote{
-					Type:      deref(item.Type),
-					VoiceNote: deref(item.VoiceNote),
-					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+			case "buttons":
+				impl.Blocks = append(impl.Blocks, &RichBlockButtons{
+					Type:    deref(item.Type),
+					Buttons: deref(item.Buttons),
+					Align:   deref(item.Align),
 				})
 			case "collage":
 				impl.Blocks = append(impl.Blocks, &RichBlockCollage{
@@ -9297,32 +9233,9 @@ func (impl *RichBlockSlideshow) UnmarshalJSON(data []byte) error {
 					Blocks:  deref(item.Blocks),
 					IsOpen:  deref(item.IsOpen),
 				})
-			case "map":
-				impl.Blocks = append(impl.Blocks, &RichBlockMap{
-					Type:     deref(item.Type),
-					Location: deref(item.Location),
-					Zoom:     deref(item.Zoom),
-					Width:    deref(item.Width),
-					Height:   deref(item.Height),
-					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "photo":
-				impl.Blocks = append(impl.Blocks, &RichBlockPhoto{
-					Type:       deref(item.Type),
-					Photo:      deref(item.Photo),
-					HasSpoiler: deref(item.HasSpoiler),
-					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "pullquote":
-				impl.Blocks = append(impl.Blocks, &RichBlockPullQuotation{
-					Type:   deref(item.Type),
-					Text:   deref(item.Text),
-					Credit: deref(item.Credit),
-				})
-			case "anchor":
-				impl.Blocks = append(impl.Blocks, &RichBlockAnchor{
+			case "divider":
+				impl.Blocks = append(impl.Blocks, &RichBlockDivider{
 					Type: deref(item.Type),
-					Name: deref(item.Name),
 				})
 			case "document":
 				impl.Blocks = append(impl.Blocks, &RichBlockDocument{
@@ -9335,6 +9248,93 @@ func (impl *RichBlockSlideshow) UnmarshalJSON(data []byte) error {
 					Type:   deref(item.Type),
 					Text:   deref(item.Text),
 					Credit: deref(item.Credit),
+				})
+			case "footer":
+				impl.Blocks = append(impl.Blocks, &RichBlockFooter{
+					Type: deref(item.Type),
+					Text: deref(item.Text),
+				})
+			case "heading":
+				impl.Blocks = append(impl.Blocks, &RichBlockSectionHeading{
+					Type: deref(item.Type),
+					Text: deref(item.Text),
+					Size: deref(item.Size),
+				})
+			case "list":
+				impl.Blocks = append(impl.Blocks, &RichBlockList{
+					Type:  deref(item.Type),
+					Items: deref(item.Items),
+				})
+			case "map":
+				impl.Blocks = append(impl.Blocks, &RichBlockMap{
+					Type:     deref(item.Type),
+					Location: deref(item.Location),
+					Zoom:     deref(item.Zoom),
+					Width:    deref(item.Width),
+					Height:   deref(item.Height),
+					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "mathematical_expression":
+				impl.Blocks = append(impl.Blocks, &RichBlockMathematicalExpression{
+					Type:       deref(item.Type),
+					Expression: deref(item.Expression),
+				})
+			case "paragraph":
+				impl.Blocks = append(impl.Blocks, &RichBlockParagraph{
+					Type: deref(item.Type),
+					Text: deref(item.Text),
+				})
+			case "photo":
+				impl.Blocks = append(impl.Blocks, &RichBlockPhoto{
+					Type:       deref(item.Type),
+					Photo:      deref(item.Photo),
+					HasSpoiler: deref(item.HasSpoiler),
+					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "pre":
+				impl.Blocks = append(impl.Blocks, &RichBlockPreformatted{
+					Type:     deref(item.Type),
+					Text:     deref(item.Text),
+					Language: deref(item.Language),
+				})
+			case "pullquote":
+				impl.Blocks = append(impl.Blocks, &RichBlockPullQuotation{
+					Type:   deref(item.Type),
+					Text:   deref(item.Text),
+					Credit: deref(item.Credit),
+				})
+			case "slideshow":
+				impl.Blocks = append(impl.Blocks, &RichBlockSlideshow{
+					Type:    deref(item.Type),
+					Blocks:  deref(item.Blocks),
+					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "table":
+				impl.Blocks = append(impl.Blocks, &RichBlockTable{
+					Type:       deref(item.Type),
+					Cells:      deref(item.Cells),
+					IsBordered: deref(item.IsBordered),
+					IsStriped:  deref(item.IsStriped),
+					IsCompact:  deref(item.IsCompact),
+					Caption:    unmarshalRawOrZero[any](item.Caption),
+				})
+			case "thinking":
+				impl.Blocks = append(impl.Blocks, &RichBlockThinking{
+					Type: deref(item.Type),
+					Text: deref(item.Text),
+				})
+			case "video":
+				impl.Blocks = append(impl.Blocks, &RichBlockVideo{
+					Type:       deref(item.Type),
+					Video:      deref(item.Video),
+					HasSpoiler: deref(item.HasSpoiler),
+					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "voice_note":
+				impl.Blocks = append(impl.Blocks, &RichBlockVoiceNote{
+					Type:      deref(item.Type),
+					VoiceNote: deref(item.VoiceNote),
+					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			}
 		}
@@ -9392,23 +9392,52 @@ func (impl *RichMessage) UnmarshalJSON(data []byte) error {
 				continue
 			}
 			switch *item.Type {
-			case "photo":
-				impl.Blocks = append(impl.Blocks, &RichBlockPhoto{
-					Type:       deref(item.Type),
-					Photo:      deref(item.Photo),
-					HasSpoiler: deref(item.HasSpoiler),
-					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "pullquote":
-				impl.Blocks = append(impl.Blocks, &RichBlockPullQuotation{
-					Type:   deref(item.Type),
-					Text:   deref(item.Text),
-					Credit: deref(item.Credit),
-				})
 			case "anchor":
 				impl.Blocks = append(impl.Blocks, &RichBlockAnchor{
 					Type: deref(item.Type),
 					Name: deref(item.Name),
+				})
+			case "animation":
+				impl.Blocks = append(impl.Blocks, &RichBlockAnimation{
+					Type:       deref(item.Type),
+					Animation:  deref(item.Animation),
+					HasSpoiler: deref(item.HasSpoiler),
+					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "audio":
+				impl.Blocks = append(impl.Blocks, &RichBlockAudio{
+					Type:    deref(item.Type),
+					Audio:   deref(item.Audio),
+					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "blockquote":
+				impl.Blocks = append(impl.Blocks, &RichBlockBlockQuotation{
+					Type:   deref(item.Type),
+					Blocks: deref(item.Blocks),
+					Credit: deref(item.Credit),
+				})
+			case "buttons":
+				impl.Blocks = append(impl.Blocks, &RichBlockButtons{
+					Type:    deref(item.Type),
+					Buttons: deref(item.Buttons),
+					Align:   deref(item.Align),
+				})
+			case "collage":
+				impl.Blocks = append(impl.Blocks, &RichBlockCollage{
+					Type:    deref(item.Type),
+					Blocks:  deref(item.Blocks),
+					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "details":
+				impl.Blocks = append(impl.Blocks, &RichBlockDetails{
+					Type:    deref(item.Type),
+					Summary: deref(item.Summary),
+					Blocks:  deref(item.Blocks),
+					IsOpen:  deref(item.IsOpen),
+				})
+			case "divider":
+				impl.Blocks = append(impl.Blocks, &RichBlockDivider{
+					Type: deref(item.Type),
 				})
 			case "document":
 				impl.Blocks = append(impl.Blocks, &RichBlockDocument{
@@ -9433,63 +9462,19 @@ func (impl *RichMessage) UnmarshalJSON(data []byte) error {
 					Text: deref(item.Text),
 					Size: deref(item.Size),
 				})
-			case "pre":
-				impl.Blocks = append(impl.Blocks, &RichBlockPreformatted{
-					Type:     deref(item.Type),
-					Text:     deref(item.Text),
-					Language: deref(item.Language),
-				})
-			case "slideshow":
-				impl.Blocks = append(impl.Blocks, &RichBlockSlideshow{
-					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
-					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "thinking":
-				impl.Blocks = append(impl.Blocks, &RichBlockThinking{
-					Type: deref(item.Type),
-					Text: deref(item.Text),
-				})
-			case "animation":
-				impl.Blocks = append(impl.Blocks, &RichBlockAnimation{
-					Type:       deref(item.Type),
-					Animation:  deref(item.Animation),
-					HasSpoiler: deref(item.HasSpoiler),
-					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "buttons":
-				impl.Blocks = append(impl.Blocks, &RichBlockButtons{
-					Type:    deref(item.Type),
-					Buttons: deref(item.Buttons),
-					Align:   deref(item.Align),
-				})
-			case "divider":
-				impl.Blocks = append(impl.Blocks, &RichBlockDivider{
-					Type: deref(item.Type),
-				})
 			case "list":
 				impl.Blocks = append(impl.Blocks, &RichBlockList{
 					Type:  deref(item.Type),
 					Items: deref(item.Items),
 				})
-			case "video":
-				impl.Blocks = append(impl.Blocks, &RichBlockVideo{
-					Type:       deref(item.Type),
-					Video:      deref(item.Video),
-					HasSpoiler: deref(item.HasSpoiler),
-					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "audio":
-				impl.Blocks = append(impl.Blocks, &RichBlockAudio{
-					Type:    deref(item.Type),
-					Audio:   deref(item.Audio),
-					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "blockquote":
-				impl.Blocks = append(impl.Blocks, &RichBlockBlockQuotation{
-					Type:   deref(item.Type),
-					Blocks: deref(item.Blocks),
-					Credit: deref(item.Credit),
+			case "map":
+				impl.Blocks = append(impl.Blocks, &RichBlockMap{
+					Type:     deref(item.Type),
+					Location: deref(item.Location),
+					Zoom:     deref(item.Zoom),
+					Width:    deref(item.Width),
+					Height:   deref(item.Height),
+					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "mathematical_expression":
 				impl.Blocks = append(impl.Blocks, &RichBlockMathematicalExpression{
@@ -9501,6 +9486,31 @@ func (impl *RichMessage) UnmarshalJSON(data []byte) error {
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
+			case "photo":
+				impl.Blocks = append(impl.Blocks, &RichBlockPhoto{
+					Type:       deref(item.Type),
+					Photo:      deref(item.Photo),
+					HasSpoiler: deref(item.HasSpoiler),
+					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
+			case "pre":
+				impl.Blocks = append(impl.Blocks, &RichBlockPreformatted{
+					Type:     deref(item.Type),
+					Text:     deref(item.Text),
+					Language: deref(item.Language),
+				})
+			case "pullquote":
+				impl.Blocks = append(impl.Blocks, &RichBlockPullQuotation{
+					Type:   deref(item.Type),
+					Text:   deref(item.Text),
+					Credit: deref(item.Credit),
+				})
+			case "slideshow":
+				impl.Blocks = append(impl.Blocks, &RichBlockSlideshow{
+					Type:    deref(item.Type),
+					Blocks:  deref(item.Blocks),
+					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
 			case "table":
 				impl.Blocks = append(impl.Blocks, &RichBlockTable{
 					Type:       deref(item.Type),
@@ -9510,33 +9520,23 @@ func (impl *RichMessage) UnmarshalJSON(data []byte) error {
 					IsCompact:  deref(item.IsCompact),
 					Caption:    unmarshalRawOrZero[any](item.Caption),
 				})
+			case "thinking":
+				impl.Blocks = append(impl.Blocks, &RichBlockThinking{
+					Type: deref(item.Type),
+					Text: deref(item.Text),
+				})
+			case "video":
+				impl.Blocks = append(impl.Blocks, &RichBlockVideo{
+					Type:       deref(item.Type),
+					Video:      deref(item.Video),
+					HasSpoiler: deref(item.HasSpoiler),
+					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
+				})
 			case "voice_note":
 				impl.Blocks = append(impl.Blocks, &RichBlockVoiceNote{
 					Type:      deref(item.Type),
 					VoiceNote: deref(item.VoiceNote),
 					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "collage":
-				impl.Blocks = append(impl.Blocks, &RichBlockCollage{
-					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
-					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
-				})
-			case "details":
-				impl.Blocks = append(impl.Blocks, &RichBlockDetails{
-					Type:    deref(item.Type),
-					Summary: deref(item.Summary),
-					Blocks:  deref(item.Blocks),
-					IsOpen:  deref(item.IsOpen),
-				})
-			case "map":
-				impl.Blocks = append(impl.Blocks, &RichBlockMap{
-					Type:     deref(item.Type),
-					Location: deref(item.Location),
-					Zoom:     deref(item.Zoom),
-					Width:    deref(item.Width),
-					Height:   deref(item.Height),
-					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			}
 		}
@@ -9915,7 +9915,7 @@ func (impl *StoryAreaTypeSuggestedReaction) UnmarshalJSON(data []byte) error {
 	impl.Type = inst.Type
 	impl.IsDark = inst.IsDark
 	impl.IsFlipped = inst.IsFlipped
-	if inst.ReactionType != nil && inst.ReactionType.Type == nil {
+	if inst.ReactionType != nil && inst.ReactionType.Type != nil {
 		switch *inst.ReactionType.Type {
 		case "custom_emoji":
 			impl.ReactionType = &ReactionTypeCustomEmoji{

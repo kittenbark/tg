@@ -205,6 +205,20 @@ func (fac *Factory2) buildStructUnmarshaler(strct *goTypeStruct, variants []stri
 	return result
 }
 
+// sortedDiscriminatorValues returns discr.mapping's keys in a stable order.
+// discr.mapping is a Go map, so ranging over it directly (as all three
+// discriminator-switch builders used to) makes the generated switch's case
+// order - and therefore the generated file's exact bytes - vary from one
+// generator run to the next, even with no schema or logic change.
+func sortedDiscriminatorValues(discr *discriminator) []string {
+	values := make([]string, 0, len(discr.mapping))
+	for value := range discr.mapping {
+		values = append(values, value)
+	}
+	sort.Strings(values)
+	return values
+}
+
 func (variant *structUnmarshalerVariant) buildParsingCodeWithDiscriminators(discr *discriminator) string {
 	slices.SortFunc(variant.Options, func(a, b *goTypeStruct) int {
 		return cmp.Compare(len(a.Fields), len(b.Fields))
@@ -220,7 +234,7 @@ func (variant *structUnmarshalerVariant) buildParsingCodeWithDiscriminators(disc
 
 	inst := fmt.Sprintf("inst.%s", variant.Name)
 	result := []string{
-		fmt.Sprintf("if %s != nil && %s.%s == nil {", inst, inst, snakeCaseToCamelCase(discr.property)),
+		fmt.Sprintf("if %s != nil && %s.%s != nil {", inst, inst, snakeCaseToCamelCase(discr.property)),
 		fmt.Sprintf("switch *%s.%s {", inst, snakeCaseToCamelCase(discr.property)),
 	}
 
@@ -229,8 +243,8 @@ func (variant *structUnmarshalerVariant) buildParsingCodeWithDiscriminators(disc
 		return variant.Options[i]
 	}
 
-	for value, typeName := range discr.mapping {
-		option := findOption(typeName)
+	for _, value := range sortedDiscriminatorValues(discr) {
+		option := findOption(discr.mapping[value])
 		result = append(result,
 			fmt.Sprintf("case \"%s\":", value),
 			fmt.Sprintf("impl.%s = &%s{", variant.Name, option.Name),
@@ -279,8 +293,8 @@ func (variant *structUnmarshalerVariant) buildParsingCodeSliceWithDiscriminators
 		return variant.Options[i]
 	}
 
-	for value, typeName := range discr.mapping {
-		option := findOption(typeName)
+	for _, value := range sortedDiscriminatorValues(discr) {
+		option := findOption(discr.mapping[value])
 		result = append(result,
 			fmt.Sprintf("case \"%s\":", value),
 			fmt.Sprintf("%s = append(%s, &%s{", target, target, option.Name),
@@ -300,6 +314,91 @@ func (variant *structUnmarshalerVariant) buildParsingCodeSliceWithDiscriminators
 		"}", // if
 	)
 	return strings.Join(result, "\n")
+}
+
+// buildBareUnmarshalerFunc generates a standalone decoder for an interface
+// type used as a bare value (e.g. an API method's return type) rather than as
+// a struct field. Unlike buildParsingCodeWithDiscriminators, there is no
+// containing impl/inst to assign into, so this returns the concrete value
+// directly instead of assigning to a field.
+func (variant *structUnmarshalerVariant) buildBareUnmarshalerFunc(discr *discriminator) string {
+	slices.SortFunc(variant.Options, func(a, b *goTypeStruct) int {
+		return cmp.Compare(len(a.Fields), len(b.Fields))
+	})
+
+	discriminatorField := snakeCaseToCamelCase(discr.property)
+	result := []string{
+		fmt.Sprintf("func Unmarshal%s(data []byte) (%s, error) {", variant.InterfaceType, variant.InterfaceType),
+		strings.ReplaceAll(variant.buildStructDeclaration(), ",omitempty", ""),
+		fmt.Sprintf("var inst %s", variant.Type),
+		"if err := json.Unmarshal(data, &inst); err != nil {",
+		"return nil, err",
+		"}",
+		fmt.Sprintf("if inst.%s == nil {", discriminatorField),
+		fmt.Sprintf("return nil, fmt.Errorf(\"tg: unmarshal %s: missing %%q\", %q)", variant.InterfaceType, discr.property),
+		"}",
+		fmt.Sprintf("switch *inst.%s {", discriminatorField),
+	}
+
+	findOption := func(name string) *goTypeStruct {
+		i := slices.IndexFunc(variant.Options, func(el *goTypeStruct) bool { return unwrapType(el.Name) == name })
+		return variant.Options[i]
+	}
+
+	for _, value := range sortedDiscriminatorValues(discr) {
+		option := findOption(discr.mapping[value])
+		result = append(result,
+			fmt.Sprintf("case %q:", value),
+			fmt.Sprintf("return &%s{", option.Name),
+		)
+		for _, optionField := range option.Fields {
+			result = append(result,
+				fmt.Sprintf("%s: %s,", optionField.Name, variant.buildFieldValue("inst", optionField)),
+			)
+		}
+		result = append(result, "}, nil")
+	}
+
+	result = append(result,
+		"}",
+		fmt.Sprintf("return nil, fmt.Errorf(\"tg: unmarshal %s: unknown %%q %%q\", %q, *inst.%s)", variant.InterfaceType, discr.property, discriminatorField),
+		"}",
+	)
+	return strings.Join(result, "\n")
+}
+
+// buildBareInterfaceUnmarshalers builds a standalone UnmarshalXxx(data []byte)
+// (Xxx, error) function for each interface name in names. It exists for
+// interfaces used as a bare API method return type (or the element type of a
+// bare []Interface return) — unlike a struct field, those never pass through
+// buildUnmarshalers, so encoding/json has no way to pick a concrete type for
+// them on its own.
+func (fac *Factory2) buildBareInterfaceUnmarshalers(names map[string]bool) []string {
+	result := []string{}
+	for name := range names {
+		variant, ok := fac.Interfaces[name]
+		if !ok {
+			panic(fmt.Sprintf("tg: method returns bare interface %q that was never registered as an interface type", name))
+		}
+		discr, ok := discriminators[name]
+		if !ok {
+			panic(fmt.Sprintf("tg: method returns bare interface %q with no registered discriminator - add one in schema.go", name))
+		}
+
+		options := []*goTypeStruct{}
+		for _, option := range variant.Options {
+			options = append(options, fac.findStructByGoName(option))
+		}
+
+		unmarshaler := &structUnmarshalerVariant{
+			Type:          name + "UnmarshalJoined",
+			Options:       options,
+			InterfaceType: name,
+		}
+		result = append(result, unmarshaler.buildBareUnmarshalerFunc(discr))
+	}
+	sort.Strings(result)
+	return result
 }
 
 func (variant *structUnmarshalerVariant) buildParsingCodeSingle() string {

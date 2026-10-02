@@ -3327,17 +3327,47 @@ var (
 	_ InputMedia = &Video{}
 )
 
+func (impl *Animation) OptAnimation() *Animation           { return impl }
+func (impl *Animation) OptAudio() *Audio                   { return nil }
+func (impl *Animation) OptDocument() *Document             { return nil }
 func (impl *Animation) OptLivePhoto() *InputMediaLivePhoto { return nil }
+func (impl *Animation) OptPhoto() *Photo                   { return nil }
+func (impl *Animation) OptVideo() *Video                   { return nil }
 
+func (impl *Audio) OptAnimation() *Animation           { return nil }
+func (impl *Audio) OptAudio() *Audio                   { return impl }
+func (impl *Audio) OptDocument() *Document             { return nil }
 func (impl *Audio) OptLivePhoto() *InputMediaLivePhoto { return nil }
+func (impl *Audio) OptPhoto() *Photo                   { return nil }
+func (impl *Audio) OptVideo() *Video                   { return nil }
 
+func (impl *Document) OptAnimation() *Animation           { return nil }
+func (impl *Document) OptAudio() *Audio                   { return nil }
+func (impl *Document) OptDocument() *Document             { return impl }
 func (impl *Document) OptLivePhoto() *InputMediaLivePhoto { return nil }
+func (impl *Document) OptPhoto() *Photo                   { return nil }
+func (impl *Document) OptVideo() *Video                   { return nil }
 
+func (impl *InputMediaLivePhoto) OptAnimation() *Animation           { return nil }
+func (impl *InputMediaLivePhoto) OptAudio() *Audio                   { return nil }
+func (impl *InputMediaLivePhoto) OptDocument() *Document             { return nil }
 func (impl *InputMediaLivePhoto) OptLivePhoto() *InputMediaLivePhoto { return impl }
+func (impl *InputMediaLivePhoto) OptPhoto() *Photo                   { return nil }
+func (impl *InputMediaLivePhoto) OptVideo() *Video                   { return nil }
 
+func (impl *Photo) OptAnimation() *Animation           { return nil }
+func (impl *Photo) OptAudio() *Audio                   { return nil }
+func (impl *Photo) OptDocument() *Document             { return nil }
 func (impl *Photo) OptLivePhoto() *InputMediaLivePhoto { return nil }
+func (impl *Photo) OptPhoto() *Photo                   { return impl }
+func (impl *Photo) OptVideo() *Video                   { return nil }
 
+func (impl *Video) OptAnimation() *Animation           { return nil }
+func (impl *Video) OptAudio() *Audio                   { return nil }
+func (impl *Video) OptDocument() *Document             { return nil }
 func (impl *Video) OptLivePhoto() *InputMediaLivePhoto { return nil }
+func (impl *Video) OptPhoto() *Photo                   { return nil }
+func (impl *Video) OptVideo() *Video                   { return impl }
 
 // InputMediaLink Represents an HTTP link to be sent.
 type InputMediaLink struct {
@@ -3699,77 +3729,19 @@ var (
 	_ InputPollMedia = &Video{}
 )
 
-func (impl *Animation) OptAnimation() *Animation                     { return impl }
-func (impl *Animation) OptAudio() *Audio                             { return nil }
-func (impl *Animation) OptDocument() *Document                       { return nil }
-func (impl *Animation) OptInputMediaLivePhoto() *InputMediaLivePhoto { return nil }
-func (impl *Animation) OptInputMediaLocation() *InputMediaLocation   { return nil }
-func (impl *Animation) OptPhoto() *Photo                             { return nil }
-func (impl *Animation) OptInputMediaVenue() *InputMediaVenue         { return nil }
-func (impl *Animation) OptVideo() *Video                             { return nil }
-
-func (impl *Audio) OptAnimation() *Animation                     { return nil }
-func (impl *Audio) OptAudio() *Audio                             { return impl }
-func (impl *Audio) OptDocument() *Document                       { return nil }
 func (impl *Audio) OptInputMediaLivePhoto() *InputMediaLivePhoto { return nil }
 func (impl *Audio) OptInputMediaLocation() *InputMediaLocation   { return nil }
-func (impl *Audio) OptPhoto() *Photo                             { return nil }
 func (impl *Audio) OptInputMediaVenue() *InputMediaVenue         { return nil }
-func (impl *Audio) OptVideo() *Video                             { return nil }
 
-func (impl *Document) OptAnimation() *Animation                     { return nil }
-func (impl *Document) OptAudio() *Audio                             { return nil }
-func (impl *Document) OptDocument() *Document                       { return impl }
 func (impl *Document) OptInputMediaLivePhoto() *InputMediaLivePhoto { return nil }
 func (impl *Document) OptInputMediaLocation() *InputMediaLocation   { return nil }
-func (impl *Document) OptPhoto() *Photo                             { return nil }
 func (impl *Document) OptInputMediaVenue() *InputMediaVenue         { return nil }
-func (impl *Document) OptVideo() *Video                             { return nil }
 
-func (impl *InputMediaLivePhoto) OptAnimation() *Animation                     { return nil }
-func (impl *InputMediaLivePhoto) OptAudio() *Audio                             { return nil }
-func (impl *InputMediaLivePhoto) OptDocument() *Document                       { return nil }
-func (impl *InputMediaLivePhoto) OptInputMediaLivePhoto() *InputMediaLivePhoto { return impl }
-func (impl *InputMediaLivePhoto) OptInputMediaLocation() *InputMediaLocation   { return nil }
-func (impl *InputMediaLivePhoto) OptPhoto() *Photo                             { return nil }
-func (impl *InputMediaLivePhoto) OptInputMediaVenue() *InputMediaVenue         { return nil }
-func (impl *InputMediaLivePhoto) OptVideo() *Video                             { return nil }
+func (impl *InputMediaLocation) OptAudio() *Audio       { return nil }
+func (impl *InputMediaLocation) OptDocument() *Document { return nil }
 
-func (impl *InputMediaLocation) OptAnimation() *Animation                     { return nil }
-func (impl *InputMediaLocation) OptAudio() *Audio                             { return nil }
-func (impl *InputMediaLocation) OptDocument() *Document                       { return nil }
-func (impl *InputMediaLocation) OptInputMediaLivePhoto() *InputMediaLivePhoto { return nil }
-func (impl *InputMediaLocation) OptInputMediaLocation() *InputMediaLocation   { return impl }
-func (impl *InputMediaLocation) OptPhoto() *Photo                             { return nil }
-func (impl *InputMediaLocation) OptInputMediaVenue() *InputMediaVenue         { return nil }
-func (impl *InputMediaLocation) OptVideo() *Video                             { return nil }
-
-func (impl *Photo) OptAnimation() *Animation                     { return nil }
-func (impl *Photo) OptAudio() *Audio                             { return nil }
-func (impl *Photo) OptDocument() *Document                       { return nil }
-func (impl *Photo) OptInputMediaLivePhoto() *InputMediaLivePhoto { return nil }
-func (impl *Photo) OptInputMediaLocation() *InputMediaLocation   { return nil }
-func (impl *Photo) OptPhoto() *Photo                             { return impl }
-func (impl *Photo) OptInputMediaVenue() *InputMediaVenue         { return nil }
-func (impl *Photo) OptVideo() *Video                             { return nil }
-
-func (impl *InputMediaVenue) OptAnimation() *Animation                     { return nil }
-func (impl *InputMediaVenue) OptAudio() *Audio                             { return nil }
-func (impl *InputMediaVenue) OptDocument() *Document                       { return nil }
-func (impl *InputMediaVenue) OptInputMediaLivePhoto() *InputMediaLivePhoto { return nil }
-func (impl *InputMediaVenue) OptInputMediaLocation() *InputMediaLocation   { return nil }
-func (impl *InputMediaVenue) OptPhoto() *Photo                             { return nil }
-func (impl *InputMediaVenue) OptInputMediaVenue() *InputMediaVenue         { return impl }
-func (impl *InputMediaVenue) OptVideo() *Video                             { return nil }
-
-func (impl *Video) OptAnimation() *Animation                     { return nil }
-func (impl *Video) OptAudio() *Audio                             { return nil }
-func (impl *Video) OptDocument() *Document                       { return nil }
-func (impl *Video) OptInputMediaLivePhoto() *InputMediaLivePhoto { return nil }
-func (impl *Video) OptInputMediaLocation() *InputMediaLocation   { return nil }
-func (impl *Video) OptPhoto() *Photo                             { return nil }
-func (impl *Video) OptInputMediaVenue() *InputMediaVenue         { return nil }
-func (impl *Video) OptVideo() *Video                             { return impl }
+func (impl *InputMediaVenue) OptAudio() *Audio       { return nil }
+func (impl *InputMediaVenue) OptDocument() *Document { return nil }
 
 // InputPollOption This object contains information about one answer option in a poll to be sent.
 type InputPollOption struct {
@@ -3815,17 +3787,32 @@ var (
 	_ InputPollOptionMedia = &InputMediaLink{}
 )
 
-func (impl *Animation) OptInputMediaSticker() *InputMediaSticker { return nil }
-func (impl *Animation) OptInputMediaLink() *InputMediaLink       { return nil }
+func (impl *Animation) OptInputMediaLivePhoto() *InputMediaLivePhoto { return nil }
+func (impl *Animation) OptInputMediaLocation() *InputMediaLocation   { return nil }
+func (impl *Animation) OptInputMediaSticker() *InputMediaSticker     { return nil }
+func (impl *Animation) OptInputMediaVenue() *InputMediaVenue         { return nil }
+func (impl *Animation) OptInputMediaLink() *InputMediaLink           { return nil }
 
-func (impl *InputMediaLivePhoto) OptInputMediaSticker() *InputMediaSticker { return nil }
-func (impl *InputMediaLivePhoto) OptInputMediaLink() *InputMediaLink       { return nil }
+func (impl *InputMediaLivePhoto) OptInputMediaLivePhoto() *InputMediaLivePhoto { return impl }
+func (impl *InputMediaLivePhoto) OptInputMediaLocation() *InputMediaLocation   { return nil }
+func (impl *InputMediaLivePhoto) OptInputMediaSticker() *InputMediaSticker     { return nil }
+func (impl *InputMediaLivePhoto) OptInputMediaVenue() *InputMediaVenue         { return nil }
+func (impl *InputMediaLivePhoto) OptInputMediaLink() *InputMediaLink           { return nil }
 
-func (impl *InputMediaLocation) OptInputMediaSticker() *InputMediaSticker { return nil }
-func (impl *InputMediaLocation) OptInputMediaLink() *InputMediaLink       { return nil }
+func (impl *InputMediaLocation) OptAnimation() *Animation                     { return nil }
+func (impl *InputMediaLocation) OptInputMediaLivePhoto() *InputMediaLivePhoto { return nil }
+func (impl *InputMediaLocation) OptInputMediaLocation() *InputMediaLocation   { return impl }
+func (impl *InputMediaLocation) OptPhoto() *Photo                             { return nil }
+func (impl *InputMediaLocation) OptInputMediaSticker() *InputMediaSticker     { return nil }
+func (impl *InputMediaLocation) OptInputMediaVenue() *InputMediaVenue         { return nil }
+func (impl *InputMediaLocation) OptVideo() *Video                             { return nil }
+func (impl *InputMediaLocation) OptInputMediaLink() *InputMediaLink           { return nil }
 
-func (impl *Photo) OptInputMediaSticker() *InputMediaSticker { return nil }
-func (impl *Photo) OptInputMediaLink() *InputMediaLink       { return nil }
+func (impl *Photo) OptInputMediaLivePhoto() *InputMediaLivePhoto { return nil }
+func (impl *Photo) OptInputMediaLocation() *InputMediaLocation   { return nil }
+func (impl *Photo) OptInputMediaSticker() *InputMediaSticker     { return nil }
+func (impl *Photo) OptInputMediaVenue() *InputMediaVenue         { return nil }
+func (impl *Photo) OptInputMediaLink() *InputMediaLink           { return nil }
 
 func (impl *InputMediaSticker) OptAnimation() *Animation                     { return nil }
 func (impl *InputMediaSticker) OptInputMediaLivePhoto() *InputMediaLivePhoto { return nil }
@@ -3836,11 +3823,20 @@ func (impl *InputMediaSticker) OptInputMediaVenue() *InputMediaVenue         { r
 func (impl *InputMediaSticker) OptVideo() *Video                             { return nil }
 func (impl *InputMediaSticker) OptInputMediaLink() *InputMediaLink           { return nil }
 
-func (impl *InputMediaVenue) OptInputMediaSticker() *InputMediaSticker { return nil }
-func (impl *InputMediaVenue) OptInputMediaLink() *InputMediaLink       { return nil }
+func (impl *InputMediaVenue) OptAnimation() *Animation                     { return nil }
+func (impl *InputMediaVenue) OptInputMediaLivePhoto() *InputMediaLivePhoto { return nil }
+func (impl *InputMediaVenue) OptInputMediaLocation() *InputMediaLocation   { return nil }
+func (impl *InputMediaVenue) OptPhoto() *Photo                             { return nil }
+func (impl *InputMediaVenue) OptInputMediaSticker() *InputMediaSticker     { return nil }
+func (impl *InputMediaVenue) OptInputMediaVenue() *InputMediaVenue         { return impl }
+func (impl *InputMediaVenue) OptVideo() *Video                             { return nil }
+func (impl *InputMediaVenue) OptInputMediaLink() *InputMediaLink           { return nil }
 
-func (impl *Video) OptInputMediaSticker() *InputMediaSticker { return nil }
-func (impl *Video) OptInputMediaLink() *InputMediaLink       { return nil }
+func (impl *Video) OptInputMediaLivePhoto() *InputMediaLivePhoto { return nil }
+func (impl *Video) OptInputMediaLocation() *InputMediaLocation   { return nil }
+func (impl *Video) OptInputMediaSticker() *InputMediaSticker     { return nil }
+func (impl *Video) OptInputMediaVenue() *InputMediaVenue         { return nil }
+func (impl *Video) OptInputMediaLink() *InputMediaLink           { return nil }
 
 func (impl *InputMediaLink) OptAnimation() *Animation                     { return nil }
 func (impl *InputMediaLink) OptInputMediaLivePhoto() *InputMediaLivePhoto { return nil }

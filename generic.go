@@ -82,6 +82,22 @@ func GenericRequest[Request any, Result any](ctx context.Context, method string,
 	}
 }
 
+// unmarshalEach decodes each raw JSON element with fn. It's used by generated
+// methods that return a slice of a polymorphic interface (e.g. []ChatMember),
+// since encoding/json can't pick a concrete type for a bare interface on its
+// own - each element is decoded as raw JSON first, then dispatched by fn.
+func unmarshalEach[T any](data []json.RawMessage, fn func([]byte) (T, error)) ([]T, error) {
+	result := make([]T, 0, len(data))
+	for _, item := range data {
+		val, err := fn(item)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, val)
+	}
+	return result, nil
+}
+
 func newTelegramError(code int, description string, parameters map[string]interface{}) error {
 	switch code {
 	case http.StatusTooManyRequests:

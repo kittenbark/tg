@@ -21,25 +21,43 @@ type Method struct {
 }
 
 func (fac *Factory2) BuildMethods(methods map[string]*Method) string {
+	methodsBuilt := []string{}
+	bareInterfaces := map[string]bool{}
+	for methodName, method := range methods {
+		built, bareInterface, _ := fac.buildMethod(methodName, method)
+		methodsBuilt = append(methodsBuilt, built)
+		if bareInterface != "" {
+			bareInterfaces[bareInterface] = true
+		}
+	}
+	slices.Sort(methodsBuilt)
+
 	result := []string{
 		"package tg",
 		"import (",
 		`"context"`,
-		")",
 	}
-
-	methodsBuilt := []string{}
-	for methodName, method := range methods {
-		methodsBuilt = append(methodsBuilt, fac.buildMethod(methodName, method))
+	// A method returning a bare interface (or []interface, e.g. ChatMember)
+	// can't be decoded by encoding/json directly - these imports are only
+	// needed by the raw-bytes decode + UnmarshalXxx dispatch path below.
+	if len(bareInterfaces) > 0 {
+		result = append(result, `"encoding/json"`, `"fmt"`)
 	}
-	slices.Sort(methodsBuilt)
+	result = append(result, ")")
 	result = append(result, methodsBuilt...)
+	result = append(result, fac.buildBareInterfaceUnmarshalers(bareInterfaces)...)
 
 	return strings.Join(result, "\n\n")
 }
 
-func (fac *Factory2) buildMethod(name string, method *Method) string {
+func (fac *Factory2) buildMethod(name string, method *Method) (code string, bareInterface string, bareInterfaceIsArray bool) {
 	slog.Info("buildMethod", "name", name)
+	returns := fac.goTypeSlice(method.Returns)
+	if iface, ok := fac.Interfaces[unwrapType(returns[0])]; ok {
+		bareInterface = iface.Name
+		bareInterfaceIsArray = strings.HasPrefix(returns[0], "[]")
+	}
+
 	result := &goFunc{
 		name:    firstUpper(name),
 		argsReq: []*goFuncReqArgument{},
@@ -49,10 +67,12 @@ func (fac *Factory2) buildMethod(name string, method *Method) string {
 			Comment: "",
 			Fields:  []*goTypeStructField{},
 		},
-		genericFunc: "GenericRequest",
-		returns:     fac.goTypeSlice(method.Returns),
-		comment:     method.Description,
-		extra:       []string{},
+		genericFunc:          "GenericRequest",
+		returns:              returns,
+		comment:              method.Description,
+		extra:                []string{},
+		bareInterface:        bareInterface,
+		bareInterfaceIsArray: bareInterfaceIsArray,
 	}
 
 	for _, field := range method.Fields {
@@ -99,7 +119,7 @@ func (fac *Factory2) buildMethod(name string, method *Method) string {
 		})
 	}
 
-	return result.build()
+	return result.build(), bareInterface, bareInterfaceIsArray
 }
 
 func (fac *Factory2) parseMethodArgumentType(types []string) (argType string, built []string) {
@@ -122,14 +142,16 @@ type goFuncReqArgument struct {
 }
 
 type goFunc struct {
-	name          string
-	argsReq       []*goFuncReqArgument
-	argsOpt       *goTypeStruct
-	requestStruct *goTypeStruct
-	genericFunc   string
-	returns       []string
-	comment       []string
-	extra         []string
+	name                 string
+	argsReq              []*goFuncReqArgument
+	argsOpt              *goTypeStruct
+	requestStruct        *goTypeStruct
+	genericFunc          string
+	returns              []string
+	comment              []string
+	extra                []string
+	bareInterface        string
+	bareInterfaceIsArray bool
 }
 
 func (fn *goFunc) build() string {
@@ -198,10 +220,36 @@ func (fn *goFunc) build() string {
 		result = append(result, "}")
 	}
 
-	result = append(result,
-		fmt.Sprintf("return %s[Request, %s](ctx, \"%s\", request)", fn.genericFunc, fn.returns[0], firstLower(fn.name)),
-		"}",
-	)
+	switch {
+	case fn.bareInterface == "":
+		result = append(result,
+			fmt.Sprintf("return %s[Request, %s](ctx, \"%s\", request)", fn.genericFunc, fn.returns[0], firstLower(fn.name)),
+			"}",
+		)
+	case fn.bareInterfaceIsArray:
+		// Bare []Interface return (e.g. []ChatMember): encoding/json can't
+		// pick a concrete type for the bare interface on its own, so decode
+		// each element as raw JSON first and dispatch via the discriminator.
+		result = append(result,
+			fmt.Sprintf("rawResult, err := %s[Request, []json.RawMessage](ctx, \"%s\", request)", fn.genericFunc, firstLower(fn.name)),
+			"if err != nil {",
+			"return nil, err",
+			"}",
+			fmt.Sprintf("return unmarshalEach(rawResult, Unmarshal%s)", fn.bareInterface),
+			"}",
+		)
+	default:
+		// Bare Interface return (e.g. ChatMember): same reasoning as above,
+		// single value instead of a slice.
+		result = append(result,
+			fmt.Sprintf("rawResult, err := %s[Request, json.RawMessage](ctx, \"%s\", request)", fn.genericFunc, firstLower(fn.name)),
+			"if err != nil {",
+			"return nil, err",
+			"}",
+			fmt.Sprintf("return Unmarshal%s(rawResult)", fn.bareInterface),
+			"}",
+		)
+	}
 	if fn.argsOpt != nil {
 		result = append(result, fn.argsOpt.build())
 	}
