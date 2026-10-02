@@ -140,6 +140,16 @@ func (bot *Bot) MediaAutofill(enabled ...bool) *Bot {
 	return bot
 }
 
+// VideoFrameDecode controls whether media autofill best-effort decodes a
+// local H.264 video's first frame into a real thumbnail, independent of
+// MediaAutofill as a whole (e.g. to keep cheap width/height/duration
+// autofill while disabling this more expensive, more experimental decode
+// path) — enabled by default.
+func (bot *Bot) VideoFrameDecode(enabled ...bool) *Bot {
+	bot.context = context.WithValue(bot.context, ContextVideoFrameDecode, at(enabled, 0, true))
+	return bot
+}
+
 // ContextWithCancel build new Context with a fresh timeout.
 func (bot *Bot) ContextWithCancel() (ctx context.Context, cancel context.CancelFunc) {
 	if bot.contextTimeout == 0 {

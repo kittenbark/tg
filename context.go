@@ -16,6 +16,7 @@ const (
 	ContextScheduler        = contextPrefix + "scheduler"
 	ContextRedactToken      = contextPrefix + "redact_token"
 	ContextMediaAutofill    = contextPrefix + "media_autofill"
+	ContextVideoFrameDecode = contextPrefix + "video_frame_decode"
 
 	contextPrefix = "kittenbark_"
 )

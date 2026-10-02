@@ -66,7 +66,7 @@ func readBoxes(buf []byte) []isoBox {
 // whether it appears near the start ("fast-start" files) or trails at the
 // end after mdat (common with some encoders) - the file is never read in
 // full. Returns an error (never a panic) on any malformed/unsupported input.
-func probeISOBMFF(path string) (*mediaMeta, error) {
+func probeISOBMFF(path string, videoFrameDecode bool) (*mediaMeta, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -146,7 +146,41 @@ func probeISOBMFF(path string) (*mediaMeta, error) {
 	if meta.width == 0 && meta.height == 0 && meta.durationSeconds == 0 {
 		return nil, errNoUsableVideoMeta
 	}
+	if videoFrameDecode && videoTrak != nil {
+		if thumb := tryDecodeH264Thumbnail(file, videoTrak); thumb != "" {
+			meta.tempThumbnailPath = thumb
+		}
+	}
 	return meta, nil
+}
+
+// tryDecodeH264Thumbnail best-effort decodes sample #1 of an H.264 video
+// track into a real first-frame thumbnail. file must still be open and
+// seekable (the caller's defer hasn't fired yet). Returns "" on literally
+// anything going wrong - unsupported feature, malformed input, or even an
+// internal panic in the experimental decoder - since this entire path is
+// opt-in best-effort on top of the metadata-only behavior above, which must
+// never be put at risk by it.
+func tryDecodeH264Thumbnail(file *os.File, videoTrak []byte) (thumbPath string) {
+	defer func() { _ = recover() }()
+
+	cfg, sampleOffset, sampleSize, ok := locateH264Sample(videoTrak)
+	if !ok {
+		return ""
+	}
+	sample := make([]byte, sampleSize)
+	if _, err := file.ReadAt(sample, sampleOffset); err != nil {
+		return ""
+	}
+	img, err := decodeFirstH264Frame(cfg, sample)
+	if err != nil {
+		return ""
+	}
+	path, err := writeJPEGThumbnail(img)
+	if err != nil {
+		return ""
+	}
+	return path
 }
 
 // isVideoTrak descends trak -> mdia -> hdlr and reports whether its
@@ -199,6 +233,178 @@ func parseMvhd(payload []byte) (durationSeconds int64, ok bool) {
 		duration = uint64(binary.BigEndian.Uint32(payload[durationOffset : durationOffset+4]))
 	}
 	return int64(float64(duration) / float64(timescale)), true
+}
+
+// findStbl descends trak -> mdia -> minf -> stbl, returning the Sample
+// Table Box's payload (where the sample description, sizes, and chunk
+// offsets this decoder needs all live), or nil if the structure is missing.
+func findStbl(videoTrak []byte) []byte {
+	for _, trakBox := range readBoxes(videoTrak) {
+		if trakBox.boxType != "mdia" {
+			continue
+		}
+		for _, mdiaBox := range readBoxes(trakBox.payload) {
+			if mdiaBox.boxType != "minf" {
+				continue
+			}
+			for _, minfBox := range readBoxes(mdiaBox.payload) {
+				if minfBox.boxType == "stbl" {
+					return minfBox.payload
+				}
+			}
+		}
+	}
+	return nil
+}
+
+// findVideoSampleEntry returns the first (and normally only) sample entry
+// inside an stsd box's payload (ISO/IEC 14496-12 §8.5.2): its fourcc (e.g.
+// "avc1"/"avc3" for H.264, "hvc1"/"hev1" for HEVC) and its own payload. A
+// SampleEntry is itself size+fourcc+payload shaped, so readBoxes parses it
+// directly once the 8-byte stsd FullBox header (version/flags+entry_count)
+// is skipped.
+func findVideoSampleEntry(stsdPayload []byte) (fourcc string, entryPayload []byte, ok bool) {
+	if len(stsdPayload) < 8 {
+		return "", nil, false
+	}
+	entries := readBoxes(stsdPayload[8:])
+	if len(entries) == 0 {
+		return "", nil, false
+	}
+	return entries[0].boxType, entries[0].payload, true
+}
+
+// visualSampleEntryFixedSize is VisualSampleEntry's fixed-field length
+// (ISO/IEC 14496-12 §12.1.3) before any child boxes (like avcC) begin:
+// SampleEntry's reserved(6)+data_reference_index(2) = 8, then
+// pre_defined(2)+reserved(2)+pre_defined[3](12)+width(2)+height(2)+
+// horizresolution(4)+vertresolution(4)+reserved(4)+frame_count(2)+
+// compressorname(32)+depth(2)+pre_defined(2) = 70, total 78.
+const visualSampleEntryFixedSize = 78
+
+// findAvcCBox locates the avcC (AVCDecoderConfigurationRecord) child box
+// inside a parsed "avc1"/"avc3" sample entry's payload.
+func findAvcCBox(sampleEntryPayload []byte) ([]byte, bool) {
+	if len(sampleEntryPayload) <= visualSampleEntryFixedSize {
+		return nil, false
+	}
+	for _, box := range readBoxes(sampleEntryPayload[visualSampleEntryFixedSize:]) {
+		if box.boxType == "avcC" {
+			return box.payload, true
+		}
+	}
+	return nil, false
+}
+
+// firstSampleSize reads the size of sample #1 from an stsz box (ISO/IEC
+// 14496-12 §8.7.3.2): either the box's fixed per-sample size, or the first
+// entry of its per-sample size table.
+func firstSampleSize(stszPayload []byte) (int64, bool) {
+	if len(stszPayload) < 12 {
+		return 0, false
+	}
+	sampleSize := binary.BigEndian.Uint32(stszPayload[4:8])
+	if sampleSize != 0 {
+		return int64(sampleSize), true
+	}
+	sampleCount := binary.BigEndian.Uint32(stszPayload[8:12])
+	if sampleCount == 0 || len(stszPayload) < 16 {
+		return 0, false
+	}
+	return int64(binary.BigEndian.Uint32(stszPayload[12:16])), true
+}
+
+// firstChunkOffset reads the first chunk's file offset from an stco (32-bit)
+// or co64 (64-bit) box (ISO/IEC 14496-12 §8.7.5). Sample #1 is always the
+// first sample of the first chunk, so this is also sample #1's file offset -
+// no stsc (sample-to-chunk) parsing is needed just to locate it.
+func firstChunkOffset(box isoBox) (int64, bool) {
+	p := box.payload
+	if len(p) < 12 {
+		return 0, false
+	}
+	if box.boxType == "co64" {
+		if len(p) < 16 {
+			return 0, false
+		}
+		return int64(binary.BigEndian.Uint64(p[8:16])), true
+	}
+	return int64(binary.BigEndian.Uint32(p[8:12])), true
+}
+
+// firstSampleIsSync reports whether sample #1 is listed in an stss (Sync
+// Sample Box, ISO/IEC 14496-12 §8.6.2) table. A malformed/empty table is
+// treated leniently (true) - this check exists only to avoid confidently
+// decoding a non-keyframe as if it were one, not to block on every
+// stss edge case.
+func firstSampleIsSync(stssPayload []byte) bool {
+	if len(stssPayload) < 8 {
+		return true
+	}
+	entryCount := binary.BigEndian.Uint32(stssPayload[4:8])
+	if entryCount == 0 || len(stssPayload) < 12 {
+		return true
+	}
+	return binary.BigEndian.Uint32(stssPayload[8:12]) == 1
+}
+
+// locateH264Sample finds sample #1's H.264 decoder config and file location
+// within a video trak, by descending into its Sample Table Box. Returns
+// ok=false (never an error) for anything that doesn't fit - including
+// simply not being H.264 (e.g. "hvc1"/"hev1" HEVC tracks), which is the
+// expected, common case that must leave the existing metadata-only
+// behavior untouched.
+func locateH264Sample(videoTrak []byte) (cfg *avcDecoderConfig, sampleOffset, sampleSize int64, ok bool) {
+	stbl := findStbl(videoTrak)
+	if stbl == nil {
+		return nil, 0, 0, false
+	}
+
+	var stsdPayload, stszPayload, stssPayload []byte
+	var chunkOffsetBox *isoBox
+	for _, box := range readBoxes(stbl) {
+		switch box.boxType {
+		case "stsd":
+			stsdPayload = box.payload
+		case "stsz":
+			stszPayload = box.payload
+		case "stco", "co64":
+			b := box
+			chunkOffsetBox = &b
+		case "stss":
+			stssPayload = box.payload
+		}
+	}
+	if stsdPayload == nil || stszPayload == nil || chunkOffsetBox == nil {
+		return nil, 0, 0, false
+	}
+	if stssPayload != nil && !firstSampleIsSync(stssPayload) {
+		return nil, 0, 0, false
+	}
+
+	fourcc, entryPayload, ok1 := findVideoSampleEntry(stsdPayload)
+	if !ok1 || (fourcc != "avc1" && fourcc != "avc3") {
+		return nil, 0, 0, false
+	}
+	avcCPayload, ok2 := findAvcCBox(entryPayload)
+	if !ok2 {
+		return nil, 0, 0, false
+	}
+	avcCfg, err := parseAVCDecoderConfigurationRecord(avcCPayload)
+	if err != nil {
+		return nil, 0, 0, false
+	}
+
+	size, ok3 := firstSampleSize(stszPayload)
+	if !ok3 || size <= 0 {
+		return nil, 0, 0, false
+	}
+	offset, ok4 := firstChunkOffset(*chunkOffsetBox)
+	if !ok4 {
+		return nil, 0, 0, false
+	}
+
+	return avcCfg, offset, size, true
 }
 
 // parseTkhd reads width/height from a TrackHeaderBox (ISO/IEC 14496-12

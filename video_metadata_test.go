@@ -3,6 +3,8 @@ package tg
 import (
 	"bytes"
 	"encoding/binary"
+	"image"
+	_ "image/jpeg" // registers the JPEG decoder for image.Decode in TestProbeISOBMFFVideoFrameDecode.
 	"os"
 	"path/filepath"
 	"testing"
@@ -200,7 +202,7 @@ func TestProbeISOBMFFSynthetic(t *testing.T) {
 	t.Parallel()
 
 	path := writeSyntheticMP4(t, 720, 1280, 1000, 5000)
-	meta, err := probeISOBMFF(path)
+	meta, err := probeISOBMFF(path, true)
 	if err != nil {
 		t.Fatalf("probeISOBMFF: %v", err)
 	}
@@ -208,7 +210,7 @@ func TestProbeISOBMFFSynthetic(t *testing.T) {
 		t.Fatalf("got %+v, want width=720 height=1280 durationSeconds=5", meta)
 	}
 	if meta.tempThumbnailPath != "" {
-		t.Fatalf("video metadata probe must never produce a thumbnail, got %q", meta.tempThumbnailPath)
+		t.Fatalf("synthetic mp4 has no real H.264 sample table, decode must fail open with no thumbnail, got %q", meta.tempThumbnailPath)
 	}
 }
 
@@ -231,7 +233,7 @@ func TestProbeISOBMFFMoovTrailing(t *testing.T) {
 		t.Fatalf("writing synthetic mp4: %v", err)
 	}
 
-	meta, err := probeISOBMFF(path)
+	meta, err := probeISOBMFF(path, true)
 	if err != nil {
 		t.Fatalf("probeISOBMFF: %v", err)
 	}
@@ -248,7 +250,7 @@ func TestProbeISOBMFFNoMoov(t *testing.T) {
 		t.Fatalf("writing synthetic mp4: %v", err)
 	}
 
-	if _, err := probeISOBMFF(path); err == nil {
+	if _, err := probeISOBMFF(path, true); err == nil {
 		t.Fatal("expected an error when no moov box is present")
 	}
 }
@@ -272,7 +274,7 @@ func TestProbeISOBMFFRealFixtures(t *testing.T) {
 				t.Skipf("fixture not found: %v", err)
 			}
 
-			meta, err := probeISOBMFF(tc.path)
+			meta, err := probeISOBMFF(tc.path, false)
 			if err != nil {
 				t.Fatalf("probeISOBMFF: %v", err)
 			}
@@ -283,10 +285,74 @@ func TestProbeISOBMFFRealFixtures(t *testing.T) {
 				t.Fatalf("duration %d too far from expected %d", meta.durationSeconds, tc.wantDurationSeconds)
 			}
 			if meta.tempThumbnailPath != "" {
-				t.Fatalf("video metadata probe must never produce a thumbnail, got %q", meta.tempThumbnailPath)
+				t.Fatalf("probeISOBMFF with videoFrameDecode=false must never produce a thumbnail, got %q", meta.tempThumbnailPath)
 			}
 		})
 	}
+}
+
+// TestProbeISOBMFFVideoFrameDecode exercises the opt-in H.264 first-frame
+// thumbnail path end to end against real fixtures: a real H.264 track must
+// produce a real, valid, within-limits thumbnail, and an HEVC track (out of
+// this decoder's v1 scope) must fail open to metadata-only, exactly as it
+// already does with the feature disabled.
+func TestProbeISOBMFFVideoFrameDecode(t *testing.T) {
+	t.Parallel()
+
+	t.Run("video.mp4 (H.264)", func(t *testing.T) {
+		t.Parallel()
+		path := "tgtesting/testdata/video.mp4"
+		if _, err := os.Stat(path); err != nil {
+			t.Skipf("fixture not found: %v", err)
+		}
+
+		meta, err := probeISOBMFF(path, true)
+		if err != nil {
+			t.Fatalf("probeISOBMFF: %v", err)
+		}
+		if meta.tempThumbnailPath == "" {
+			t.Fatal("expected a real decoded thumbnail for an H.264 fixture, got none")
+		}
+		defer func() { _ = os.Remove(meta.tempThumbnailPath) }()
+
+		info, err := os.Stat(meta.tempThumbnailPath)
+		if err != nil {
+			t.Fatalf("stat thumbnail: %v", err)
+		}
+		if info.Size() == 0 || info.Size() > thumbnailMaxBytes {
+			t.Fatalf("thumbnail size %d out of bounds (want >0 and <=%d)", info.Size(), thumbnailMaxBytes)
+		}
+		f, err := os.Open(meta.tempThumbnailPath)
+		if err != nil {
+			t.Fatalf("open thumbnail: %v", err)
+		}
+		defer func() { _ = f.Close() }()
+		img, _, err := image.Decode(f)
+		if err != nil {
+			t.Fatalf("decoded thumbnail is not a valid image: %v", err)
+		}
+		bounds := img.Bounds()
+		if bounds.Dx() > thumbnailMaxDim || bounds.Dy() > thumbnailMaxDim {
+			t.Fatalf("thumbnail %dx%d exceeds thumbnailMaxDim=%d", bounds.Dx(), bounds.Dy(), thumbnailMaxDim)
+		}
+	})
+
+	t.Run("bigger.mp4 (HEVC, out of scope)", func(t *testing.T) {
+		t.Parallel()
+		path := "tgtesting/testdata/bigger.mp4"
+		if _, err := os.Stat(path); err != nil {
+			t.Skipf("fixture not found: %v", err)
+		}
+
+		meta, err := probeISOBMFF(path, true)
+		if err != nil {
+			t.Fatalf("probeISOBMFF: %v", err)
+		}
+		if meta.tempThumbnailPath != "" {
+			_ = os.Remove(meta.tempThumbnailPath)
+			t.Fatalf("expected no thumbnail for an HEVC track (out of v1 scope), got %q", meta.tempThumbnailPath)
+		}
+	})
 }
 
 func TestIsISOBMFF(t *testing.T) {

@@ -217,7 +217,7 @@ func TestProbeLocalMediaDispatch(t *testing.T) {
 	}
 	file.Close()
 
-	meta := probeLocalMedia(jpegPath)
+	meta := probeLocalMedia(jpegPath, true)
 	if meta == nil || meta.width != 50 || meta.height != 50 {
 		t.Fatalf("got %+v, want a 50x50 image probe", meta)
 	}
@@ -229,7 +229,7 @@ func TestProbeLocalMediaDispatch(t *testing.T) {
 	if err := os.WriteFile(unknownPath, []byte{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}, 0o644); err != nil {
 		t.Fatalf("write: %v", err)
 	}
-	if meta := probeLocalMedia(unknownPath); meta != nil {
+	if meta := probeLocalMedia(unknownPath, true); meta != nil {
 		t.Fatalf("expected nil for an unrecognized format, got %+v", meta)
 	}
 }

@@ -73,7 +73,7 @@ func autoFillMediaMetadata[Request any](ctx context.Context, request *Request) (
 		return cleanup // CloudFile, or unset - nothing local to inspect.
 	}
 
-	meta := probeLocalMedia(local.Path)
+	meta := probeLocalMedia(local.Path, getOrDefault(ctx, ContextVideoFrameDecode, true))
 	if meta == nil {
 		return cleanup
 	}
@@ -138,7 +138,7 @@ func setThumbnailField(structVal reflect.Value, path string) {
 
 // probeLocalMedia sniffs path's content and dispatches to the matching
 // prober. Returns nil on any failure - never errors to the caller.
-func probeLocalMedia(path string) *mediaMeta {
+func probeLocalMedia(path string, videoFrameDecode bool) *mediaMeta {
 	file, err := os.Open(path)
 	if err != nil {
 		return nil
@@ -152,7 +152,7 @@ func probeLocalMedia(path string) *mediaMeta {
 	header = header[:n]
 
 	if isISOBMFF(header) {
-		meta, err := probeISOBMFF(path)
+		meta, err := probeISOBMFF(path, videoFrameDecode)
 		if err != nil {
 			return nil
 		}

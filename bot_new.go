@@ -28,8 +28,9 @@ const (
 	EnvTimeoutHandle     = "TIMEOUT_HANDLE"
 	defaultHandleTimeout = time.Hour
 
-	EnvDisableTokenRedaction = "DISABLE_TOKEN_REDACTION"
-	EnvDisableMediaAutofill  = "DISABLE_MEDIA_AUTOFILL"
+	EnvDisableTokenRedaction   = "DISABLE_TOKEN_REDACTION"
+	EnvDisableMediaAutofill    = "DISABLE_MEDIA_AUTOFILL"
+	EnvDisableVideoFrameDecode = "DISABLE_VIDEO_FRAME_DECODE"
 
 	EnvTimeoutPolling     = "TIMEOUT_POLL"
 	defaultPollingTimeout = 100 * time.Millisecond
@@ -72,6 +73,17 @@ type Config struct {
 	// animation/audio/video-note file (see MediaAutofill). Zero value (false)
 	// means autofill stays enabled.
 	DisableMediaAutofill bool `json:"disable_media_autofill,omitempty"`
+
+	// DisableVideoFrameDecode turns off best-effort decoding a local H.264
+	// video's first frame into a real thumbnail (see VideoFrameDecode).
+	// Independent of DisableMediaAutofill: this path is a meaningfully more
+	// CPU-expensive, more experimental decode than the lightweight
+	// container/image probing the rest of autofill does, so it can be
+	// disabled on its own while keeping cheap metadata autofill enabled.
+	// When disabled (or on any unsupported/malformed input), video autofill
+	// falls back to today's metadata-only behavior (no thumbnail). Zero
+	// value (false) means frame decoding stays enabled.
+	DisableVideoFrameDecode bool `json:"disable_video_frame_decode,omitempty"`
 
 	buildType int
 }
@@ -119,6 +131,7 @@ func TryNew(cfg *Config) (*Bot, error) {
 	}
 	ctx = context.WithValue(ctx, ContextRedactToken, !cfg.DisableTokenRedaction)
 	ctx = context.WithValue(ctx, ContextMediaAutofill, !cfg.DisableMediaAutofill)
+	ctx = context.WithValue(ctx, ContextVideoFrameDecode, !cfg.DisableVideoFrameDecode)
 	if len(cfg.ExtraHeaders) > 0 {
 		ctx = context.WithValue(ctx, ContextExtraHeaders, cfg.ExtraHeaders)
 	}
@@ -277,6 +290,9 @@ func configFromEnv() (config *Config, err error) {
 		return nil, err
 	}
 	if config.DisableMediaAutofill, err = parseFromEnvBool(EnvDisableMediaAutofill, false); err != nil {
+		return nil, err
+	}
+	if config.DisableVideoFrameDecode, err = parseFromEnvBool(EnvDisableVideoFrameDecode, false); err != nil {
 		return nil, err
 	}
 	if config.TimeoutHandle, err = parseFromEnvDuration(EnvTimeoutHandle, -1); err != nil {
