@@ -1,4 +1,4 @@
-package tg
+package tginternalvideo
 
 // blk4x4Pos maps a luma4x4BlkIdx (§6.4.3's Z-order numbering within a
 // macroblock) to its (x,y) position in 4x4-block units (0..3 each).

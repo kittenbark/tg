@@ -1,4 +1,4 @@
-package tg
+package tginternalvideo
 
 // cabacContext is one context variable's adaptive state (ITU-T H.264 §9.3.1.2).
 type cabacContext struct {

@@ -1,4 +1,4 @@
-package tg
+package tginternalvideo
 
 // planeView is a read/write accessor over one reconstructed picture plane
 // (Y, Cb, or Cr), used by intra prediction and reconstruction. Coordinates

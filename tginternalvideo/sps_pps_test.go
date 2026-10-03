@@ -1,4 +1,4 @@
-package tg
+package tginternalvideo
 
 import (
 	"os"
@@ -7,25 +7,18 @@ import (
 
 // extractH264Config opens path, walks its box structure, and returns the
 // parsed avcC/SPS/PPS for its video track - test-only plumbing that
-// exercises the exact same path locateH264Sample uses in the real pipeline.
+// exercises the exact same path DecodeFirstFrame uses in the real pipeline.
 func extractH264Config(t *testing.T, path string) (*avcDecoderConfig, *h264SPS, *h264PPS) {
 	t.Helper()
 
-	moov := readMoovForTest(t, path)
-	var videoTrak []byte
-	for _, box := range readBoxes(moov) {
-		if box.boxType == "trak" && isVideoTrak(box.payload) {
-			videoTrak = box.payload
-			break
-		}
-	}
-	if videoTrak == nil {
-		t.Fatalf("%s: no video trak found", path)
-	}
-
-	cfg, _, _, ok := locateH264Sample(videoTrak)
+	videoTrak := findVideoTrakForTest(t, path)
+	avcCPayload, _, _, ok := locateH264SampleForTest(videoTrak)
 	if !ok {
-		t.Fatalf("%s: locateH264Sample failed (not H.264, or box structure not recognized)", path)
+		t.Fatalf("%s: locateH264SampleForTest failed (not H.264, or box structure not recognized)", path)
+	}
+	cfg, err := parseAVCDecoderConfigurationRecord(avcCPayload)
+	if err != nil {
+		t.Fatalf("%s: parseAVCDecoderConfigurationRecord: %v", path, err)
 	}
 
 	spsType, spsRBSP, err := nalUnitType(cfg.sps[0])
@@ -49,33 +42,6 @@ func extractH264Config(t *testing.T, path string) (*avcDecoderConfig, *h264SPS, 
 	return cfg, sps, pps
 }
 
-// readMoovForTest duplicates probeISOBMFF's top-level box scan just enough
-// to hand back the moov payload for test plumbing above.
-func readMoovForTest(t *testing.T, path string) []byte {
-	t.Helper()
-	file, err := os.Open(path)
-	if err != nil {
-		t.Fatalf("open: %v", err)
-	}
-	defer file.Close()
-
-	stat, err := file.Stat()
-	if err != nil {
-		t.Fatalf("stat: %v", err)
-	}
-	data := make([]byte, stat.Size())
-	if _, err := file.ReadAt(data, 0); err != nil {
-		t.Fatalf("read: %v", err)
-	}
-	for _, box := range readBoxes(data) {
-		if box.boxType == "moov" {
-			return box.payload
-		}
-	}
-	t.Fatalf("%s: no moov box", path)
-	return nil
-}
-
 // TestH264SPSPPSRealFixtures cross-checks parseSPS/parsePPS against ground
 // truth captured via `ffmpeg -bsf:v trace_headers` on the real fixtures
 // (see the plan notes): both are H.264 High profile, 4:2:0, 8-bit, CABAC,
@@ -87,7 +53,7 @@ func TestH264SPSPPSRealFixtures(t *testing.T) {
 
 	t.Run("video.mp4", func(t *testing.T) {
 		t.Parallel()
-		path := "tgtesting/testdata/video.mp4"
+		path := "../tgtesting/testdata/video.mp4"
 		if _, err := os.Stat(path); err != nil {
 			t.Skipf("fixture not found: %v", err)
 		}
@@ -122,7 +88,7 @@ func TestH264SPSPPSRealFixtures(t *testing.T) {
 
 	t.Run("bigger_2.mp4", func(t *testing.T) {
 		t.Parallel()
-		path := "tgtesting/testdata/bigger_2.mp4"
+		path := "../tgtesting/testdata/bigger_2.mp4"
 		if _, err := os.Stat(path); err != nil {
 			t.Skipf("fixture not found: %v", err)
 		}
@@ -154,23 +120,13 @@ func TestH264SPSPPSRealFixtures(t *testing.T) {
 
 	t.Run("bigger.mp4 is HEVC, not H.264", func(t *testing.T) {
 		t.Parallel()
-		path := "tgtesting/testdata/bigger.mp4"
+		path := "../tgtesting/testdata/bigger.mp4"
 		if _, err := os.Stat(path); err != nil {
 			t.Skipf("fixture not found: %v", err)
 		}
-		moov := readMoovForTest(t, path)
-		var videoTrak []byte
-		for _, box := range readBoxes(moov) {
-			if box.boxType == "trak" && isVideoTrak(box.payload) {
-				videoTrak = box.payload
-				break
-			}
-		}
-		if videoTrak == nil {
-			t.Fatal("no video trak found")
-		}
-		if _, _, _, ok := locateH264Sample(videoTrak); ok {
-			t.Fatal("expected locateH264Sample to report ok=false for an HEVC track")
+		videoTrak := findVideoTrakForTest(t, path)
+		if _, _, _, ok := locateH264SampleForTest(videoTrak); ok {
+			t.Fatal("expected locateH264SampleForTest to report ok=false for an HEVC track")
 		}
 	})
 }

@@ -1,18 +1,28 @@
-package tg
+package tginternalvideo
 
 import (
 	"image"
 	"image/color"
 )
 
-// decodeFirstH264Frame decodes an H.264 sample's first IDR slice into an
-// image, best-effort: SPS/PPS come from the avcC config, the sample's NAL
-// units are demuxed to find the IDR slice, and decodeIDRPictureI does the
-// actual CABAC/intra/transform work. Any unsupported feature or malformed
-// input returns an error - callers must fail open to metadata-only, never
-// surface this as a real error (see video_metadata.go's recover()-guarded
-// call site).
-func decodeFirstH264Frame(cfg *avcDecoderConfig, sampleData []byte) (image.Image, error) {
+// DecodeFirstFrame best-effort decodes an H.264 video sample's first IDR
+// slice into an image: avcCPayload is the raw avcC (AVCDecoderConfigurationRecord)
+// box payload (ISO/IEC 14496-15 §5.2.4.1) from the track's sample entry, and
+// sampleData is the sample's raw AVCC length-prefixed NAL data. SPS/PPS come
+// from the avcC config, the sample's NAL units are demuxed to find the IDR
+// slice, and decodeIDRPictureI does the actual CABAC/intra/transform work.
+//
+// Any unsupported feature or malformed input returns an error - this covers
+// everything out of this decoder's intentionally narrow scope (I-slice-only,
+// CABAC-only, no custom scaling lists, single slice per picture, 4:2:0 8-bit
+// only, no deblocking filter) as well as genuinely malformed input. Callers
+// must treat every error as "no thumbnail available" and fail open to
+// metadata-only, never surface it as a real error.
+func DecodeFirstFrame(avcCPayload, sampleData []byte) (image.Image, error) {
+	cfg, err := parseAVCDecoderConfigurationRecord(avcCPayload)
+	if err != nil {
+		return nil, err
+	}
 	if len(cfg.sps) == 0 || len(cfg.pps) == 0 {
 		return nil, errH264Malformed
 	}

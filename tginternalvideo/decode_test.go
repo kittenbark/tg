@@ -1,4 +1,4 @@
-package tg
+package tginternalvideo
 
 import (
 	"image"
@@ -14,20 +14,10 @@ import (
 // -> decode) against a video file on disk, for testing.
 func decodeFirstFrameOfFile(t *testing.T, path string) (image.Image, error) {
 	t.Helper()
-	moov := readMoovForTest(t, path)
-	var videoTrak []byte
-	for _, box := range readBoxes(moov) {
-		if box.boxType == "trak" && isVideoTrak(box.payload) {
-			videoTrak = box.payload
-			break
-		}
-	}
-	if videoTrak == nil {
-		t.Fatalf("%s: no video trak found", path)
-	}
-	cfg, offset, size, ok := locateH264Sample(videoTrak)
+	videoTrak := findVideoTrakForTest(t, path)
+	avcCPayload, offset, size, ok := locateH264SampleForTest(videoTrak)
 	if !ok {
-		t.Fatalf("%s: locateH264Sample failed", path)
+		t.Fatalf("%s: locateH264SampleForTest failed", path)
 	}
 
 	file, err := os.Open(path)
@@ -40,7 +30,7 @@ func decodeFirstFrameOfFile(t *testing.T, path string) (image.Image, error) {
 		t.Fatalf("read sample: %v", err)
 	}
 
-	return decodeFirstH264Frame(cfg, sample)
+	return DecodeFirstFrame(avcCPayload, sample)
 }
 
 // ffmpegReferenceFrame extracts frame 1 of path via ffmpeg as ground truth.
@@ -107,8 +97,8 @@ func saveDebugPNG(t *testing.T, name string, img image.Image) {
 
 func TestH264DecodeFirstFrameAgainstFFmpeg(t *testing.T) {
 	cases := []string{
-		"tgtesting/testdata/video.mp4",
-		"tgtesting/testdata/bigger_2.mp4",
+		"../tgtesting/testdata/video.mp4",
+		"../tgtesting/testdata/bigger_2.mp4",
 	}
 	for _, path := range cases {
 		t.Run(path, func(t *testing.T) {
@@ -118,7 +108,7 @@ func TestH264DecodeFirstFrameAgainstFFmpeg(t *testing.T) {
 
 			got, err := decodeFirstFrameOfFile(t, path)
 			if err != nil {
-				t.Fatalf("decodeFirstH264Frame: %v", err)
+				t.Fatalf("DecodeFirstFrame: %v", err)
 			}
 			saveDebugPNG(t, filepath.Base(path)+".decoded.png", got)
 

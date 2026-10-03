@@ -1,4 +1,4 @@
-package tg
+package tginternalvideo
 
 // h264SPS holds the subset of a parsed Sequence Parameter Set (ITU-T H.264
 // §7.3.2.1.1) this best-effort decoder needs. Fields it reads only to stay

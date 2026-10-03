@@ -1,4 +1,4 @@
-package tg
+package tginternalvideo
 
 // cabacInit is one context variable's initialization pair (ITU-T H.264
 // §9.3.1.1): preCtxState = Clip3(1, 126, ((m*Clip3(0,51,SliceQPY))>>4)+n),

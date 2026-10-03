@@ -1,4 +1,4 @@
-package tg
+package tginternalvideo
 
 // normAdjust4x4 is v4x4 (§8.5.9): normAdjust4x4[QP%6][category], where
 // category groups a 4x4 position (i,j) by (i%2,j%2): 0 = both even,

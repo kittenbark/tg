@@ -1,4 +1,4 @@
-package tg
+package tginternalvideo
 
 // h264MacroblockInfo holds the subset of a decoded macroblock's state that
 // later macroblocks need for CABAC context derivation (§9.3.3.1.1's

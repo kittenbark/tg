@@ -4,6 +4,8 @@ import (
 	"encoding/binary"
 	"errors"
 	"os"
+
+	"github.com/kittenbark/tginternalvideo"
 )
 
 var (
@@ -164,7 +166,7 @@ func probeISOBMFF(path string, videoFrameDecode bool) (*mediaMeta, error) {
 func tryDecodeH264Thumbnail(file *os.File, videoTrak []byte) (thumbPath string) {
 	defer func() { _ = recover() }()
 
-	cfg, sampleOffset, sampleSize, ok := locateH264Sample(videoTrak)
+	avcCPayload, sampleOffset, sampleSize, ok := locateH264Sample(videoTrak)
 	if !ok {
 		return ""
 	}
@@ -172,7 +174,7 @@ func tryDecodeH264Thumbnail(file *os.File, videoTrak []byte) (thumbPath string) 
 	if _, err := file.ReadAt(sample, sampleOffset); err != nil {
 		return ""
 	}
-	img, err := decodeFirstH264Frame(cfg, sample)
+	img, err := tginternalvideo.DecodeFirstFrame(avcCPayload, sample)
 	if err != nil {
 		return ""
 	}
@@ -348,13 +350,15 @@ func firstSampleIsSync(stssPayload []byte) bool {
 	return binary.BigEndian.Uint32(stssPayload[8:12]) == 1
 }
 
-// locateH264Sample finds sample #1's H.264 decoder config and file location
-// within a video trak, by descending into its Sample Table Box. Returns
-// ok=false (never an error) for anything that doesn't fit - including
-// simply not being H.264 (e.g. "hvc1"/"hev1" HEVC tracks), which is the
-// expected, common case that must leave the existing metadata-only
+// locateH264Sample finds sample #1's raw avcC (AVCDecoderConfigurationRecord)
+// payload and file location within a video trak, by descending into its
+// Sample Table Box. The avcC payload is handed to tginternalvideo.
+// DecodeFirstFrame as-is - parsing it is that package's job, not this one's.
+// Returns ok=false (never an error) for anything that doesn't fit -
+// including simply not being H.264 (e.g. "hvc1"/"hev1" HEVC tracks), which
+// is the expected, common case that must leave the existing metadata-only
 // behavior untouched.
-func locateH264Sample(videoTrak []byte) (cfg *avcDecoderConfig, sampleOffset, sampleSize int64, ok bool) {
+func locateH264Sample(videoTrak []byte) (avcCPayload []byte, sampleOffset, sampleSize int64, ok bool) {
 	stbl := findStbl(videoTrak)
 	if stbl == nil {
 		return nil, 0, 0, false
@@ -390,10 +394,6 @@ func locateH264Sample(videoTrak []byte) (cfg *avcDecoderConfig, sampleOffset, sa
 	if !ok2 {
 		return nil, 0, 0, false
 	}
-	avcCfg, err := parseAVCDecoderConfigurationRecord(avcCPayload)
-	if err != nil {
-		return nil, 0, 0, false
-	}
 
 	size, ok3 := firstSampleSize(stszPayload)
 	if !ok3 || size <= 0 {
@@ -404,7 +404,7 @@ func locateH264Sample(videoTrak []byte) (cfg *avcDecoderConfig, sampleOffset, sa
 		return nil, 0, 0, false
 	}
 
-	return avcCfg, offset, size, true
+	return avcCPayload, offset, size, true
 }
 
 // parseTkhd reads width/height from a TrackHeaderBox (ISO/IEC 14496-12

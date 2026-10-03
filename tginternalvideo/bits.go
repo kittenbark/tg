@@ -1,4 +1,4 @@
-package tg
+package tginternalvideo
 
 import "errors"
 

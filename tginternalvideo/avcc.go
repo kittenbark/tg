@@ -1,4 +1,4 @@
-package tg
+package tginternalvideo
 
 // avcDecoderConfig is a parsed AVCDecoderConfigurationRecord (ISO/IEC
 // 14496-15 §5.2.4.1.1) - the avcC box payload stored alongside an H.264
