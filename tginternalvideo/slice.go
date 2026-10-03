@@ -312,7 +312,7 @@ func decodeIDRPictureI(sps *h264SPS, pps *h264PPS, rbsp []byte) (y, cb, cr *plan
 	return yPlane, cbPlane, crPlane, nil
 }
 
-func decodeI16x16Macroblock(d *cabacDecoder, info, left, top *h264MacroblockInfo, mbType *h264MbTypeResult, yPlane *planeView, chromaPlanes [2]*planeView, x0, y0, cx0, cy0 int, haveLeft, haveTop, haveTopLeft bool, sliceQPY *int, prevMbQpDeltaNonZero *bool, pps *h264PPS) error {
+func decodeI16x16Macroblock(d *cabacDecoder, info, left, top *h264MacroblockInfo, mbType h264MbTypeResult, yPlane *planeView, chromaPlanes [2]*planeView, x0, y0, cx0, cy0 int, haveLeft, haveTop, haveTopLeft bool, sliceQPY *int, prevMbQpDeltaNonZero *bool, pps *h264PPS) error {
 	info.isINxN = false
 	info.transformSize8x8 = false
 
@@ -341,7 +341,7 @@ func decodeI16x16Macroblock(d *cabacDecoder, info, left, top *h264MacroblockInfo
 	qp := *sliceQPY
 
 	pred := predictIntra16x16(yPlane, x0, y0, mbType.intra16x16PredMode, haveLeft, haveTop, haveTopLeft)
-	yPlane.writeBlock(x0, y0, 16, pred)
+	yPlane.writeBlock(x0, y0, 16, pred[:256])
 
 	leftDC := left != nil && left.available && left.lumaDCCBF
 	topDC := top != nil && top.available && top.lumaDCCBF
@@ -357,7 +357,7 @@ func decodeI16x16Macroblock(d *cabacDecoder, info, left, top *h264MacroblockInfo
 		if err != nil {
 			return err
 		}
-		dcGrid := deZigzag4x4(scan)
+		dcGrid := deZigzag4x4(scan[:16])
 		had := hadamard4x4Inverse(dcGrid)
 		dcValues = dequantizeLumaDC(had, qp)
 	}
@@ -385,7 +385,7 @@ func decodeI16x16Macroblock(d *cabacDecoder, info, left, top *h264MacroblockInfo
 				if err != nil {
 					return err
 				}
-				ac := deZigzagAC4x4(scanAC)
+				ac := deZigzagAC4x4(scanAC[:15])
 				for i := 1; i < 16; i++ {
 					block[i] = ac[i]
 				}
@@ -605,9 +605,9 @@ func pred8x8ModeOrDC(n *h264MacroblockInfo, blk8x8Idx int) int {
 	return n.predMode4x4[blk4x4IndicesIn8x8(blk8x8Idx % 4)[0]]
 }
 
-func blk4x4IndicesIn8x8(blk8x8Idx int) []int {
+func blk4x4IndicesIn8x8(blk8x8Idx int) [4]int {
 	base := blk8x8Idx * 4
-	return []int{base, base + 1, base + 2, base + 3}
+	return [4]int{base, base + 1, base + 2, base + 3}
 }
 
 // decodeLumaResidual4x4 does the actual per-4x4-block predict+reconstruct
@@ -626,7 +626,7 @@ func decodeLumaResidual4x4(d *cabacDecoder, info, left, top *h264MacroblockInfo,
 		haveTopLeft := blk4x4HasTopLeft(info, left, top, blkIdx)
 		haveTopRight := blk4x4HasTopRight(info, left, top, blkIdx)
 		pred := predictIntra4x4(yPlane, bx0, by0, info.predMode4x4[blkIdx], haveLeft, haveTop, haveTopLeft, haveTopRight)
-		yPlane.writeBlock(bx0, by0, 4, pred)
+		yPlane.writeBlock(bx0, by0, 4, pred[:])
 
 		blk8x8 := blkIdx / 4
 		if !info.lumaCBF[blk8x8] {
@@ -646,7 +646,7 @@ func decodeLumaResidual4x4(d *cabacDecoder, info, left, top *h264MacroblockInfo,
 		if err != nil {
 			return err
 		}
-		block := deZigzag4x4(scan)
+		block := deZigzag4x4(scan[:16])
 		deq := dequantize4x4(block[:], qp)
 		residual := idct4x4(deq)
 		yPlane.addResidualBlock(bx0, by0, 4, residual[:])
@@ -666,7 +666,7 @@ func decodeLumaResidual8x8(d *cabacDecoder, info, left, top *h264MacroblockInfo,
 		haveLeft, haveTop, haveTopLeft, haveTopRight := haveNeighbors8x8(info, left, top, blkIdx)
 		ref := buildRefSamples8x8(yPlane, bx0, by0, haveLeft, haveTop, haveTopLeft, haveTopRight)
 		pred := predictIntra8x8(ref, mode)
-		yPlane.writeBlock(bx0, by0, 8, pred)
+		yPlane.writeBlock(bx0, by0, 8, pred[:])
 
 		if !info.lumaCBF[blkIdx] {
 			continue
@@ -675,7 +675,7 @@ func decodeLumaResidual8x8(d *cabacDecoder, info, left, top *h264MacroblockInfo,
 		if err != nil {
 			return err
 		}
-		block := deZigzag8x8(scan)
+		block := deZigzag8x8(scan[:64])
 		deq := dequantize8x8(block[:], qp)
 		residual := idct8x8(deq)
 		yPlane.addResidualBlock(bx0, by0, 8, residual[:])
@@ -686,7 +686,7 @@ func decodeLumaResidual8x8(d *cabacDecoder, info, left, top *h264MacroblockInfo,
 func predictAndSetChroma(chromaPlanes [2]*planeView, cx0, cy0, mode int, haveLeft, haveTop, haveTopLeft bool) error {
 	for _, plane := range chromaPlanes {
 		pred := predictIntraChroma(plane, cx0, cy0, mode, haveLeft, haveTop, haveTopLeft)
-		plane.writeBlock(cx0, cy0, 8, pred)
+		plane.writeBlock(cx0, cy0, 8, pred[:])
 	}
 	return nil
 }
@@ -735,7 +735,7 @@ func decodeChromaResidual(d *cabacDecoder, info, left, top *h264MacroblockInfo, 
 			return err
 		}
 		var raw [4]int32
-		copy(raw[:], scan)
+		copy(raw[:], scan[:4])
 		had := hadamard2x2Inverse(raw)
 		dc[comp] = dequantizeChromaDC(had, deriveChromaQP(qp, pps, comp))
 	}
@@ -760,7 +760,7 @@ func decodeChromaResidual(d *cabacDecoder, info, left, top *h264MacroblockInfo, 
 				if err != nil {
 					return err
 				}
-				ac[comp][blk] = deZigzagAC4x4(scanAC)
+				ac[comp][blk] = deZigzagAC4x4(scanAC[:15])
 			}
 		}
 	}

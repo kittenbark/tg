@@ -52,7 +52,7 @@ func (p *planeView) writeBlock(x0, y0, size int, pred []int) {
 // edges only, in this decoder); unavailable-but-selected modes fall back to
 // a neutral value rather than reading garbage, since a conformant encoder
 // should never select them in that situation.
-func predictIntra4x4(p *planeView, x0, y0, mode int, haveLeft, haveTop, haveTopLeft, haveTopRight bool) []int {
+func predictIntra4x4(p *planeView, x0, y0, mode int, haveLeft, haveTop, haveTopLeft, haveTopRight bool) [16]int {
 	top := func(i int) int { // p[i,-1], i in -1..7
 		if i == -1 {
 			if haveTopLeft {
@@ -87,7 +87,7 @@ func predictIntra4x4(p *planeView, x0, y0, mode int, haveLeft, haveTop, haveTopL
 		return 128
 	}
 
-	out := make([]int, 16)
+	var out [16]int
 	set := func(x, y, v int) { out[y*4+x] = v }
 
 	switch mode {
@@ -291,7 +291,7 @@ func buildRefSamples8x8(p *planeView, x0, y0 int, haveLeft, haveTop, haveTopLeft
 // predictIntra8x8 implements the 9 Intra_8x8 modes (§8.3.2.2) using the
 // filtered reference samples from buildRefSamples8x8. Mode numbering and
 // relative formulas mirror predictIntra4x4, scaled to an 8x8 block.
-func predictIntra8x8(r refSamples8x8, mode int) []int {
+func predictIntra8x8(r refSamples8x8, mode int) [64]int {
 	top := func(i int) int { return r.top[i+1] } // i in -1..14
 	left := func(i int) int {
 		if i == -1 {
@@ -300,7 +300,7 @@ func predictIntra8x8(r refSamples8x8, mode int) []int {
 		return r.left[i]
 	}
 
-	out := make([]int, 64)
+	var out [64]int
 	set := func(x, y, v int) { out[y*8+x] = v }
 
 	switch mode {
@@ -423,7 +423,7 @@ func predictIntra8x8(r refSamples8x8, mode int) []int {
 }
 
 // predictIntra16x16 implements the 4 Intra_16x16 luma modes (§8.3.3).
-func predictIntra16x16(p *planeView, x0, y0, mode int, haveLeft, haveTop, haveTopLeft bool) []int {
+func predictIntra16x16(p *planeView, x0, y0, mode int, haveLeft, haveTop, haveTopLeft bool) [256]int {
 	return predictVerticalHorizontalDCPlane(p, x0, y0, 16, mode, haveLeft, haveTop, haveTopLeft, 5)
 }
 
@@ -439,16 +439,19 @@ func predictIntra16x16(p *planeView, x0, y0, mode int, haveLeft, haveTop, haveTo
 // (routing mode 0 into "Vertical" and treating mode 2 as "DC"), which read
 // out-of-bounds/garbage samples for the very first macroblock (no top
 // neighbor) and cascaded a uniform wrong chroma cast across the whole frame.
-func predictIntraChroma(p *planeView, x0, y0, mode int, haveLeft, haveTop, haveTopLeft bool) []int {
+func predictIntraChroma(p *planeView, x0, y0, mode int, haveLeft, haveTop, haveTopLeft bool) [64]int {
 	if mode != 0 {
 		translated := mode
 		if mode == 2 {
 			translated = 0
 		}
-		return predictVerticalHorizontalDCPlane(p, x0, y0, 8, translated, haveLeft, haveTop, haveTopLeft, 17)
+		full := predictVerticalHorizontalDCPlane(p, x0, y0, 8, translated, haveLeft, haveTop, haveTopLeft, 17)
+		var out [64]int
+		copy(out[:], full[:64])
+		return out
 	}
 
-	out := make([]int, 64)
+	var out [64]int
 	quad := func(qx, qy int, useTop, useLeft bool) {
 		var sum, n int
 		if useTop {
@@ -494,9 +497,10 @@ func predictIntraChroma(p *planeView, x0, y0, mode int, haveLeft, haveTop, haveT
 // no top one (true for an entire picture's top row beyond its first
 // column), that turned Vertical/Plane prediction black instead of
 // propagating the real left-neighbor color sideways.
-func substituteRefSamples(p *planeView, x0, y0, size int, haveLeft, haveTop, haveTopLeft bool) (top, left []int, corner int) {
-	top = make([]int, size)
-	left = make([]int, size)
+// top/left are sized for the largest caller (Intra_16x16, size=16); chroma
+// callers (size=8) just use the first 8 elements. avail/vals are similarly
+// sized for the largest possible scan (2*16+1=33).
+func substituteRefSamples(p *planeView, x0, y0, size int, haveLeft, haveTop, haveTopLeft bool) (top, left [16]int, corner int) {
 	for i := 0; i < size; i++ {
 		if haveTop {
 			top[i] = p.at(x0+i, y0-1)
@@ -509,8 +513,8 @@ func substituteRefSamples(p *planeView, x0, y0, size int, haveLeft, haveTop, hav
 		corner = p.at(x0-1, y0-1)
 	}
 
-	avail := make([]bool, 2*size+1)
-	vals := make([]int, 2*size+1)
+	var avail [33]bool
+	var vals [33]int
 	for i := 0; i < size; i++ {
 		avail[i] = haveLeft
 		vals[i] = left[size-1-i]
@@ -523,7 +527,7 @@ func substituteRefSamples(p *planeView, x0, y0, size int, haveLeft, haveTop, hav
 	}
 
 	prev := 128
-	for i := range vals {
+	for i := 0; i < 2*size+1; i++ {
 		if avail[i] {
 			prev = vals[i]
 		} else {
@@ -544,8 +548,10 @@ func substituteRefSamples(p *planeView, x0, y0, size int, haveLeft, haveTop, hav
 // predictVerticalHorizontalDCPlane implements the vertical/horizontal/DC/
 // plane modes shared by Intra_16x16 (size=16, planeCoeff=5) and chroma's
 // non-DC modes (size=8, planeCoeff=17) - §8.3.3 and §8.3.4.2-4.
-func predictVerticalHorizontalDCPlane(p *planeView, x0, y0, size, mode int, haveLeft, haveTop, haveTopLeft bool, planeCoeff int) []int {
-	out := make([]int, size*size)
+// out is sized for the largest caller (Intra_16x16, size=16, 256 elements);
+// chroma callers (size=8) just use the first 64.
+func predictVerticalHorizontalDCPlane(p *planeView, x0, y0, size, mode int, haveLeft, haveTop, haveTopLeft bool, planeCoeff int) [256]int {
+	var out [256]int
 	set := func(x, y, v int) { out[y*size+x] = v }
 
 	if mode == 0 || mode == 1 || mode == 3 {
@@ -624,7 +630,7 @@ func predictVerticalHorizontalDCPlane(p *planeView, x0, y0, size, mode int, have
 		if n > 0 {
 			dc = (sum + n/2) / n
 		}
-		for i := range out {
+		for i := 0; i < size*size; i++ {
 			out[i] = dc
 		}
 	}

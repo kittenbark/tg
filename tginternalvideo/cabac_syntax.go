@@ -69,23 +69,23 @@ type h264MbTypeResult struct {
 	intra16x16CbpLuma   int // 0 or 15 (all 4x4 AC blocks coded or none)
 }
 
-func decodeMbTypeI(d *cabacDecoder, left, top *h264MacroblockInfo) (*h264MbTypeResult, error) {
+func decodeMbTypeI(d *cabacDecoder, left, top *h264MacroblockInfo) (h264MbTypeResult, error) {
 	condA := condTermFlag(left, func(n *h264MacroblockInfo) bool { return !n.isINxN })
 	condB := condTermFlag(top, func(n *h264MacroblockInfo) bool { return !n.isINxN })
 	bin0, err := d.decodeDecision(ctxMbTypeIPrefix + condA + condB)
 	if err != nil {
-		return nil, err
+		return h264MbTypeResult{}, err
 	}
 	if bin0 == 0 {
-		return &h264MbTypeResult{kind: mbTypeINxN}, nil
+		return h264MbTypeResult{kind: mbTypeINxN}, nil
 	}
 
 	isPCM, err := d.decodeTerminate()
 	if err != nil {
-		return nil, err
+		return h264MbTypeResult{}, err
 	}
 	if isPCM == 1 {
-		return &h264MbTypeResult{kind: mbTypeIPCM}, nil
+		return h264MbTypeResult{kind: mbTypeIPCM}, nil
 	}
 
 	// Raw mb_type (1-24), computed via the exact bin-weighting FFmpeg's
@@ -95,34 +95,34 @@ func decodeMbTypeI(d *cabacDecoder, left, top *h264MacroblockInfo) (*h264MbTypeR
 	// pairs do not map to pred mode 0-3 in bit order).
 	cbpLumaBit, err := d.decodeDecision(ctxMbTypeI16x16 + 0)
 	if err != nil {
-		return nil, err
+		return h264MbTypeResult{}, err
 	}
 	mbType := 1 + 12*cbpLumaBit
 
 	cbpChromaBit0, err := d.decodeDecision(ctxMbTypeI16x16 + 1)
 	if err != nil {
-		return nil, err
+		return h264MbTypeResult{}, err
 	}
 	if cbpChromaBit0 == 1 {
 		cbpChromaBit1, err := d.decodeDecision(ctxMbTypeI16x16 + 2)
 		if err != nil {
-			return nil, err
+			return h264MbTypeResult{}, err
 		}
 		mbType += 4 + 4*cbpChromaBit1
 	}
 
 	predBitA, err := d.decodeDecision(ctxMbTypeI16x16 + 3)
 	if err != nil {
-		return nil, err
+		return h264MbTypeResult{}, err
 	}
 	predBitB, err := d.decodeDecision(ctxMbTypeI16x16 + 4)
 	if err != nil {
-		return nil, err
+		return h264MbTypeResult{}, err
 	}
 	mbType += 2*predBitA + predBitB
 
 	info := iMbTypeInfo[mbType]
-	return &h264MbTypeResult{
+	return h264MbTypeResult{
 		kind:                mbTypeI16x16,
 		intra16x16PredMode:  info.predMode,
 		intra16x16CbpChroma: info.cbpChroma,
@@ -325,8 +325,15 @@ func decodeMbQpDelta(d *cabacDecoder, prevMbQpDeltaNonZero bool) (int, error) {
 // last significant coefficient back to the first (per spec - this order
 // matters for the numDecodAbsLevelGt1/Eq1 running counts). Returns
 // coefficients in scan order (not yet de-zigzagged).
-func decodeResidualBlockCABAC(d *cabacDecoder, ctxBlockCat, maxNumCoeff int) ([]int32, error) {
-	coeffs := make([]int32, maxNumCoeff)
+// decodeResidualBlockCABAC decodes up to maxNumCoeff (<=64) coefficients in
+// scan order, returning them in a fixed-size array - the caller uses
+// coeffs[:maxNumCoeff]. Returning a stack-friendly array here instead of a
+// freshly make()'d slice (and using a fixed-size array for the scan-position
+// bookkeeping below instead of a growing slice) removes what used to be this
+// decoder's single largest allocation source: this function runs many times
+// per macroblock (one call per coded 4x4/8x8/DC block).
+func decodeResidualBlockCABAC(d *cabacDecoder, ctxBlockCat, maxNumCoeff int) ([64]int32, error) {
+	var coeffs [64]int32
 
 	sigBase := sigCoeffFlagCtxBase(ctxBlockCat)
 	lastBase := lastSigCoeffFlagCtxBase(ctxBlockCat)
@@ -342,7 +349,8 @@ func decodeResidualBlockCABAC(d *cabacDecoder, ctxBlockCat, maxNumCoeff int) ([]
 	// significantCoeffFlagOffset8x8/lastCoeffFlagOffset8x8 (far fewer
 	// distinct contexts than scan positions) rather than directly indexing
 	// by scan position.
-	var significantPositions []int
+	var significantPositions [64]int
+	numSig := 0
 	foundLast := false
 	for i := 0; i < maxNumCoeff-1; i++ {
 		sigCtx, lastCtx := sigBase+i, lastBase+i
@@ -352,13 +360,14 @@ func decodeResidualBlockCABAC(d *cabacDecoder, ctxBlockCat, maxNumCoeff int) ([]
 		}
 		sig, err := d.decodeDecision(sigCtx)
 		if err != nil {
-			return nil, err
+			return coeffs, err
 		}
 		if sig == 1 {
-			significantPositions = append(significantPositions, i)
+			significantPositions[numSig] = i
+			numSig++
 			last, err := d.decodeDecision(lastCtx)
 			if err != nil {
-				return nil, err
+				return coeffs, err
 			}
 			if last == 1 {
 				foundLast = true
@@ -367,7 +376,8 @@ func decodeResidualBlockCABAC(d *cabacDecoder, ctxBlockCat, maxNumCoeff int) ([]
 		}
 	}
 	if !foundLast {
-		significantPositions = append(significantPositions, maxNumCoeff-1)
+		significantPositions[numSig] = maxNumCoeff - 1
+		numSig++
 	}
 
 	// Reverse scan: coeff_abs_level_minus1 + coeff_sign_flag, from the last
@@ -378,13 +388,13 @@ func decodeResidualBlockCABAC(d *cabacDecoder, ctxBlockCat, maxNumCoeff int) ([]
 	// simple running count).
 	absLevelBase := coeffAbsLevelCtxBase(ctxBlockCat)
 	nodeCtx := 0
-	for i := len(significantPositions) - 1; i >= 0; i-- {
+	for i := numSig - 1; i >= 0; i-- {
 		pos := significantPositions[i]
 
 		gt1Ctx := absLevelBase + int(coeffAbsLevel1Ctx[nodeCtx])
 		bin0, err := d.decodeDecision(gt1Ctx)
 		if err != nil {
-			return nil, err
+			return coeffs, err
 		}
 
 		var absLevel int
@@ -399,7 +409,7 @@ func decodeResidualBlockCABAC(d *cabacDecoder, ctxBlockCat, maxNumCoeff int) ([]
 			for coeffAbs < 15 {
 				bin, err := d.decodeDecision(levelCtx)
 				if err != nil {
-					return nil, err
+					return coeffs, err
 				}
 				if bin == 0 {
 					break
@@ -421,21 +431,21 @@ func decodeResidualBlockCABAC(d *cabacDecoder, ctxBlockCat, maxNumCoeff int) ([]
 				for {
 					bin, err := d.decodeBypass()
 					if err != nil {
-						return nil, err
+						return coeffs, err
 					}
 					if bin == 0 {
 						break
 					}
 					runLength++
 					if runLength > 32 {
-						return nil, errH264Malformed
+						return coeffs, errH264Malformed
 					}
 				}
 				suffix := 1
 				for k := 0; k < runLength; k++ {
 					bit, err := d.decodeBypass()
 					if err != nil {
-						return nil, err
+						return coeffs, err
 					}
 					suffix = suffix<<1 | bit
 				}
@@ -446,7 +456,7 @@ func decodeResidualBlockCABAC(d *cabacDecoder, ctxBlockCat, maxNumCoeff int) ([]
 
 		signBit, err := d.decodeBypass()
 		if err != nil {
-			return nil, err
+			return coeffs, err
 		}
 		if signBit == 1 {
 			coeffs[pos] = -int32(absLevel)
