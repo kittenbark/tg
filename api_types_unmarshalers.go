@@ -6289,34 +6289,34 @@ func (impl *InputPollOption) UnmarshalJSON(data []byte) error {
 
 func (impl *InputRichBlockBlockQuotation) UnmarshalJSON(data []byte) error {
 	type InputRichBlockUnmarshalJoinedBlocks struct {
-		Type       *string                    `json:"type"`
-		Name       *string                    `json:"name"`
-		Animation  **Animation                `json:"animation"`
-		Caption    json.RawMessage            `json:"caption"`
-		Audio      **Audio                    `json:"audio"`
-		Blocks     *[]InputRichBlock          `json:"blocks"`
-		Credit     *any                       `json:"credit"`
-		Buttons    *[]*RichMessageButton      `json:"buttons"`
-		Align      *string                    `json:"align"`
-		Summary    *any                       `json:"summary"`
-		IsOpen     *bool                      `json:"is_open"`
-		Document   **Document                 `json:"document"`
-		Text       *any                       `json:"text"`
-		Items      *[]*InputRichBlockListItem `json:"items"`
-		Location   **Location                 `json:"location"`
-		Zoom       *int64                     `json:"zoom"`
-		Width      *int64                     `json:"width"`
-		Height     *int64                     `json:"height"`
-		Expression *string                    `json:"expression"`
-		Photo      **Photo                    `json:"photo"`
-		Language   *string                    `json:"language"`
-		Size       *int64                     `json:"size"`
-		Cells      *[][]*RichBlockTableCell   `json:"cells"`
-		IsBordered *bool                      `json:"is_bordered"`
-		IsStriped  *bool                      `json:"is_striped"`
-		IsCompact  *bool                      `json:"is_compact"`
-		Video      **Video                    `json:"video"`
-		VoiceNote  **InputMediaVoiceNote      `json:"voice_note"`
+		Type       *string                                 `json:"type"`
+		Name       *string                                 `json:"name"`
+		Animation  **Animation                             `json:"animation"`
+		Caption    json.RawMessage                         `json:"caption"`
+		Audio      **Audio                                 `json:"audio"`
+		Blocks     *[]*InputRichBlockUnmarshalJoinedBlocks `json:"blocks"`
+		Credit     *any                                    `json:"credit"`
+		Buttons    *[]*RichMessageButton                   `json:"buttons"`
+		Align      *string                                 `json:"align"`
+		Summary    *any                                    `json:"summary"`
+		IsOpen     *bool                                   `json:"is_open"`
+		Document   **Document                              `json:"document"`
+		Text       *any                                    `json:"text"`
+		Items      *[]*InputRichBlockListItem              `json:"items"`
+		Location   **Location                              `json:"location"`
+		Zoom       *int64                                  `json:"zoom"`
+		Width      *int64                                  `json:"width"`
+		Height     *int64                                  `json:"height"`
+		Expression *string                                 `json:"expression"`
+		Photo      **Photo                                 `json:"photo"`
+		Language   *string                                 `json:"language"`
+		Size       *int64                                  `json:"size"`
+		Cells      *[][]*RichBlockTableCell                `json:"cells"`
+		IsBordered *bool                                   `json:"is_bordered"`
+		IsStriped  *bool                                   `json:"is_striped"`
+		IsCompact  *bool                                   `json:"is_compact"`
+		Video      **Video                                 `json:"video"`
+		VoiceNote  **InputMediaVoiceNote                   `json:"voice_note"`
 	}
 	type BaseInstance struct {
 		// Type of the block, always “blockquote”
@@ -6332,89 +6332,93 @@ func (impl *InputRichBlockBlockQuotation) UnmarshalJSON(data []byte) error {
 	}
 	impl.Type = inst.Type
 	impl.Credit = inst.Credit
-	if len(inst.Blocks) != 0 {
-		impl.Blocks = []InputRichBlock{}
-		for _, item := range inst.Blocks {
+	var parseBlocks func(items []*InputRichBlockUnmarshalJoinedBlocks) []InputRichBlock
+	parseBlocks = func(items []*InputRichBlockUnmarshalJoinedBlocks) []InputRichBlock {
+		if len(items) == 0 {
+			return nil
+		}
+		out := []InputRichBlock{}
+		for _, item := range items {
 			if item == nil || item.Type == nil {
 				continue
 			}
 			switch *item.Type {
 			case "anchor":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockAnchor{
+				out = append(out, &InputRichBlockAnchor{
 					Type: deref(item.Type),
 					Name: deref(item.Name),
 				})
 			case "animation":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockAnimation{
+				out = append(out, &InputRichBlockAnimation{
 					Type:      deref(item.Type),
 					Animation: deref(item.Animation),
 					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "audio":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockAudio{
+				out = append(out, &InputRichBlockAudio{
 					Type:    deref(item.Type),
 					Audio:   deref(item.Audio),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "blockquote":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockBlockQuotation{
+				out = append(out, &InputRichBlockBlockQuotation{
 					Type:   deref(item.Type),
-					Blocks: deref(item.Blocks),
+					Blocks: parseBlocks(deref(item.Blocks)),
 					Credit: deref(item.Credit),
 				})
 			case "buttons":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockButtons{
+				out = append(out, &InputRichBlockButtons{
 					Type:    deref(item.Type),
 					Buttons: deref(item.Buttons),
 					Align:   deref(item.Align),
 				})
 			case "collage":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockCollage{
+				out = append(out, &InputRichBlockCollage{
 					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "details":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockDetails{
+				out = append(out, &InputRichBlockDetails{
 					Type:    deref(item.Type),
 					Summary: deref(item.Summary),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					IsOpen:  deref(item.IsOpen),
 				})
 			case "divider":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockDivider{
+				out = append(out, &InputRichBlockDivider{
 					Type: deref(item.Type),
 				})
 			case "document":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockDocument{
+				out = append(out, &InputRichBlockDocument{
 					Type:     deref(item.Type),
 					Document: deref(item.Document),
 					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "expandable_blockquote":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockExpandableBlockQuotation{
+				out = append(out, &InputRichBlockExpandableBlockQuotation{
 					Type:   deref(item.Type),
 					Text:   deref(item.Text),
 					Credit: deref(item.Credit),
 				})
 			case "footer":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockFooter{
+				out = append(out, &InputRichBlockFooter{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "heading":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockSectionHeading{
+				out = append(out, &InputRichBlockSectionHeading{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 					Size: deref(item.Size),
 				})
 			case "list":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockList{
+				out = append(out, &InputRichBlockList{
 					Type:  deref(item.Type),
 					Items: deref(item.Items),
 				})
 			case "map":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockMap{
+				out = append(out, &InputRichBlockMap{
 					Type:     deref(item.Type),
 					Location: deref(item.Location),
 					Zoom:     deref(item.Zoom),
@@ -6423,41 +6427,41 @@ func (impl *InputRichBlockBlockQuotation) UnmarshalJSON(data []byte) error {
 					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "mathematical_expression":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockMathematicalExpression{
+				out = append(out, &InputRichBlockMathematicalExpression{
 					Type:       deref(item.Type),
 					Expression: deref(item.Expression),
 				})
 			case "paragraph":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockParagraph{
+				out = append(out, &InputRichBlockParagraph{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "photo":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockPhoto{
+				out = append(out, &InputRichBlockPhoto{
 					Type:    deref(item.Type),
 					Photo:   deref(item.Photo),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "pre":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockPreformatted{
+				out = append(out, &InputRichBlockPreformatted{
 					Type:     deref(item.Type),
 					Text:     deref(item.Text),
 					Language: deref(item.Language),
 				})
 			case "pullquote":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockPullQuotation{
+				out = append(out, &InputRichBlockPullQuotation{
 					Type:   deref(item.Type),
 					Text:   deref(item.Text),
 					Credit: deref(item.Credit),
 				})
 			case "slideshow":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockSlideshow{
+				out = append(out, &InputRichBlockSlideshow{
 					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "table":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockTable{
+				out = append(out, &InputRichBlockTable{
 					Type:       deref(item.Type),
 					Cells:      deref(item.Cells),
 					IsBordered: deref(item.IsBordered),
@@ -6466,58 +6470,60 @@ func (impl *InputRichBlockBlockQuotation) UnmarshalJSON(data []byte) error {
 					Caption:    unmarshalRawOrZero[any](item.Caption),
 				})
 			case "thinking":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockThinking{
+				out = append(out, &InputRichBlockThinking{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "video":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockVideo{
+				out = append(out, &InputRichBlockVideo{
 					Type:    deref(item.Type),
 					Video:   deref(item.Video),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "voice_note":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockVoiceNote{
+				out = append(out, &InputRichBlockVoiceNote{
 					Type:      deref(item.Type),
 					VoiceNote: deref(item.VoiceNote),
 					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			}
 		}
+		return out
 	}
+	impl.Blocks = parseBlocks(inst.Blocks)
 	return nil
 }
 
 func (impl *InputRichBlockCollage) UnmarshalJSON(data []byte) error {
 	type InputRichBlockUnmarshalJoinedBlocks struct {
-		Type       *string                    `json:"type"`
-		Name       *string                    `json:"name"`
-		Animation  **Animation                `json:"animation"`
-		Caption    json.RawMessage            `json:"caption"`
-		Audio      **Audio                    `json:"audio"`
-		Blocks     *[]InputRichBlock          `json:"blocks"`
-		Credit     *any                       `json:"credit"`
-		Buttons    *[]*RichMessageButton      `json:"buttons"`
-		Align      *string                    `json:"align"`
-		Summary    *any                       `json:"summary"`
-		IsOpen     *bool                      `json:"is_open"`
-		Document   **Document                 `json:"document"`
-		Text       *any                       `json:"text"`
-		Items      *[]*InputRichBlockListItem `json:"items"`
-		Location   **Location                 `json:"location"`
-		Zoom       *int64                     `json:"zoom"`
-		Width      *int64                     `json:"width"`
-		Height     *int64                     `json:"height"`
-		Expression *string                    `json:"expression"`
-		Photo      **Photo                    `json:"photo"`
-		Language   *string                    `json:"language"`
-		Size       *int64                     `json:"size"`
-		Cells      *[][]*RichBlockTableCell   `json:"cells"`
-		IsBordered *bool                      `json:"is_bordered"`
-		IsStriped  *bool                      `json:"is_striped"`
-		IsCompact  *bool                      `json:"is_compact"`
-		Video      **Video                    `json:"video"`
-		VoiceNote  **InputMediaVoiceNote      `json:"voice_note"`
+		Type       *string                                 `json:"type"`
+		Name       *string                                 `json:"name"`
+		Animation  **Animation                             `json:"animation"`
+		Caption    json.RawMessage                         `json:"caption"`
+		Audio      **Audio                                 `json:"audio"`
+		Blocks     *[]*InputRichBlockUnmarshalJoinedBlocks `json:"blocks"`
+		Credit     *any                                    `json:"credit"`
+		Buttons    *[]*RichMessageButton                   `json:"buttons"`
+		Align      *string                                 `json:"align"`
+		Summary    *any                                    `json:"summary"`
+		IsOpen     *bool                                   `json:"is_open"`
+		Document   **Document                              `json:"document"`
+		Text       *any                                    `json:"text"`
+		Items      *[]*InputRichBlockListItem              `json:"items"`
+		Location   **Location                              `json:"location"`
+		Zoom       *int64                                  `json:"zoom"`
+		Width      *int64                                  `json:"width"`
+		Height     *int64                                  `json:"height"`
+		Expression *string                                 `json:"expression"`
+		Photo      **Photo                                 `json:"photo"`
+		Language   *string                                 `json:"language"`
+		Size       *int64                                  `json:"size"`
+		Cells      *[][]*RichBlockTableCell                `json:"cells"`
+		IsBordered *bool                                   `json:"is_bordered"`
+		IsStriped  *bool                                   `json:"is_striped"`
+		IsCompact  *bool                                   `json:"is_compact"`
+		Video      **Video                                 `json:"video"`
+		VoiceNote  **InputMediaVoiceNote                   `json:"voice_note"`
 	}
 	type BaseInstance struct {
 		// Type of the block, always “collage”
@@ -6533,89 +6539,93 @@ func (impl *InputRichBlockCollage) UnmarshalJSON(data []byte) error {
 	}
 	impl.Type = inst.Type
 	impl.Caption = inst.Caption
-	if len(inst.Blocks) != 0 {
-		impl.Blocks = []InputRichBlock{}
-		for _, item := range inst.Blocks {
+	var parseBlocks func(items []*InputRichBlockUnmarshalJoinedBlocks) []InputRichBlock
+	parseBlocks = func(items []*InputRichBlockUnmarshalJoinedBlocks) []InputRichBlock {
+		if len(items) == 0 {
+			return nil
+		}
+		out := []InputRichBlock{}
+		for _, item := range items {
 			if item == nil || item.Type == nil {
 				continue
 			}
 			switch *item.Type {
 			case "anchor":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockAnchor{
+				out = append(out, &InputRichBlockAnchor{
 					Type: deref(item.Type),
 					Name: deref(item.Name),
 				})
 			case "animation":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockAnimation{
+				out = append(out, &InputRichBlockAnimation{
 					Type:      deref(item.Type),
 					Animation: deref(item.Animation),
 					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "audio":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockAudio{
+				out = append(out, &InputRichBlockAudio{
 					Type:    deref(item.Type),
 					Audio:   deref(item.Audio),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "blockquote":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockBlockQuotation{
+				out = append(out, &InputRichBlockBlockQuotation{
 					Type:   deref(item.Type),
-					Blocks: deref(item.Blocks),
+					Blocks: parseBlocks(deref(item.Blocks)),
 					Credit: deref(item.Credit),
 				})
 			case "buttons":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockButtons{
+				out = append(out, &InputRichBlockButtons{
 					Type:    deref(item.Type),
 					Buttons: deref(item.Buttons),
 					Align:   deref(item.Align),
 				})
 			case "collage":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockCollage{
+				out = append(out, &InputRichBlockCollage{
 					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "details":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockDetails{
+				out = append(out, &InputRichBlockDetails{
 					Type:    deref(item.Type),
 					Summary: deref(item.Summary),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					IsOpen:  deref(item.IsOpen),
 				})
 			case "divider":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockDivider{
+				out = append(out, &InputRichBlockDivider{
 					Type: deref(item.Type),
 				})
 			case "document":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockDocument{
+				out = append(out, &InputRichBlockDocument{
 					Type:     deref(item.Type),
 					Document: deref(item.Document),
 					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "expandable_blockquote":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockExpandableBlockQuotation{
+				out = append(out, &InputRichBlockExpandableBlockQuotation{
 					Type:   deref(item.Type),
 					Text:   deref(item.Text),
 					Credit: deref(item.Credit),
 				})
 			case "footer":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockFooter{
+				out = append(out, &InputRichBlockFooter{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "heading":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockSectionHeading{
+				out = append(out, &InputRichBlockSectionHeading{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 					Size: deref(item.Size),
 				})
 			case "list":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockList{
+				out = append(out, &InputRichBlockList{
 					Type:  deref(item.Type),
 					Items: deref(item.Items),
 				})
 			case "map":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockMap{
+				out = append(out, &InputRichBlockMap{
 					Type:     deref(item.Type),
 					Location: deref(item.Location),
 					Zoom:     deref(item.Zoom),
@@ -6624,41 +6634,41 @@ func (impl *InputRichBlockCollage) UnmarshalJSON(data []byte) error {
 					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "mathematical_expression":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockMathematicalExpression{
+				out = append(out, &InputRichBlockMathematicalExpression{
 					Type:       deref(item.Type),
 					Expression: deref(item.Expression),
 				})
 			case "paragraph":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockParagraph{
+				out = append(out, &InputRichBlockParagraph{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "photo":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockPhoto{
+				out = append(out, &InputRichBlockPhoto{
 					Type:    deref(item.Type),
 					Photo:   deref(item.Photo),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "pre":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockPreformatted{
+				out = append(out, &InputRichBlockPreformatted{
 					Type:     deref(item.Type),
 					Text:     deref(item.Text),
 					Language: deref(item.Language),
 				})
 			case "pullquote":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockPullQuotation{
+				out = append(out, &InputRichBlockPullQuotation{
 					Type:   deref(item.Type),
 					Text:   deref(item.Text),
 					Credit: deref(item.Credit),
 				})
 			case "slideshow":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockSlideshow{
+				out = append(out, &InputRichBlockSlideshow{
 					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "table":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockTable{
+				out = append(out, &InputRichBlockTable{
 					Type:       deref(item.Type),
 					Cells:      deref(item.Cells),
 					IsBordered: deref(item.IsBordered),
@@ -6667,58 +6677,60 @@ func (impl *InputRichBlockCollage) UnmarshalJSON(data []byte) error {
 					Caption:    unmarshalRawOrZero[any](item.Caption),
 				})
 			case "thinking":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockThinking{
+				out = append(out, &InputRichBlockThinking{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "video":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockVideo{
+				out = append(out, &InputRichBlockVideo{
 					Type:    deref(item.Type),
 					Video:   deref(item.Video),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "voice_note":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockVoiceNote{
+				out = append(out, &InputRichBlockVoiceNote{
 					Type:      deref(item.Type),
 					VoiceNote: deref(item.VoiceNote),
 					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			}
 		}
+		return out
 	}
+	impl.Blocks = parseBlocks(inst.Blocks)
 	return nil
 }
 
 func (impl *InputRichBlockDetails) UnmarshalJSON(data []byte) error {
 	type InputRichBlockUnmarshalJoinedBlocks struct {
-		Type       *string                    `json:"type"`
-		Name       *string                    `json:"name"`
-		Animation  **Animation                `json:"animation"`
-		Caption    json.RawMessage            `json:"caption"`
-		Audio      **Audio                    `json:"audio"`
-		Blocks     *[]InputRichBlock          `json:"blocks"`
-		Credit     *any                       `json:"credit"`
-		Buttons    *[]*RichMessageButton      `json:"buttons"`
-		Align      *string                    `json:"align"`
-		Summary    *any                       `json:"summary"`
-		IsOpen     *bool                      `json:"is_open"`
-		Document   **Document                 `json:"document"`
-		Text       *any                       `json:"text"`
-		Items      *[]*InputRichBlockListItem `json:"items"`
-		Location   **Location                 `json:"location"`
-		Zoom       *int64                     `json:"zoom"`
-		Width      *int64                     `json:"width"`
-		Height     *int64                     `json:"height"`
-		Expression *string                    `json:"expression"`
-		Photo      **Photo                    `json:"photo"`
-		Language   *string                    `json:"language"`
-		Size       *int64                     `json:"size"`
-		Cells      *[][]*RichBlockTableCell   `json:"cells"`
-		IsBordered *bool                      `json:"is_bordered"`
-		IsStriped  *bool                      `json:"is_striped"`
-		IsCompact  *bool                      `json:"is_compact"`
-		Video      **Video                    `json:"video"`
-		VoiceNote  **InputMediaVoiceNote      `json:"voice_note"`
+		Type       *string                                 `json:"type"`
+		Name       *string                                 `json:"name"`
+		Animation  **Animation                             `json:"animation"`
+		Caption    json.RawMessage                         `json:"caption"`
+		Audio      **Audio                                 `json:"audio"`
+		Blocks     *[]*InputRichBlockUnmarshalJoinedBlocks `json:"blocks"`
+		Credit     *any                                    `json:"credit"`
+		Buttons    *[]*RichMessageButton                   `json:"buttons"`
+		Align      *string                                 `json:"align"`
+		Summary    *any                                    `json:"summary"`
+		IsOpen     *bool                                   `json:"is_open"`
+		Document   **Document                              `json:"document"`
+		Text       *any                                    `json:"text"`
+		Items      *[]*InputRichBlockListItem              `json:"items"`
+		Location   **Location                              `json:"location"`
+		Zoom       *int64                                  `json:"zoom"`
+		Width      *int64                                  `json:"width"`
+		Height     *int64                                  `json:"height"`
+		Expression *string                                 `json:"expression"`
+		Photo      **Photo                                 `json:"photo"`
+		Language   *string                                 `json:"language"`
+		Size       *int64                                  `json:"size"`
+		Cells      *[][]*RichBlockTableCell                `json:"cells"`
+		IsBordered *bool                                   `json:"is_bordered"`
+		IsStriped  *bool                                   `json:"is_striped"`
+		IsCompact  *bool                                   `json:"is_compact"`
+		Video      **Video                                 `json:"video"`
+		VoiceNote  **InputMediaVoiceNote                   `json:"voice_note"`
 	}
 	type BaseInstance struct {
 		// Type of the block, always “details”
@@ -6737,89 +6749,93 @@ func (impl *InputRichBlockDetails) UnmarshalJSON(data []byte) error {
 	impl.Type = inst.Type
 	impl.Summary = inst.Summary
 	impl.IsOpen = inst.IsOpen
-	if len(inst.Blocks) != 0 {
-		impl.Blocks = []InputRichBlock{}
-		for _, item := range inst.Blocks {
+	var parseBlocks func(items []*InputRichBlockUnmarshalJoinedBlocks) []InputRichBlock
+	parseBlocks = func(items []*InputRichBlockUnmarshalJoinedBlocks) []InputRichBlock {
+		if len(items) == 0 {
+			return nil
+		}
+		out := []InputRichBlock{}
+		for _, item := range items {
 			if item == nil || item.Type == nil {
 				continue
 			}
 			switch *item.Type {
 			case "anchor":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockAnchor{
+				out = append(out, &InputRichBlockAnchor{
 					Type: deref(item.Type),
 					Name: deref(item.Name),
 				})
 			case "animation":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockAnimation{
+				out = append(out, &InputRichBlockAnimation{
 					Type:      deref(item.Type),
 					Animation: deref(item.Animation),
 					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "audio":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockAudio{
+				out = append(out, &InputRichBlockAudio{
 					Type:    deref(item.Type),
 					Audio:   deref(item.Audio),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "blockquote":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockBlockQuotation{
+				out = append(out, &InputRichBlockBlockQuotation{
 					Type:   deref(item.Type),
-					Blocks: deref(item.Blocks),
+					Blocks: parseBlocks(deref(item.Blocks)),
 					Credit: deref(item.Credit),
 				})
 			case "buttons":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockButtons{
+				out = append(out, &InputRichBlockButtons{
 					Type:    deref(item.Type),
 					Buttons: deref(item.Buttons),
 					Align:   deref(item.Align),
 				})
 			case "collage":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockCollage{
+				out = append(out, &InputRichBlockCollage{
 					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "details":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockDetails{
+				out = append(out, &InputRichBlockDetails{
 					Type:    deref(item.Type),
 					Summary: deref(item.Summary),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					IsOpen:  deref(item.IsOpen),
 				})
 			case "divider":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockDivider{
+				out = append(out, &InputRichBlockDivider{
 					Type: deref(item.Type),
 				})
 			case "document":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockDocument{
+				out = append(out, &InputRichBlockDocument{
 					Type:     deref(item.Type),
 					Document: deref(item.Document),
 					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "expandable_blockquote":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockExpandableBlockQuotation{
+				out = append(out, &InputRichBlockExpandableBlockQuotation{
 					Type:   deref(item.Type),
 					Text:   deref(item.Text),
 					Credit: deref(item.Credit),
 				})
 			case "footer":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockFooter{
+				out = append(out, &InputRichBlockFooter{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "heading":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockSectionHeading{
+				out = append(out, &InputRichBlockSectionHeading{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 					Size: deref(item.Size),
 				})
 			case "list":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockList{
+				out = append(out, &InputRichBlockList{
 					Type:  deref(item.Type),
 					Items: deref(item.Items),
 				})
 			case "map":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockMap{
+				out = append(out, &InputRichBlockMap{
 					Type:     deref(item.Type),
 					Location: deref(item.Location),
 					Zoom:     deref(item.Zoom),
@@ -6828,41 +6844,41 @@ func (impl *InputRichBlockDetails) UnmarshalJSON(data []byte) error {
 					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "mathematical_expression":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockMathematicalExpression{
+				out = append(out, &InputRichBlockMathematicalExpression{
 					Type:       deref(item.Type),
 					Expression: deref(item.Expression),
 				})
 			case "paragraph":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockParagraph{
+				out = append(out, &InputRichBlockParagraph{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "photo":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockPhoto{
+				out = append(out, &InputRichBlockPhoto{
 					Type:    deref(item.Type),
 					Photo:   deref(item.Photo),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "pre":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockPreformatted{
+				out = append(out, &InputRichBlockPreformatted{
 					Type:     deref(item.Type),
 					Text:     deref(item.Text),
 					Language: deref(item.Language),
 				})
 			case "pullquote":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockPullQuotation{
+				out = append(out, &InputRichBlockPullQuotation{
 					Type:   deref(item.Type),
 					Text:   deref(item.Text),
 					Credit: deref(item.Credit),
 				})
 			case "slideshow":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockSlideshow{
+				out = append(out, &InputRichBlockSlideshow{
 					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "table":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockTable{
+				out = append(out, &InputRichBlockTable{
 					Type:       deref(item.Type),
 					Cells:      deref(item.Cells),
 					IsBordered: deref(item.IsBordered),
@@ -6871,58 +6887,60 @@ func (impl *InputRichBlockDetails) UnmarshalJSON(data []byte) error {
 					Caption:    unmarshalRawOrZero[any](item.Caption),
 				})
 			case "thinking":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockThinking{
+				out = append(out, &InputRichBlockThinking{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "video":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockVideo{
+				out = append(out, &InputRichBlockVideo{
 					Type:    deref(item.Type),
 					Video:   deref(item.Video),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "voice_note":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockVoiceNote{
+				out = append(out, &InputRichBlockVoiceNote{
 					Type:      deref(item.Type),
 					VoiceNote: deref(item.VoiceNote),
 					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			}
 		}
+		return out
 	}
+	impl.Blocks = parseBlocks(inst.Blocks)
 	return nil
 }
 
 func (impl *InputRichBlockListItem) UnmarshalJSON(data []byte) error {
 	type InputRichBlockUnmarshalJoinedBlocks struct {
-		Type       *string                    `json:"type"`
-		Name       *string                    `json:"name"`
-		Animation  **Animation                `json:"animation"`
-		Caption    json.RawMessage            `json:"caption"`
-		Audio      **Audio                    `json:"audio"`
-		Blocks     *[]InputRichBlock          `json:"blocks"`
-		Credit     *any                       `json:"credit"`
-		Buttons    *[]*RichMessageButton      `json:"buttons"`
-		Align      *string                    `json:"align"`
-		Summary    *any                       `json:"summary"`
-		IsOpen     *bool                      `json:"is_open"`
-		Document   **Document                 `json:"document"`
-		Text       *any                       `json:"text"`
-		Items      *[]*InputRichBlockListItem `json:"items"`
-		Location   **Location                 `json:"location"`
-		Zoom       *int64                     `json:"zoom"`
-		Width      *int64                     `json:"width"`
-		Height     *int64                     `json:"height"`
-		Expression *string                    `json:"expression"`
-		Photo      **Photo                    `json:"photo"`
-		Language   *string                    `json:"language"`
-		Size       *int64                     `json:"size"`
-		Cells      *[][]*RichBlockTableCell   `json:"cells"`
-		IsBordered *bool                      `json:"is_bordered"`
-		IsStriped  *bool                      `json:"is_striped"`
-		IsCompact  *bool                      `json:"is_compact"`
-		Video      **Video                    `json:"video"`
-		VoiceNote  **InputMediaVoiceNote      `json:"voice_note"`
+		Type       *string                                 `json:"type"`
+		Name       *string                                 `json:"name"`
+		Animation  **Animation                             `json:"animation"`
+		Caption    json.RawMessage                         `json:"caption"`
+		Audio      **Audio                                 `json:"audio"`
+		Blocks     *[]*InputRichBlockUnmarshalJoinedBlocks `json:"blocks"`
+		Credit     *any                                    `json:"credit"`
+		Buttons    *[]*RichMessageButton                   `json:"buttons"`
+		Align      *string                                 `json:"align"`
+		Summary    *any                                    `json:"summary"`
+		IsOpen     *bool                                   `json:"is_open"`
+		Document   **Document                              `json:"document"`
+		Text       *any                                    `json:"text"`
+		Items      *[]*InputRichBlockListItem              `json:"items"`
+		Location   **Location                              `json:"location"`
+		Zoom       *int64                                  `json:"zoom"`
+		Width      *int64                                  `json:"width"`
+		Height     *int64                                  `json:"height"`
+		Expression *string                                 `json:"expression"`
+		Photo      **Photo                                 `json:"photo"`
+		Language   *string                                 `json:"language"`
+		Size       *int64                                  `json:"size"`
+		Cells      *[][]*RichBlockTableCell                `json:"cells"`
+		IsBordered *bool                                   `json:"is_bordered"`
+		IsStriped  *bool                                   `json:"is_striped"`
+		IsCompact  *bool                                   `json:"is_compact"`
+		Video      **Video                                 `json:"video"`
+		VoiceNote  **InputMediaVoiceNote                   `json:"voice_note"`
 	}
 	type BaseInstance struct {
 		// Optional. Pass True if the item has a checkbox
@@ -6945,89 +6963,93 @@ func (impl *InputRichBlockListItem) UnmarshalJSON(data []byte) error {
 	impl.IsChecked = inst.IsChecked
 	impl.Value = inst.Value
 	impl.Type = inst.Type
-	if len(inst.Blocks) != 0 {
-		impl.Blocks = []InputRichBlock{}
-		for _, item := range inst.Blocks {
+	var parseBlocks func(items []*InputRichBlockUnmarshalJoinedBlocks) []InputRichBlock
+	parseBlocks = func(items []*InputRichBlockUnmarshalJoinedBlocks) []InputRichBlock {
+		if len(items) == 0 {
+			return nil
+		}
+		out := []InputRichBlock{}
+		for _, item := range items {
 			if item == nil || item.Type == nil {
 				continue
 			}
 			switch *item.Type {
 			case "anchor":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockAnchor{
+				out = append(out, &InputRichBlockAnchor{
 					Type: deref(item.Type),
 					Name: deref(item.Name),
 				})
 			case "animation":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockAnimation{
+				out = append(out, &InputRichBlockAnimation{
 					Type:      deref(item.Type),
 					Animation: deref(item.Animation),
 					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "audio":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockAudio{
+				out = append(out, &InputRichBlockAudio{
 					Type:    deref(item.Type),
 					Audio:   deref(item.Audio),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "blockquote":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockBlockQuotation{
+				out = append(out, &InputRichBlockBlockQuotation{
 					Type:   deref(item.Type),
-					Blocks: deref(item.Blocks),
+					Blocks: parseBlocks(deref(item.Blocks)),
 					Credit: deref(item.Credit),
 				})
 			case "buttons":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockButtons{
+				out = append(out, &InputRichBlockButtons{
 					Type:    deref(item.Type),
 					Buttons: deref(item.Buttons),
 					Align:   deref(item.Align),
 				})
 			case "collage":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockCollage{
+				out = append(out, &InputRichBlockCollage{
 					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "details":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockDetails{
+				out = append(out, &InputRichBlockDetails{
 					Type:    deref(item.Type),
 					Summary: deref(item.Summary),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					IsOpen:  deref(item.IsOpen),
 				})
 			case "divider":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockDivider{
+				out = append(out, &InputRichBlockDivider{
 					Type: deref(item.Type),
 				})
 			case "document":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockDocument{
+				out = append(out, &InputRichBlockDocument{
 					Type:     deref(item.Type),
 					Document: deref(item.Document),
 					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "expandable_blockquote":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockExpandableBlockQuotation{
+				out = append(out, &InputRichBlockExpandableBlockQuotation{
 					Type:   deref(item.Type),
 					Text:   deref(item.Text),
 					Credit: deref(item.Credit),
 				})
 			case "footer":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockFooter{
+				out = append(out, &InputRichBlockFooter{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "heading":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockSectionHeading{
+				out = append(out, &InputRichBlockSectionHeading{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 					Size: deref(item.Size),
 				})
 			case "list":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockList{
+				out = append(out, &InputRichBlockList{
 					Type:  deref(item.Type),
 					Items: deref(item.Items),
 				})
 			case "map":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockMap{
+				out = append(out, &InputRichBlockMap{
 					Type:     deref(item.Type),
 					Location: deref(item.Location),
 					Zoom:     deref(item.Zoom),
@@ -7036,41 +7058,41 @@ func (impl *InputRichBlockListItem) UnmarshalJSON(data []byte) error {
 					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "mathematical_expression":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockMathematicalExpression{
+				out = append(out, &InputRichBlockMathematicalExpression{
 					Type:       deref(item.Type),
 					Expression: deref(item.Expression),
 				})
 			case "paragraph":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockParagraph{
+				out = append(out, &InputRichBlockParagraph{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "photo":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockPhoto{
+				out = append(out, &InputRichBlockPhoto{
 					Type:    deref(item.Type),
 					Photo:   deref(item.Photo),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "pre":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockPreformatted{
+				out = append(out, &InputRichBlockPreformatted{
 					Type:     deref(item.Type),
 					Text:     deref(item.Text),
 					Language: deref(item.Language),
 				})
 			case "pullquote":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockPullQuotation{
+				out = append(out, &InputRichBlockPullQuotation{
 					Type:   deref(item.Type),
 					Text:   deref(item.Text),
 					Credit: deref(item.Credit),
 				})
 			case "slideshow":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockSlideshow{
+				out = append(out, &InputRichBlockSlideshow{
 					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "table":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockTable{
+				out = append(out, &InputRichBlockTable{
 					Type:       deref(item.Type),
 					Cells:      deref(item.Cells),
 					IsBordered: deref(item.IsBordered),
@@ -7079,58 +7101,60 @@ func (impl *InputRichBlockListItem) UnmarshalJSON(data []byte) error {
 					Caption:    unmarshalRawOrZero[any](item.Caption),
 				})
 			case "thinking":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockThinking{
+				out = append(out, &InputRichBlockThinking{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "video":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockVideo{
+				out = append(out, &InputRichBlockVideo{
 					Type:    deref(item.Type),
 					Video:   deref(item.Video),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "voice_note":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockVoiceNote{
+				out = append(out, &InputRichBlockVoiceNote{
 					Type:      deref(item.Type),
 					VoiceNote: deref(item.VoiceNote),
 					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			}
 		}
+		return out
 	}
+	impl.Blocks = parseBlocks(inst.Blocks)
 	return nil
 }
 
 func (impl *InputRichBlockSlideshow) UnmarshalJSON(data []byte) error {
 	type InputRichBlockUnmarshalJoinedBlocks struct {
-		Type       *string                    `json:"type"`
-		Name       *string                    `json:"name"`
-		Animation  **Animation                `json:"animation"`
-		Caption    json.RawMessage            `json:"caption"`
-		Audio      **Audio                    `json:"audio"`
-		Blocks     *[]InputRichBlock          `json:"blocks"`
-		Credit     *any                       `json:"credit"`
-		Buttons    *[]*RichMessageButton      `json:"buttons"`
-		Align      *string                    `json:"align"`
-		Summary    *any                       `json:"summary"`
-		IsOpen     *bool                      `json:"is_open"`
-		Document   **Document                 `json:"document"`
-		Text       *any                       `json:"text"`
-		Items      *[]*InputRichBlockListItem `json:"items"`
-		Location   **Location                 `json:"location"`
-		Zoom       *int64                     `json:"zoom"`
-		Width      *int64                     `json:"width"`
-		Height     *int64                     `json:"height"`
-		Expression *string                    `json:"expression"`
-		Photo      **Photo                    `json:"photo"`
-		Language   *string                    `json:"language"`
-		Size       *int64                     `json:"size"`
-		Cells      *[][]*RichBlockTableCell   `json:"cells"`
-		IsBordered *bool                      `json:"is_bordered"`
-		IsStriped  *bool                      `json:"is_striped"`
-		IsCompact  *bool                      `json:"is_compact"`
-		Video      **Video                    `json:"video"`
-		VoiceNote  **InputMediaVoiceNote      `json:"voice_note"`
+		Type       *string                                 `json:"type"`
+		Name       *string                                 `json:"name"`
+		Animation  **Animation                             `json:"animation"`
+		Caption    json.RawMessage                         `json:"caption"`
+		Audio      **Audio                                 `json:"audio"`
+		Blocks     *[]*InputRichBlockUnmarshalJoinedBlocks `json:"blocks"`
+		Credit     *any                                    `json:"credit"`
+		Buttons    *[]*RichMessageButton                   `json:"buttons"`
+		Align      *string                                 `json:"align"`
+		Summary    *any                                    `json:"summary"`
+		IsOpen     *bool                                   `json:"is_open"`
+		Document   **Document                              `json:"document"`
+		Text       *any                                    `json:"text"`
+		Items      *[]*InputRichBlockListItem              `json:"items"`
+		Location   **Location                              `json:"location"`
+		Zoom       *int64                                  `json:"zoom"`
+		Width      *int64                                  `json:"width"`
+		Height     *int64                                  `json:"height"`
+		Expression *string                                 `json:"expression"`
+		Photo      **Photo                                 `json:"photo"`
+		Language   *string                                 `json:"language"`
+		Size       *int64                                  `json:"size"`
+		Cells      *[][]*RichBlockTableCell                `json:"cells"`
+		IsBordered *bool                                   `json:"is_bordered"`
+		IsStriped  *bool                                   `json:"is_striped"`
+		IsCompact  *bool                                   `json:"is_compact"`
+		Video      **Video                                 `json:"video"`
+		VoiceNote  **InputMediaVoiceNote                   `json:"voice_note"`
 	}
 	type BaseInstance struct {
 		// Type of the block, always “slideshow”
@@ -7146,89 +7170,93 @@ func (impl *InputRichBlockSlideshow) UnmarshalJSON(data []byte) error {
 	}
 	impl.Type = inst.Type
 	impl.Caption = inst.Caption
-	if len(inst.Blocks) != 0 {
-		impl.Blocks = []InputRichBlock{}
-		for _, item := range inst.Blocks {
+	var parseBlocks func(items []*InputRichBlockUnmarshalJoinedBlocks) []InputRichBlock
+	parseBlocks = func(items []*InputRichBlockUnmarshalJoinedBlocks) []InputRichBlock {
+		if len(items) == 0 {
+			return nil
+		}
+		out := []InputRichBlock{}
+		for _, item := range items {
 			if item == nil || item.Type == nil {
 				continue
 			}
 			switch *item.Type {
 			case "anchor":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockAnchor{
+				out = append(out, &InputRichBlockAnchor{
 					Type: deref(item.Type),
 					Name: deref(item.Name),
 				})
 			case "animation":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockAnimation{
+				out = append(out, &InputRichBlockAnimation{
 					Type:      deref(item.Type),
 					Animation: deref(item.Animation),
 					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "audio":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockAudio{
+				out = append(out, &InputRichBlockAudio{
 					Type:    deref(item.Type),
 					Audio:   deref(item.Audio),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "blockquote":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockBlockQuotation{
+				out = append(out, &InputRichBlockBlockQuotation{
 					Type:   deref(item.Type),
-					Blocks: deref(item.Blocks),
+					Blocks: parseBlocks(deref(item.Blocks)),
 					Credit: deref(item.Credit),
 				})
 			case "buttons":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockButtons{
+				out = append(out, &InputRichBlockButtons{
 					Type:    deref(item.Type),
 					Buttons: deref(item.Buttons),
 					Align:   deref(item.Align),
 				})
 			case "collage":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockCollage{
+				out = append(out, &InputRichBlockCollage{
 					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "details":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockDetails{
+				out = append(out, &InputRichBlockDetails{
 					Type:    deref(item.Type),
 					Summary: deref(item.Summary),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					IsOpen:  deref(item.IsOpen),
 				})
 			case "divider":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockDivider{
+				out = append(out, &InputRichBlockDivider{
 					Type: deref(item.Type),
 				})
 			case "document":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockDocument{
+				out = append(out, &InputRichBlockDocument{
 					Type:     deref(item.Type),
 					Document: deref(item.Document),
 					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "expandable_blockquote":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockExpandableBlockQuotation{
+				out = append(out, &InputRichBlockExpandableBlockQuotation{
 					Type:   deref(item.Type),
 					Text:   deref(item.Text),
 					Credit: deref(item.Credit),
 				})
 			case "footer":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockFooter{
+				out = append(out, &InputRichBlockFooter{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "heading":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockSectionHeading{
+				out = append(out, &InputRichBlockSectionHeading{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 					Size: deref(item.Size),
 				})
 			case "list":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockList{
+				out = append(out, &InputRichBlockList{
 					Type:  deref(item.Type),
 					Items: deref(item.Items),
 				})
 			case "map":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockMap{
+				out = append(out, &InputRichBlockMap{
 					Type:     deref(item.Type),
 					Location: deref(item.Location),
 					Zoom:     deref(item.Zoom),
@@ -7237,41 +7265,41 @@ func (impl *InputRichBlockSlideshow) UnmarshalJSON(data []byte) error {
 					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "mathematical_expression":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockMathematicalExpression{
+				out = append(out, &InputRichBlockMathematicalExpression{
 					Type:       deref(item.Type),
 					Expression: deref(item.Expression),
 				})
 			case "paragraph":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockParagraph{
+				out = append(out, &InputRichBlockParagraph{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "photo":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockPhoto{
+				out = append(out, &InputRichBlockPhoto{
 					Type:    deref(item.Type),
 					Photo:   deref(item.Photo),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "pre":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockPreformatted{
+				out = append(out, &InputRichBlockPreformatted{
 					Type:     deref(item.Type),
 					Text:     deref(item.Text),
 					Language: deref(item.Language),
 				})
 			case "pullquote":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockPullQuotation{
+				out = append(out, &InputRichBlockPullQuotation{
 					Type:   deref(item.Type),
 					Text:   deref(item.Text),
 					Credit: deref(item.Credit),
 				})
 			case "slideshow":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockSlideshow{
+				out = append(out, &InputRichBlockSlideshow{
 					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "table":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockTable{
+				out = append(out, &InputRichBlockTable{
 					Type:       deref(item.Type),
 					Cells:      deref(item.Cells),
 					IsBordered: deref(item.IsBordered),
@@ -7280,58 +7308,60 @@ func (impl *InputRichBlockSlideshow) UnmarshalJSON(data []byte) error {
 					Caption:    unmarshalRawOrZero[any](item.Caption),
 				})
 			case "thinking":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockThinking{
+				out = append(out, &InputRichBlockThinking{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "video":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockVideo{
+				out = append(out, &InputRichBlockVideo{
 					Type:    deref(item.Type),
 					Video:   deref(item.Video),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "voice_note":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockVoiceNote{
+				out = append(out, &InputRichBlockVoiceNote{
 					Type:      deref(item.Type),
 					VoiceNote: deref(item.VoiceNote),
 					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			}
 		}
+		return out
 	}
+	impl.Blocks = parseBlocks(inst.Blocks)
 	return nil
 }
 
 func (impl *InputRichMessage) UnmarshalJSON(data []byte) error {
 	type InputRichBlockUnmarshalJoinedBlocks struct {
-		Type       *string                    `json:"type"`
-		Name       *string                    `json:"name"`
-		Animation  **Animation                `json:"animation"`
-		Caption    json.RawMessage            `json:"caption"`
-		Audio      **Audio                    `json:"audio"`
-		Blocks     *[]InputRichBlock          `json:"blocks"`
-		Credit     *any                       `json:"credit"`
-		Buttons    *[]*RichMessageButton      `json:"buttons"`
-		Align      *string                    `json:"align"`
-		Summary    *any                       `json:"summary"`
-		IsOpen     *bool                      `json:"is_open"`
-		Document   **Document                 `json:"document"`
-		Text       *any                       `json:"text"`
-		Items      *[]*InputRichBlockListItem `json:"items"`
-		Location   **Location                 `json:"location"`
-		Zoom       *int64                     `json:"zoom"`
-		Width      *int64                     `json:"width"`
-		Height     *int64                     `json:"height"`
-		Expression *string                    `json:"expression"`
-		Photo      **Photo                    `json:"photo"`
-		Language   *string                    `json:"language"`
-		Size       *int64                     `json:"size"`
-		Cells      *[][]*RichBlockTableCell   `json:"cells"`
-		IsBordered *bool                      `json:"is_bordered"`
-		IsStriped  *bool                      `json:"is_striped"`
-		IsCompact  *bool                      `json:"is_compact"`
-		Video      **Video                    `json:"video"`
-		VoiceNote  **InputMediaVoiceNote      `json:"voice_note"`
+		Type       *string                                 `json:"type"`
+		Name       *string                                 `json:"name"`
+		Animation  **Animation                             `json:"animation"`
+		Caption    json.RawMessage                         `json:"caption"`
+		Audio      **Audio                                 `json:"audio"`
+		Blocks     *[]*InputRichBlockUnmarshalJoinedBlocks `json:"blocks"`
+		Credit     *any                                    `json:"credit"`
+		Buttons    *[]*RichMessageButton                   `json:"buttons"`
+		Align      *string                                 `json:"align"`
+		Summary    *any                                    `json:"summary"`
+		IsOpen     *bool                                   `json:"is_open"`
+		Document   **Document                              `json:"document"`
+		Text       *any                                    `json:"text"`
+		Items      *[]*InputRichBlockListItem              `json:"items"`
+		Location   **Location                              `json:"location"`
+		Zoom       *int64                                  `json:"zoom"`
+		Width      *int64                                  `json:"width"`
+		Height     *int64                                  `json:"height"`
+		Expression *string                                 `json:"expression"`
+		Photo      **Photo                                 `json:"photo"`
+		Language   *string                                 `json:"language"`
+		Size       *int64                                  `json:"size"`
+		Cells      *[][]*RichBlockTableCell                `json:"cells"`
+		IsBordered *bool                                   `json:"is_bordered"`
+		IsStriped  *bool                                   `json:"is_striped"`
+		IsCompact  *bool                                   `json:"is_compact"`
+		Video      **Video                                 `json:"video"`
+		VoiceNote  **InputMediaVoiceNote                   `json:"voice_note"`
 	}
 	type BaseInstance struct {
 		// Optional. Content of the rich message to send described using HTML formatting.
@@ -7361,89 +7391,93 @@ func (impl *InputRichMessage) UnmarshalJSON(data []byte) error {
 	impl.Media = inst.Media
 	impl.IsRtl = inst.IsRtl
 	impl.SkipEntityDetection = inst.SkipEntityDetection
-	if len(inst.Blocks) != 0 {
-		impl.Blocks = []InputRichBlock{}
-		for _, item := range inst.Blocks {
+	var parseBlocks func(items []*InputRichBlockUnmarshalJoinedBlocks) []InputRichBlock
+	parseBlocks = func(items []*InputRichBlockUnmarshalJoinedBlocks) []InputRichBlock {
+		if len(items) == 0 {
+			return nil
+		}
+		out := []InputRichBlock{}
+		for _, item := range items {
 			if item == nil || item.Type == nil {
 				continue
 			}
 			switch *item.Type {
 			case "anchor":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockAnchor{
+				out = append(out, &InputRichBlockAnchor{
 					Type: deref(item.Type),
 					Name: deref(item.Name),
 				})
 			case "animation":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockAnimation{
+				out = append(out, &InputRichBlockAnimation{
 					Type:      deref(item.Type),
 					Animation: deref(item.Animation),
 					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "audio":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockAudio{
+				out = append(out, &InputRichBlockAudio{
 					Type:    deref(item.Type),
 					Audio:   deref(item.Audio),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "blockquote":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockBlockQuotation{
+				out = append(out, &InputRichBlockBlockQuotation{
 					Type:   deref(item.Type),
-					Blocks: deref(item.Blocks),
+					Blocks: parseBlocks(deref(item.Blocks)),
 					Credit: deref(item.Credit),
 				})
 			case "buttons":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockButtons{
+				out = append(out, &InputRichBlockButtons{
 					Type:    deref(item.Type),
 					Buttons: deref(item.Buttons),
 					Align:   deref(item.Align),
 				})
 			case "collage":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockCollage{
+				out = append(out, &InputRichBlockCollage{
 					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "details":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockDetails{
+				out = append(out, &InputRichBlockDetails{
 					Type:    deref(item.Type),
 					Summary: deref(item.Summary),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					IsOpen:  deref(item.IsOpen),
 				})
 			case "divider":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockDivider{
+				out = append(out, &InputRichBlockDivider{
 					Type: deref(item.Type),
 				})
 			case "document":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockDocument{
+				out = append(out, &InputRichBlockDocument{
 					Type:     deref(item.Type),
 					Document: deref(item.Document),
 					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "expandable_blockquote":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockExpandableBlockQuotation{
+				out = append(out, &InputRichBlockExpandableBlockQuotation{
 					Type:   deref(item.Type),
 					Text:   deref(item.Text),
 					Credit: deref(item.Credit),
 				})
 			case "footer":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockFooter{
+				out = append(out, &InputRichBlockFooter{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "heading":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockSectionHeading{
+				out = append(out, &InputRichBlockSectionHeading{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 					Size: deref(item.Size),
 				})
 			case "list":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockList{
+				out = append(out, &InputRichBlockList{
 					Type:  deref(item.Type),
 					Items: deref(item.Items),
 				})
 			case "map":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockMap{
+				out = append(out, &InputRichBlockMap{
 					Type:     deref(item.Type),
 					Location: deref(item.Location),
 					Zoom:     deref(item.Zoom),
@@ -7452,41 +7486,41 @@ func (impl *InputRichMessage) UnmarshalJSON(data []byte) error {
 					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "mathematical_expression":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockMathematicalExpression{
+				out = append(out, &InputRichBlockMathematicalExpression{
 					Type:       deref(item.Type),
 					Expression: deref(item.Expression),
 				})
 			case "paragraph":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockParagraph{
+				out = append(out, &InputRichBlockParagraph{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "photo":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockPhoto{
+				out = append(out, &InputRichBlockPhoto{
 					Type:    deref(item.Type),
 					Photo:   deref(item.Photo),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "pre":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockPreformatted{
+				out = append(out, &InputRichBlockPreformatted{
 					Type:     deref(item.Type),
 					Text:     deref(item.Text),
 					Language: deref(item.Language),
 				})
 			case "pullquote":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockPullQuotation{
+				out = append(out, &InputRichBlockPullQuotation{
 					Type:   deref(item.Type),
 					Text:   deref(item.Text),
 					Credit: deref(item.Credit),
 				})
 			case "slideshow":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockSlideshow{
+				out = append(out, &InputRichBlockSlideshow{
 					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "table":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockTable{
+				out = append(out, &InputRichBlockTable{
 					Type:       deref(item.Type),
 					Cells:      deref(item.Cells),
 					IsBordered: deref(item.IsBordered),
@@ -7495,25 +7529,27 @@ func (impl *InputRichMessage) UnmarshalJSON(data []byte) error {
 					Caption:    unmarshalRawOrZero[any](item.Caption),
 				})
 			case "thinking":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockThinking{
+				out = append(out, &InputRichBlockThinking{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "video":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockVideo{
+				out = append(out, &InputRichBlockVideo{
 					Type:    deref(item.Type),
 					Video:   deref(item.Video),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "voice_note":
-				impl.Blocks = append(impl.Blocks, &InputRichBlockVoiceNote{
+				out = append(out, &InputRichBlockVoiceNote{
 					Type:      deref(item.Type),
 					VoiceNote: deref(item.VoiceNote),
 					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			}
 		}
+		return out
 	}
+	impl.Blocks = parseBlocks(inst.Blocks)
 	return nil
 }
 
@@ -8306,35 +8342,35 @@ func (impl *ReactionCount) UnmarshalJSON(data []byte) error {
 
 func (impl *RichBlockBlockQuotation) UnmarshalJSON(data []byte) error {
 	type RichBlockUnmarshalJoinedBlocks struct {
-		Type       *string                  `json:"type"`
-		Name       *string                  `json:"name"`
-		Animation  **TelegramAnimation      `json:"animation"`
-		HasSpoiler *bool                    `json:"has_spoiler"`
-		Caption    json.RawMessage          `json:"caption"`
-		Audio      **TelegramAudio          `json:"audio"`
-		Blocks     *[]RichBlock             `json:"blocks"`
-		Credit     *any                     `json:"credit"`
-		Buttons    *[]*RichMessageButton    `json:"buttons"`
-		Align      *string                  `json:"align"`
-		Summary    *any                     `json:"summary"`
-		IsOpen     *bool                    `json:"is_open"`
-		Document   **TelegramDocument       `json:"document"`
-		Text       *any                     `json:"text"`
-		Items      *[]*RichBlockListItem    `json:"items"`
-		Location   **Location               `json:"location"`
-		Zoom       *int64                   `json:"zoom"`
-		Width      *int64                   `json:"width"`
-		Height     *int64                   `json:"height"`
-		Expression *string                  `json:"expression"`
-		Photo      *TelegramPhoto           `json:"photo"`
-		Language   *string                  `json:"language"`
-		Size       *int64                   `json:"size"`
-		Cells      *[][]*RichBlockTableCell `json:"cells"`
-		IsBordered *bool                    `json:"is_bordered"`
-		IsStriped  *bool                    `json:"is_striped"`
-		IsCompact  *bool                    `json:"is_compact"`
-		Video      **TelegramVideo          `json:"video"`
-		VoiceNote  **Voice                  `json:"voice_note"`
+		Type       *string                            `json:"type"`
+		Name       *string                            `json:"name"`
+		Animation  **TelegramAnimation                `json:"animation"`
+		HasSpoiler *bool                              `json:"has_spoiler"`
+		Caption    json.RawMessage                    `json:"caption"`
+		Audio      **TelegramAudio                    `json:"audio"`
+		Blocks     *[]*RichBlockUnmarshalJoinedBlocks `json:"blocks"`
+		Credit     *any                               `json:"credit"`
+		Buttons    *[]*RichMessageButton              `json:"buttons"`
+		Align      *string                            `json:"align"`
+		Summary    *any                               `json:"summary"`
+		IsOpen     *bool                              `json:"is_open"`
+		Document   **TelegramDocument                 `json:"document"`
+		Text       *any                               `json:"text"`
+		Items      *[]*RichBlockListItem              `json:"items"`
+		Location   **Location                         `json:"location"`
+		Zoom       *int64                             `json:"zoom"`
+		Width      *int64                             `json:"width"`
+		Height     *int64                             `json:"height"`
+		Expression *string                            `json:"expression"`
+		Photo      *TelegramPhoto                     `json:"photo"`
+		Language   *string                            `json:"language"`
+		Size       *int64                             `json:"size"`
+		Cells      *[][]*RichBlockTableCell           `json:"cells"`
+		IsBordered *bool                              `json:"is_bordered"`
+		IsStriped  *bool                              `json:"is_striped"`
+		IsCompact  *bool                              `json:"is_compact"`
+		Video      **TelegramVideo                    `json:"video"`
+		VoiceNote  **Voice                            `json:"voice_note"`
 	}
 	type BaseInstance struct {
 		// Type of the block, always “blockquote”
@@ -8350,90 +8386,94 @@ func (impl *RichBlockBlockQuotation) UnmarshalJSON(data []byte) error {
 	}
 	impl.Type = inst.Type
 	impl.Credit = inst.Credit
-	if len(inst.Blocks) != 0 {
-		impl.Blocks = []RichBlock{}
-		for _, item := range inst.Blocks {
+	var parseBlocks func(items []*RichBlockUnmarshalJoinedBlocks) []RichBlock
+	parseBlocks = func(items []*RichBlockUnmarshalJoinedBlocks) []RichBlock {
+		if len(items) == 0 {
+			return nil
+		}
+		out := []RichBlock{}
+		for _, item := range items {
 			if item == nil || item.Type == nil {
 				continue
 			}
 			switch *item.Type {
 			case "anchor":
-				impl.Blocks = append(impl.Blocks, &RichBlockAnchor{
+				out = append(out, &RichBlockAnchor{
 					Type: deref(item.Type),
 					Name: deref(item.Name),
 				})
 			case "animation":
-				impl.Blocks = append(impl.Blocks, &RichBlockAnimation{
+				out = append(out, &RichBlockAnimation{
 					Type:       deref(item.Type),
 					Animation:  deref(item.Animation),
 					HasSpoiler: deref(item.HasSpoiler),
 					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "audio":
-				impl.Blocks = append(impl.Blocks, &RichBlockAudio{
+				out = append(out, &RichBlockAudio{
 					Type:    deref(item.Type),
 					Audio:   deref(item.Audio),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "blockquote":
-				impl.Blocks = append(impl.Blocks, &RichBlockBlockQuotation{
+				out = append(out, &RichBlockBlockQuotation{
 					Type:   deref(item.Type),
-					Blocks: deref(item.Blocks),
+					Blocks: parseBlocks(deref(item.Blocks)),
 					Credit: deref(item.Credit),
 				})
 			case "buttons":
-				impl.Blocks = append(impl.Blocks, &RichBlockButtons{
+				out = append(out, &RichBlockButtons{
 					Type:    deref(item.Type),
 					Buttons: deref(item.Buttons),
 					Align:   deref(item.Align),
 				})
 			case "collage":
-				impl.Blocks = append(impl.Blocks, &RichBlockCollage{
+				out = append(out, &RichBlockCollage{
 					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "details":
-				impl.Blocks = append(impl.Blocks, &RichBlockDetails{
+				out = append(out, &RichBlockDetails{
 					Type:    deref(item.Type),
 					Summary: deref(item.Summary),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					IsOpen:  deref(item.IsOpen),
 				})
 			case "divider":
-				impl.Blocks = append(impl.Blocks, &RichBlockDivider{
+				out = append(out, &RichBlockDivider{
 					Type: deref(item.Type),
 				})
 			case "document":
-				impl.Blocks = append(impl.Blocks, &RichBlockDocument{
+				out = append(out, &RichBlockDocument{
 					Type:     deref(item.Type),
 					Document: deref(item.Document),
 					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "expandable_blockquote":
-				impl.Blocks = append(impl.Blocks, &RichBlockExpandableBlockQuotation{
+				out = append(out, &RichBlockExpandableBlockQuotation{
 					Type:   deref(item.Type),
 					Text:   deref(item.Text),
 					Credit: deref(item.Credit),
 				})
 			case "footer":
-				impl.Blocks = append(impl.Blocks, &RichBlockFooter{
+				out = append(out, &RichBlockFooter{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "heading":
-				impl.Blocks = append(impl.Blocks, &RichBlockSectionHeading{
+				out = append(out, &RichBlockSectionHeading{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 					Size: deref(item.Size),
 				})
 			case "list":
-				impl.Blocks = append(impl.Blocks, &RichBlockList{
+				out = append(out, &RichBlockList{
 					Type:  deref(item.Type),
 					Items: deref(item.Items),
 				})
 			case "map":
-				impl.Blocks = append(impl.Blocks, &RichBlockMap{
+				out = append(out, &RichBlockMap{
 					Type:     deref(item.Type),
 					Location: deref(item.Location),
 					Zoom:     deref(item.Zoom),
@@ -8442,42 +8482,42 @@ func (impl *RichBlockBlockQuotation) UnmarshalJSON(data []byte) error {
 					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "mathematical_expression":
-				impl.Blocks = append(impl.Blocks, &RichBlockMathematicalExpression{
+				out = append(out, &RichBlockMathematicalExpression{
 					Type:       deref(item.Type),
 					Expression: deref(item.Expression),
 				})
 			case "paragraph":
-				impl.Blocks = append(impl.Blocks, &RichBlockParagraph{
+				out = append(out, &RichBlockParagraph{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "photo":
-				impl.Blocks = append(impl.Blocks, &RichBlockPhoto{
+				out = append(out, &RichBlockPhoto{
 					Type:       deref(item.Type),
 					Photo:      deref(item.Photo),
 					HasSpoiler: deref(item.HasSpoiler),
 					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "pre":
-				impl.Blocks = append(impl.Blocks, &RichBlockPreformatted{
+				out = append(out, &RichBlockPreformatted{
 					Type:     deref(item.Type),
 					Text:     deref(item.Text),
 					Language: deref(item.Language),
 				})
 			case "pullquote":
-				impl.Blocks = append(impl.Blocks, &RichBlockPullQuotation{
+				out = append(out, &RichBlockPullQuotation{
 					Type:   deref(item.Type),
 					Text:   deref(item.Text),
 					Credit: deref(item.Credit),
 				})
 			case "slideshow":
-				impl.Blocks = append(impl.Blocks, &RichBlockSlideshow{
+				out = append(out, &RichBlockSlideshow{
 					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "table":
-				impl.Blocks = append(impl.Blocks, &RichBlockTable{
+				out = append(out, &RichBlockTable{
 					Type:       deref(item.Type),
 					Cells:      deref(item.Cells),
 					IsBordered: deref(item.IsBordered),
@@ -8486,60 +8526,62 @@ func (impl *RichBlockBlockQuotation) UnmarshalJSON(data []byte) error {
 					Caption:    unmarshalRawOrZero[any](item.Caption),
 				})
 			case "thinking":
-				impl.Blocks = append(impl.Blocks, &RichBlockThinking{
+				out = append(out, &RichBlockThinking{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "video":
-				impl.Blocks = append(impl.Blocks, &RichBlockVideo{
+				out = append(out, &RichBlockVideo{
 					Type:       deref(item.Type),
 					Video:      deref(item.Video),
 					HasSpoiler: deref(item.HasSpoiler),
 					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "voice_note":
-				impl.Blocks = append(impl.Blocks, &RichBlockVoiceNote{
+				out = append(out, &RichBlockVoiceNote{
 					Type:      deref(item.Type),
 					VoiceNote: deref(item.VoiceNote),
 					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			}
 		}
+		return out
 	}
+	impl.Blocks = parseBlocks(inst.Blocks)
 	return nil
 }
 
 func (impl *RichBlockCollage) UnmarshalJSON(data []byte) error {
 	type RichBlockUnmarshalJoinedBlocks struct {
-		Type       *string                  `json:"type"`
-		Name       *string                  `json:"name"`
-		Animation  **TelegramAnimation      `json:"animation"`
-		HasSpoiler *bool                    `json:"has_spoiler"`
-		Caption    json.RawMessage          `json:"caption"`
-		Audio      **TelegramAudio          `json:"audio"`
-		Blocks     *[]RichBlock             `json:"blocks"`
-		Credit     *any                     `json:"credit"`
-		Buttons    *[]*RichMessageButton    `json:"buttons"`
-		Align      *string                  `json:"align"`
-		Summary    *any                     `json:"summary"`
-		IsOpen     *bool                    `json:"is_open"`
-		Document   **TelegramDocument       `json:"document"`
-		Text       *any                     `json:"text"`
-		Items      *[]*RichBlockListItem    `json:"items"`
-		Location   **Location               `json:"location"`
-		Zoom       *int64                   `json:"zoom"`
-		Width      *int64                   `json:"width"`
-		Height     *int64                   `json:"height"`
-		Expression *string                  `json:"expression"`
-		Photo      *TelegramPhoto           `json:"photo"`
-		Language   *string                  `json:"language"`
-		Size       *int64                   `json:"size"`
-		Cells      *[][]*RichBlockTableCell `json:"cells"`
-		IsBordered *bool                    `json:"is_bordered"`
-		IsStriped  *bool                    `json:"is_striped"`
-		IsCompact  *bool                    `json:"is_compact"`
-		Video      **TelegramVideo          `json:"video"`
-		VoiceNote  **Voice                  `json:"voice_note"`
+		Type       *string                            `json:"type"`
+		Name       *string                            `json:"name"`
+		Animation  **TelegramAnimation                `json:"animation"`
+		HasSpoiler *bool                              `json:"has_spoiler"`
+		Caption    json.RawMessage                    `json:"caption"`
+		Audio      **TelegramAudio                    `json:"audio"`
+		Blocks     *[]*RichBlockUnmarshalJoinedBlocks `json:"blocks"`
+		Credit     *any                               `json:"credit"`
+		Buttons    *[]*RichMessageButton              `json:"buttons"`
+		Align      *string                            `json:"align"`
+		Summary    *any                               `json:"summary"`
+		IsOpen     *bool                              `json:"is_open"`
+		Document   **TelegramDocument                 `json:"document"`
+		Text       *any                               `json:"text"`
+		Items      *[]*RichBlockListItem              `json:"items"`
+		Location   **Location                         `json:"location"`
+		Zoom       *int64                             `json:"zoom"`
+		Width      *int64                             `json:"width"`
+		Height     *int64                             `json:"height"`
+		Expression *string                            `json:"expression"`
+		Photo      *TelegramPhoto                     `json:"photo"`
+		Language   *string                            `json:"language"`
+		Size       *int64                             `json:"size"`
+		Cells      *[][]*RichBlockTableCell           `json:"cells"`
+		IsBordered *bool                              `json:"is_bordered"`
+		IsStriped  *bool                              `json:"is_striped"`
+		IsCompact  *bool                              `json:"is_compact"`
+		Video      **TelegramVideo                    `json:"video"`
+		VoiceNote  **Voice                            `json:"voice_note"`
 	}
 	type BaseInstance struct {
 		// Type of the block, always “collage”
@@ -8555,90 +8597,94 @@ func (impl *RichBlockCollage) UnmarshalJSON(data []byte) error {
 	}
 	impl.Type = inst.Type
 	impl.Caption = inst.Caption
-	if len(inst.Blocks) != 0 {
-		impl.Blocks = []RichBlock{}
-		for _, item := range inst.Blocks {
+	var parseBlocks func(items []*RichBlockUnmarshalJoinedBlocks) []RichBlock
+	parseBlocks = func(items []*RichBlockUnmarshalJoinedBlocks) []RichBlock {
+		if len(items) == 0 {
+			return nil
+		}
+		out := []RichBlock{}
+		for _, item := range items {
 			if item == nil || item.Type == nil {
 				continue
 			}
 			switch *item.Type {
 			case "anchor":
-				impl.Blocks = append(impl.Blocks, &RichBlockAnchor{
+				out = append(out, &RichBlockAnchor{
 					Type: deref(item.Type),
 					Name: deref(item.Name),
 				})
 			case "animation":
-				impl.Blocks = append(impl.Blocks, &RichBlockAnimation{
+				out = append(out, &RichBlockAnimation{
 					Type:       deref(item.Type),
 					Animation:  deref(item.Animation),
 					HasSpoiler: deref(item.HasSpoiler),
 					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "audio":
-				impl.Blocks = append(impl.Blocks, &RichBlockAudio{
+				out = append(out, &RichBlockAudio{
 					Type:    deref(item.Type),
 					Audio:   deref(item.Audio),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "blockquote":
-				impl.Blocks = append(impl.Blocks, &RichBlockBlockQuotation{
+				out = append(out, &RichBlockBlockQuotation{
 					Type:   deref(item.Type),
-					Blocks: deref(item.Blocks),
+					Blocks: parseBlocks(deref(item.Blocks)),
 					Credit: deref(item.Credit),
 				})
 			case "buttons":
-				impl.Blocks = append(impl.Blocks, &RichBlockButtons{
+				out = append(out, &RichBlockButtons{
 					Type:    deref(item.Type),
 					Buttons: deref(item.Buttons),
 					Align:   deref(item.Align),
 				})
 			case "collage":
-				impl.Blocks = append(impl.Blocks, &RichBlockCollage{
+				out = append(out, &RichBlockCollage{
 					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "details":
-				impl.Blocks = append(impl.Blocks, &RichBlockDetails{
+				out = append(out, &RichBlockDetails{
 					Type:    deref(item.Type),
 					Summary: deref(item.Summary),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					IsOpen:  deref(item.IsOpen),
 				})
 			case "divider":
-				impl.Blocks = append(impl.Blocks, &RichBlockDivider{
+				out = append(out, &RichBlockDivider{
 					Type: deref(item.Type),
 				})
 			case "document":
-				impl.Blocks = append(impl.Blocks, &RichBlockDocument{
+				out = append(out, &RichBlockDocument{
 					Type:     deref(item.Type),
 					Document: deref(item.Document),
 					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "expandable_blockquote":
-				impl.Blocks = append(impl.Blocks, &RichBlockExpandableBlockQuotation{
+				out = append(out, &RichBlockExpandableBlockQuotation{
 					Type:   deref(item.Type),
 					Text:   deref(item.Text),
 					Credit: deref(item.Credit),
 				})
 			case "footer":
-				impl.Blocks = append(impl.Blocks, &RichBlockFooter{
+				out = append(out, &RichBlockFooter{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "heading":
-				impl.Blocks = append(impl.Blocks, &RichBlockSectionHeading{
+				out = append(out, &RichBlockSectionHeading{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 					Size: deref(item.Size),
 				})
 			case "list":
-				impl.Blocks = append(impl.Blocks, &RichBlockList{
+				out = append(out, &RichBlockList{
 					Type:  deref(item.Type),
 					Items: deref(item.Items),
 				})
 			case "map":
-				impl.Blocks = append(impl.Blocks, &RichBlockMap{
+				out = append(out, &RichBlockMap{
 					Type:     deref(item.Type),
 					Location: deref(item.Location),
 					Zoom:     deref(item.Zoom),
@@ -8647,42 +8693,42 @@ func (impl *RichBlockCollage) UnmarshalJSON(data []byte) error {
 					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "mathematical_expression":
-				impl.Blocks = append(impl.Blocks, &RichBlockMathematicalExpression{
+				out = append(out, &RichBlockMathematicalExpression{
 					Type:       deref(item.Type),
 					Expression: deref(item.Expression),
 				})
 			case "paragraph":
-				impl.Blocks = append(impl.Blocks, &RichBlockParagraph{
+				out = append(out, &RichBlockParagraph{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "photo":
-				impl.Blocks = append(impl.Blocks, &RichBlockPhoto{
+				out = append(out, &RichBlockPhoto{
 					Type:       deref(item.Type),
 					Photo:      deref(item.Photo),
 					HasSpoiler: deref(item.HasSpoiler),
 					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "pre":
-				impl.Blocks = append(impl.Blocks, &RichBlockPreformatted{
+				out = append(out, &RichBlockPreformatted{
 					Type:     deref(item.Type),
 					Text:     deref(item.Text),
 					Language: deref(item.Language),
 				})
 			case "pullquote":
-				impl.Blocks = append(impl.Blocks, &RichBlockPullQuotation{
+				out = append(out, &RichBlockPullQuotation{
 					Type:   deref(item.Type),
 					Text:   deref(item.Text),
 					Credit: deref(item.Credit),
 				})
 			case "slideshow":
-				impl.Blocks = append(impl.Blocks, &RichBlockSlideshow{
+				out = append(out, &RichBlockSlideshow{
 					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "table":
-				impl.Blocks = append(impl.Blocks, &RichBlockTable{
+				out = append(out, &RichBlockTable{
 					Type:       deref(item.Type),
 					Cells:      deref(item.Cells),
 					IsBordered: deref(item.IsBordered),
@@ -8691,60 +8737,62 @@ func (impl *RichBlockCollage) UnmarshalJSON(data []byte) error {
 					Caption:    unmarshalRawOrZero[any](item.Caption),
 				})
 			case "thinking":
-				impl.Blocks = append(impl.Blocks, &RichBlockThinking{
+				out = append(out, &RichBlockThinking{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "video":
-				impl.Blocks = append(impl.Blocks, &RichBlockVideo{
+				out = append(out, &RichBlockVideo{
 					Type:       deref(item.Type),
 					Video:      deref(item.Video),
 					HasSpoiler: deref(item.HasSpoiler),
 					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "voice_note":
-				impl.Blocks = append(impl.Blocks, &RichBlockVoiceNote{
+				out = append(out, &RichBlockVoiceNote{
 					Type:      deref(item.Type),
 					VoiceNote: deref(item.VoiceNote),
 					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			}
 		}
+		return out
 	}
+	impl.Blocks = parseBlocks(inst.Blocks)
 	return nil
 }
 
 func (impl *RichBlockDetails) UnmarshalJSON(data []byte) error {
 	type RichBlockUnmarshalJoinedBlocks struct {
-		Type       *string                  `json:"type"`
-		Name       *string                  `json:"name"`
-		Animation  **TelegramAnimation      `json:"animation"`
-		HasSpoiler *bool                    `json:"has_spoiler"`
-		Caption    json.RawMessage          `json:"caption"`
-		Audio      **TelegramAudio          `json:"audio"`
-		Blocks     *[]RichBlock             `json:"blocks"`
-		Credit     *any                     `json:"credit"`
-		Buttons    *[]*RichMessageButton    `json:"buttons"`
-		Align      *string                  `json:"align"`
-		Summary    *any                     `json:"summary"`
-		IsOpen     *bool                    `json:"is_open"`
-		Document   **TelegramDocument       `json:"document"`
-		Text       *any                     `json:"text"`
-		Items      *[]*RichBlockListItem    `json:"items"`
-		Location   **Location               `json:"location"`
-		Zoom       *int64                   `json:"zoom"`
-		Width      *int64                   `json:"width"`
-		Height     *int64                   `json:"height"`
-		Expression *string                  `json:"expression"`
-		Photo      *TelegramPhoto           `json:"photo"`
-		Language   *string                  `json:"language"`
-		Size       *int64                   `json:"size"`
-		Cells      *[][]*RichBlockTableCell `json:"cells"`
-		IsBordered *bool                    `json:"is_bordered"`
-		IsStriped  *bool                    `json:"is_striped"`
-		IsCompact  *bool                    `json:"is_compact"`
-		Video      **TelegramVideo          `json:"video"`
-		VoiceNote  **Voice                  `json:"voice_note"`
+		Type       *string                            `json:"type"`
+		Name       *string                            `json:"name"`
+		Animation  **TelegramAnimation                `json:"animation"`
+		HasSpoiler *bool                              `json:"has_spoiler"`
+		Caption    json.RawMessage                    `json:"caption"`
+		Audio      **TelegramAudio                    `json:"audio"`
+		Blocks     *[]*RichBlockUnmarshalJoinedBlocks `json:"blocks"`
+		Credit     *any                               `json:"credit"`
+		Buttons    *[]*RichMessageButton              `json:"buttons"`
+		Align      *string                            `json:"align"`
+		Summary    *any                               `json:"summary"`
+		IsOpen     *bool                              `json:"is_open"`
+		Document   **TelegramDocument                 `json:"document"`
+		Text       *any                               `json:"text"`
+		Items      *[]*RichBlockListItem              `json:"items"`
+		Location   **Location                         `json:"location"`
+		Zoom       *int64                             `json:"zoom"`
+		Width      *int64                             `json:"width"`
+		Height     *int64                             `json:"height"`
+		Expression *string                            `json:"expression"`
+		Photo      *TelegramPhoto                     `json:"photo"`
+		Language   *string                            `json:"language"`
+		Size       *int64                             `json:"size"`
+		Cells      *[][]*RichBlockTableCell           `json:"cells"`
+		IsBordered *bool                              `json:"is_bordered"`
+		IsStriped  *bool                              `json:"is_striped"`
+		IsCompact  *bool                              `json:"is_compact"`
+		Video      **TelegramVideo                    `json:"video"`
+		VoiceNote  **Voice                            `json:"voice_note"`
 	}
 	type BaseInstance struct {
 		// Type of the block, always “details”
@@ -8763,90 +8811,94 @@ func (impl *RichBlockDetails) UnmarshalJSON(data []byte) error {
 	impl.Type = inst.Type
 	impl.Summary = inst.Summary
 	impl.IsOpen = inst.IsOpen
-	if len(inst.Blocks) != 0 {
-		impl.Blocks = []RichBlock{}
-		for _, item := range inst.Blocks {
+	var parseBlocks func(items []*RichBlockUnmarshalJoinedBlocks) []RichBlock
+	parseBlocks = func(items []*RichBlockUnmarshalJoinedBlocks) []RichBlock {
+		if len(items) == 0 {
+			return nil
+		}
+		out := []RichBlock{}
+		for _, item := range items {
 			if item == nil || item.Type == nil {
 				continue
 			}
 			switch *item.Type {
 			case "anchor":
-				impl.Blocks = append(impl.Blocks, &RichBlockAnchor{
+				out = append(out, &RichBlockAnchor{
 					Type: deref(item.Type),
 					Name: deref(item.Name),
 				})
 			case "animation":
-				impl.Blocks = append(impl.Blocks, &RichBlockAnimation{
+				out = append(out, &RichBlockAnimation{
 					Type:       deref(item.Type),
 					Animation:  deref(item.Animation),
 					HasSpoiler: deref(item.HasSpoiler),
 					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "audio":
-				impl.Blocks = append(impl.Blocks, &RichBlockAudio{
+				out = append(out, &RichBlockAudio{
 					Type:    deref(item.Type),
 					Audio:   deref(item.Audio),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "blockquote":
-				impl.Blocks = append(impl.Blocks, &RichBlockBlockQuotation{
+				out = append(out, &RichBlockBlockQuotation{
 					Type:   deref(item.Type),
-					Blocks: deref(item.Blocks),
+					Blocks: parseBlocks(deref(item.Blocks)),
 					Credit: deref(item.Credit),
 				})
 			case "buttons":
-				impl.Blocks = append(impl.Blocks, &RichBlockButtons{
+				out = append(out, &RichBlockButtons{
 					Type:    deref(item.Type),
 					Buttons: deref(item.Buttons),
 					Align:   deref(item.Align),
 				})
 			case "collage":
-				impl.Blocks = append(impl.Blocks, &RichBlockCollage{
+				out = append(out, &RichBlockCollage{
 					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "details":
-				impl.Blocks = append(impl.Blocks, &RichBlockDetails{
+				out = append(out, &RichBlockDetails{
 					Type:    deref(item.Type),
 					Summary: deref(item.Summary),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					IsOpen:  deref(item.IsOpen),
 				})
 			case "divider":
-				impl.Blocks = append(impl.Blocks, &RichBlockDivider{
+				out = append(out, &RichBlockDivider{
 					Type: deref(item.Type),
 				})
 			case "document":
-				impl.Blocks = append(impl.Blocks, &RichBlockDocument{
+				out = append(out, &RichBlockDocument{
 					Type:     deref(item.Type),
 					Document: deref(item.Document),
 					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "expandable_blockquote":
-				impl.Blocks = append(impl.Blocks, &RichBlockExpandableBlockQuotation{
+				out = append(out, &RichBlockExpandableBlockQuotation{
 					Type:   deref(item.Type),
 					Text:   deref(item.Text),
 					Credit: deref(item.Credit),
 				})
 			case "footer":
-				impl.Blocks = append(impl.Blocks, &RichBlockFooter{
+				out = append(out, &RichBlockFooter{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "heading":
-				impl.Blocks = append(impl.Blocks, &RichBlockSectionHeading{
+				out = append(out, &RichBlockSectionHeading{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 					Size: deref(item.Size),
 				})
 			case "list":
-				impl.Blocks = append(impl.Blocks, &RichBlockList{
+				out = append(out, &RichBlockList{
 					Type:  deref(item.Type),
 					Items: deref(item.Items),
 				})
 			case "map":
-				impl.Blocks = append(impl.Blocks, &RichBlockMap{
+				out = append(out, &RichBlockMap{
 					Type:     deref(item.Type),
 					Location: deref(item.Location),
 					Zoom:     deref(item.Zoom),
@@ -8855,42 +8907,42 @@ func (impl *RichBlockDetails) UnmarshalJSON(data []byte) error {
 					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "mathematical_expression":
-				impl.Blocks = append(impl.Blocks, &RichBlockMathematicalExpression{
+				out = append(out, &RichBlockMathematicalExpression{
 					Type:       deref(item.Type),
 					Expression: deref(item.Expression),
 				})
 			case "paragraph":
-				impl.Blocks = append(impl.Blocks, &RichBlockParagraph{
+				out = append(out, &RichBlockParagraph{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "photo":
-				impl.Blocks = append(impl.Blocks, &RichBlockPhoto{
+				out = append(out, &RichBlockPhoto{
 					Type:       deref(item.Type),
 					Photo:      deref(item.Photo),
 					HasSpoiler: deref(item.HasSpoiler),
 					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "pre":
-				impl.Blocks = append(impl.Blocks, &RichBlockPreformatted{
+				out = append(out, &RichBlockPreformatted{
 					Type:     deref(item.Type),
 					Text:     deref(item.Text),
 					Language: deref(item.Language),
 				})
 			case "pullquote":
-				impl.Blocks = append(impl.Blocks, &RichBlockPullQuotation{
+				out = append(out, &RichBlockPullQuotation{
 					Type:   deref(item.Type),
 					Text:   deref(item.Text),
 					Credit: deref(item.Credit),
 				})
 			case "slideshow":
-				impl.Blocks = append(impl.Blocks, &RichBlockSlideshow{
+				out = append(out, &RichBlockSlideshow{
 					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "table":
-				impl.Blocks = append(impl.Blocks, &RichBlockTable{
+				out = append(out, &RichBlockTable{
 					Type:       deref(item.Type),
 					Cells:      deref(item.Cells),
 					IsBordered: deref(item.IsBordered),
@@ -8899,60 +8951,62 @@ func (impl *RichBlockDetails) UnmarshalJSON(data []byte) error {
 					Caption:    unmarshalRawOrZero[any](item.Caption),
 				})
 			case "thinking":
-				impl.Blocks = append(impl.Blocks, &RichBlockThinking{
+				out = append(out, &RichBlockThinking{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "video":
-				impl.Blocks = append(impl.Blocks, &RichBlockVideo{
+				out = append(out, &RichBlockVideo{
 					Type:       deref(item.Type),
 					Video:      deref(item.Video),
 					HasSpoiler: deref(item.HasSpoiler),
 					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "voice_note":
-				impl.Blocks = append(impl.Blocks, &RichBlockVoiceNote{
+				out = append(out, &RichBlockVoiceNote{
 					Type:      deref(item.Type),
 					VoiceNote: deref(item.VoiceNote),
 					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			}
 		}
+		return out
 	}
+	impl.Blocks = parseBlocks(inst.Blocks)
 	return nil
 }
 
 func (impl *RichBlockListItem) UnmarshalJSON(data []byte) error {
 	type RichBlockUnmarshalJoinedBlocks struct {
-		Type       *string                  `json:"type"`
-		Name       *string                  `json:"name"`
-		Animation  **TelegramAnimation      `json:"animation"`
-		HasSpoiler *bool                    `json:"has_spoiler"`
-		Caption    json.RawMessage          `json:"caption"`
-		Audio      **TelegramAudio          `json:"audio"`
-		Blocks     *[]RichBlock             `json:"blocks"`
-		Credit     *any                     `json:"credit"`
-		Buttons    *[]*RichMessageButton    `json:"buttons"`
-		Align      *string                  `json:"align"`
-		Summary    *any                     `json:"summary"`
-		IsOpen     *bool                    `json:"is_open"`
-		Document   **TelegramDocument       `json:"document"`
-		Text       *any                     `json:"text"`
-		Items      *[]*RichBlockListItem    `json:"items"`
-		Location   **Location               `json:"location"`
-		Zoom       *int64                   `json:"zoom"`
-		Width      *int64                   `json:"width"`
-		Height     *int64                   `json:"height"`
-		Expression *string                  `json:"expression"`
-		Photo      *TelegramPhoto           `json:"photo"`
-		Language   *string                  `json:"language"`
-		Size       *int64                   `json:"size"`
-		Cells      *[][]*RichBlockTableCell `json:"cells"`
-		IsBordered *bool                    `json:"is_bordered"`
-		IsStriped  *bool                    `json:"is_striped"`
-		IsCompact  *bool                    `json:"is_compact"`
-		Video      **TelegramVideo          `json:"video"`
-		VoiceNote  **Voice                  `json:"voice_note"`
+		Type       *string                            `json:"type"`
+		Name       *string                            `json:"name"`
+		Animation  **TelegramAnimation                `json:"animation"`
+		HasSpoiler *bool                              `json:"has_spoiler"`
+		Caption    json.RawMessage                    `json:"caption"`
+		Audio      **TelegramAudio                    `json:"audio"`
+		Blocks     *[]*RichBlockUnmarshalJoinedBlocks `json:"blocks"`
+		Credit     *any                               `json:"credit"`
+		Buttons    *[]*RichMessageButton              `json:"buttons"`
+		Align      *string                            `json:"align"`
+		Summary    *any                               `json:"summary"`
+		IsOpen     *bool                              `json:"is_open"`
+		Document   **TelegramDocument                 `json:"document"`
+		Text       *any                               `json:"text"`
+		Items      *[]*RichBlockListItem              `json:"items"`
+		Location   **Location                         `json:"location"`
+		Zoom       *int64                             `json:"zoom"`
+		Width      *int64                             `json:"width"`
+		Height     *int64                             `json:"height"`
+		Expression *string                            `json:"expression"`
+		Photo      *TelegramPhoto                     `json:"photo"`
+		Language   *string                            `json:"language"`
+		Size       *int64                             `json:"size"`
+		Cells      *[][]*RichBlockTableCell           `json:"cells"`
+		IsBordered *bool                              `json:"is_bordered"`
+		IsStriped  *bool                              `json:"is_striped"`
+		IsCompact  *bool                              `json:"is_compact"`
+		Video      **TelegramVideo                    `json:"video"`
+		VoiceNote  **Voice                            `json:"voice_note"`
 	}
 	type BaseInstance struct {
 		// Label of the item
@@ -8978,90 +9032,94 @@ func (impl *RichBlockListItem) UnmarshalJSON(data []byte) error {
 	impl.IsChecked = inst.IsChecked
 	impl.Value = inst.Value
 	impl.Type = inst.Type
-	if len(inst.Blocks) != 0 {
-		impl.Blocks = []RichBlock{}
-		for _, item := range inst.Blocks {
+	var parseBlocks func(items []*RichBlockUnmarshalJoinedBlocks) []RichBlock
+	parseBlocks = func(items []*RichBlockUnmarshalJoinedBlocks) []RichBlock {
+		if len(items) == 0 {
+			return nil
+		}
+		out := []RichBlock{}
+		for _, item := range items {
 			if item == nil || item.Type == nil {
 				continue
 			}
 			switch *item.Type {
 			case "anchor":
-				impl.Blocks = append(impl.Blocks, &RichBlockAnchor{
+				out = append(out, &RichBlockAnchor{
 					Type: deref(item.Type),
 					Name: deref(item.Name),
 				})
 			case "animation":
-				impl.Blocks = append(impl.Blocks, &RichBlockAnimation{
+				out = append(out, &RichBlockAnimation{
 					Type:       deref(item.Type),
 					Animation:  deref(item.Animation),
 					HasSpoiler: deref(item.HasSpoiler),
 					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "audio":
-				impl.Blocks = append(impl.Blocks, &RichBlockAudio{
+				out = append(out, &RichBlockAudio{
 					Type:    deref(item.Type),
 					Audio:   deref(item.Audio),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "blockquote":
-				impl.Blocks = append(impl.Blocks, &RichBlockBlockQuotation{
+				out = append(out, &RichBlockBlockQuotation{
 					Type:   deref(item.Type),
-					Blocks: deref(item.Blocks),
+					Blocks: parseBlocks(deref(item.Blocks)),
 					Credit: deref(item.Credit),
 				})
 			case "buttons":
-				impl.Blocks = append(impl.Blocks, &RichBlockButtons{
+				out = append(out, &RichBlockButtons{
 					Type:    deref(item.Type),
 					Buttons: deref(item.Buttons),
 					Align:   deref(item.Align),
 				})
 			case "collage":
-				impl.Blocks = append(impl.Blocks, &RichBlockCollage{
+				out = append(out, &RichBlockCollage{
 					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "details":
-				impl.Blocks = append(impl.Blocks, &RichBlockDetails{
+				out = append(out, &RichBlockDetails{
 					Type:    deref(item.Type),
 					Summary: deref(item.Summary),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					IsOpen:  deref(item.IsOpen),
 				})
 			case "divider":
-				impl.Blocks = append(impl.Blocks, &RichBlockDivider{
+				out = append(out, &RichBlockDivider{
 					Type: deref(item.Type),
 				})
 			case "document":
-				impl.Blocks = append(impl.Blocks, &RichBlockDocument{
+				out = append(out, &RichBlockDocument{
 					Type:     deref(item.Type),
 					Document: deref(item.Document),
 					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "expandable_blockquote":
-				impl.Blocks = append(impl.Blocks, &RichBlockExpandableBlockQuotation{
+				out = append(out, &RichBlockExpandableBlockQuotation{
 					Type:   deref(item.Type),
 					Text:   deref(item.Text),
 					Credit: deref(item.Credit),
 				})
 			case "footer":
-				impl.Blocks = append(impl.Blocks, &RichBlockFooter{
+				out = append(out, &RichBlockFooter{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "heading":
-				impl.Blocks = append(impl.Blocks, &RichBlockSectionHeading{
+				out = append(out, &RichBlockSectionHeading{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 					Size: deref(item.Size),
 				})
 			case "list":
-				impl.Blocks = append(impl.Blocks, &RichBlockList{
+				out = append(out, &RichBlockList{
 					Type:  deref(item.Type),
 					Items: deref(item.Items),
 				})
 			case "map":
-				impl.Blocks = append(impl.Blocks, &RichBlockMap{
+				out = append(out, &RichBlockMap{
 					Type:     deref(item.Type),
 					Location: deref(item.Location),
 					Zoom:     deref(item.Zoom),
@@ -9070,42 +9128,42 @@ func (impl *RichBlockListItem) UnmarshalJSON(data []byte) error {
 					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "mathematical_expression":
-				impl.Blocks = append(impl.Blocks, &RichBlockMathematicalExpression{
+				out = append(out, &RichBlockMathematicalExpression{
 					Type:       deref(item.Type),
 					Expression: deref(item.Expression),
 				})
 			case "paragraph":
-				impl.Blocks = append(impl.Blocks, &RichBlockParagraph{
+				out = append(out, &RichBlockParagraph{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "photo":
-				impl.Blocks = append(impl.Blocks, &RichBlockPhoto{
+				out = append(out, &RichBlockPhoto{
 					Type:       deref(item.Type),
 					Photo:      deref(item.Photo),
 					HasSpoiler: deref(item.HasSpoiler),
 					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "pre":
-				impl.Blocks = append(impl.Blocks, &RichBlockPreformatted{
+				out = append(out, &RichBlockPreformatted{
 					Type:     deref(item.Type),
 					Text:     deref(item.Text),
 					Language: deref(item.Language),
 				})
 			case "pullquote":
-				impl.Blocks = append(impl.Blocks, &RichBlockPullQuotation{
+				out = append(out, &RichBlockPullQuotation{
 					Type:   deref(item.Type),
 					Text:   deref(item.Text),
 					Credit: deref(item.Credit),
 				})
 			case "slideshow":
-				impl.Blocks = append(impl.Blocks, &RichBlockSlideshow{
+				out = append(out, &RichBlockSlideshow{
 					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "table":
-				impl.Blocks = append(impl.Blocks, &RichBlockTable{
+				out = append(out, &RichBlockTable{
 					Type:       deref(item.Type),
 					Cells:      deref(item.Cells),
 					IsBordered: deref(item.IsBordered),
@@ -9114,60 +9172,62 @@ func (impl *RichBlockListItem) UnmarshalJSON(data []byte) error {
 					Caption:    unmarshalRawOrZero[any](item.Caption),
 				})
 			case "thinking":
-				impl.Blocks = append(impl.Blocks, &RichBlockThinking{
+				out = append(out, &RichBlockThinking{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "video":
-				impl.Blocks = append(impl.Blocks, &RichBlockVideo{
+				out = append(out, &RichBlockVideo{
 					Type:       deref(item.Type),
 					Video:      deref(item.Video),
 					HasSpoiler: deref(item.HasSpoiler),
 					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "voice_note":
-				impl.Blocks = append(impl.Blocks, &RichBlockVoiceNote{
+				out = append(out, &RichBlockVoiceNote{
 					Type:      deref(item.Type),
 					VoiceNote: deref(item.VoiceNote),
 					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			}
 		}
+		return out
 	}
+	impl.Blocks = parseBlocks(inst.Blocks)
 	return nil
 }
 
 func (impl *RichBlockSlideshow) UnmarshalJSON(data []byte) error {
 	type RichBlockUnmarshalJoinedBlocks struct {
-		Type       *string                  `json:"type"`
-		Name       *string                  `json:"name"`
-		Animation  **TelegramAnimation      `json:"animation"`
-		HasSpoiler *bool                    `json:"has_spoiler"`
-		Caption    json.RawMessage          `json:"caption"`
-		Audio      **TelegramAudio          `json:"audio"`
-		Blocks     *[]RichBlock             `json:"blocks"`
-		Credit     *any                     `json:"credit"`
-		Buttons    *[]*RichMessageButton    `json:"buttons"`
-		Align      *string                  `json:"align"`
-		Summary    *any                     `json:"summary"`
-		IsOpen     *bool                    `json:"is_open"`
-		Document   **TelegramDocument       `json:"document"`
-		Text       *any                     `json:"text"`
-		Items      *[]*RichBlockListItem    `json:"items"`
-		Location   **Location               `json:"location"`
-		Zoom       *int64                   `json:"zoom"`
-		Width      *int64                   `json:"width"`
-		Height     *int64                   `json:"height"`
-		Expression *string                  `json:"expression"`
-		Photo      *TelegramPhoto           `json:"photo"`
-		Language   *string                  `json:"language"`
-		Size       *int64                   `json:"size"`
-		Cells      *[][]*RichBlockTableCell `json:"cells"`
-		IsBordered *bool                    `json:"is_bordered"`
-		IsStriped  *bool                    `json:"is_striped"`
-		IsCompact  *bool                    `json:"is_compact"`
-		Video      **TelegramVideo          `json:"video"`
-		VoiceNote  **Voice                  `json:"voice_note"`
+		Type       *string                            `json:"type"`
+		Name       *string                            `json:"name"`
+		Animation  **TelegramAnimation                `json:"animation"`
+		HasSpoiler *bool                              `json:"has_spoiler"`
+		Caption    json.RawMessage                    `json:"caption"`
+		Audio      **TelegramAudio                    `json:"audio"`
+		Blocks     *[]*RichBlockUnmarshalJoinedBlocks `json:"blocks"`
+		Credit     *any                               `json:"credit"`
+		Buttons    *[]*RichMessageButton              `json:"buttons"`
+		Align      *string                            `json:"align"`
+		Summary    *any                               `json:"summary"`
+		IsOpen     *bool                              `json:"is_open"`
+		Document   **TelegramDocument                 `json:"document"`
+		Text       *any                               `json:"text"`
+		Items      *[]*RichBlockListItem              `json:"items"`
+		Location   **Location                         `json:"location"`
+		Zoom       *int64                             `json:"zoom"`
+		Width      *int64                             `json:"width"`
+		Height     *int64                             `json:"height"`
+		Expression *string                            `json:"expression"`
+		Photo      *TelegramPhoto                     `json:"photo"`
+		Language   *string                            `json:"language"`
+		Size       *int64                             `json:"size"`
+		Cells      *[][]*RichBlockTableCell           `json:"cells"`
+		IsBordered *bool                              `json:"is_bordered"`
+		IsStriped  *bool                              `json:"is_striped"`
+		IsCompact  *bool                              `json:"is_compact"`
+		Video      **TelegramVideo                    `json:"video"`
+		VoiceNote  **Voice                            `json:"voice_note"`
 	}
 	type BaseInstance struct {
 		// Type of the block, always “slideshow”
@@ -9183,90 +9243,94 @@ func (impl *RichBlockSlideshow) UnmarshalJSON(data []byte) error {
 	}
 	impl.Type = inst.Type
 	impl.Caption = inst.Caption
-	if len(inst.Blocks) != 0 {
-		impl.Blocks = []RichBlock{}
-		for _, item := range inst.Blocks {
+	var parseBlocks func(items []*RichBlockUnmarshalJoinedBlocks) []RichBlock
+	parseBlocks = func(items []*RichBlockUnmarshalJoinedBlocks) []RichBlock {
+		if len(items) == 0 {
+			return nil
+		}
+		out := []RichBlock{}
+		for _, item := range items {
 			if item == nil || item.Type == nil {
 				continue
 			}
 			switch *item.Type {
 			case "anchor":
-				impl.Blocks = append(impl.Blocks, &RichBlockAnchor{
+				out = append(out, &RichBlockAnchor{
 					Type: deref(item.Type),
 					Name: deref(item.Name),
 				})
 			case "animation":
-				impl.Blocks = append(impl.Blocks, &RichBlockAnimation{
+				out = append(out, &RichBlockAnimation{
 					Type:       deref(item.Type),
 					Animation:  deref(item.Animation),
 					HasSpoiler: deref(item.HasSpoiler),
 					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "audio":
-				impl.Blocks = append(impl.Blocks, &RichBlockAudio{
+				out = append(out, &RichBlockAudio{
 					Type:    deref(item.Type),
 					Audio:   deref(item.Audio),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "blockquote":
-				impl.Blocks = append(impl.Blocks, &RichBlockBlockQuotation{
+				out = append(out, &RichBlockBlockQuotation{
 					Type:   deref(item.Type),
-					Blocks: deref(item.Blocks),
+					Blocks: parseBlocks(deref(item.Blocks)),
 					Credit: deref(item.Credit),
 				})
 			case "buttons":
-				impl.Blocks = append(impl.Blocks, &RichBlockButtons{
+				out = append(out, &RichBlockButtons{
 					Type:    deref(item.Type),
 					Buttons: deref(item.Buttons),
 					Align:   deref(item.Align),
 				})
 			case "collage":
-				impl.Blocks = append(impl.Blocks, &RichBlockCollage{
+				out = append(out, &RichBlockCollage{
 					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "details":
-				impl.Blocks = append(impl.Blocks, &RichBlockDetails{
+				out = append(out, &RichBlockDetails{
 					Type:    deref(item.Type),
 					Summary: deref(item.Summary),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					IsOpen:  deref(item.IsOpen),
 				})
 			case "divider":
-				impl.Blocks = append(impl.Blocks, &RichBlockDivider{
+				out = append(out, &RichBlockDivider{
 					Type: deref(item.Type),
 				})
 			case "document":
-				impl.Blocks = append(impl.Blocks, &RichBlockDocument{
+				out = append(out, &RichBlockDocument{
 					Type:     deref(item.Type),
 					Document: deref(item.Document),
 					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "expandable_blockquote":
-				impl.Blocks = append(impl.Blocks, &RichBlockExpandableBlockQuotation{
+				out = append(out, &RichBlockExpandableBlockQuotation{
 					Type:   deref(item.Type),
 					Text:   deref(item.Text),
 					Credit: deref(item.Credit),
 				})
 			case "footer":
-				impl.Blocks = append(impl.Blocks, &RichBlockFooter{
+				out = append(out, &RichBlockFooter{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "heading":
-				impl.Blocks = append(impl.Blocks, &RichBlockSectionHeading{
+				out = append(out, &RichBlockSectionHeading{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 					Size: deref(item.Size),
 				})
 			case "list":
-				impl.Blocks = append(impl.Blocks, &RichBlockList{
+				out = append(out, &RichBlockList{
 					Type:  deref(item.Type),
 					Items: deref(item.Items),
 				})
 			case "map":
-				impl.Blocks = append(impl.Blocks, &RichBlockMap{
+				out = append(out, &RichBlockMap{
 					Type:     deref(item.Type),
 					Location: deref(item.Location),
 					Zoom:     deref(item.Zoom),
@@ -9275,42 +9339,42 @@ func (impl *RichBlockSlideshow) UnmarshalJSON(data []byte) error {
 					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "mathematical_expression":
-				impl.Blocks = append(impl.Blocks, &RichBlockMathematicalExpression{
+				out = append(out, &RichBlockMathematicalExpression{
 					Type:       deref(item.Type),
 					Expression: deref(item.Expression),
 				})
 			case "paragraph":
-				impl.Blocks = append(impl.Blocks, &RichBlockParagraph{
+				out = append(out, &RichBlockParagraph{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "photo":
-				impl.Blocks = append(impl.Blocks, &RichBlockPhoto{
+				out = append(out, &RichBlockPhoto{
 					Type:       deref(item.Type),
 					Photo:      deref(item.Photo),
 					HasSpoiler: deref(item.HasSpoiler),
 					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "pre":
-				impl.Blocks = append(impl.Blocks, &RichBlockPreformatted{
+				out = append(out, &RichBlockPreformatted{
 					Type:     deref(item.Type),
 					Text:     deref(item.Text),
 					Language: deref(item.Language),
 				})
 			case "pullquote":
-				impl.Blocks = append(impl.Blocks, &RichBlockPullQuotation{
+				out = append(out, &RichBlockPullQuotation{
 					Type:   deref(item.Type),
 					Text:   deref(item.Text),
 					Credit: deref(item.Credit),
 				})
 			case "slideshow":
-				impl.Blocks = append(impl.Blocks, &RichBlockSlideshow{
+				out = append(out, &RichBlockSlideshow{
 					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "table":
-				impl.Blocks = append(impl.Blocks, &RichBlockTable{
+				out = append(out, &RichBlockTable{
 					Type:       deref(item.Type),
 					Cells:      deref(item.Cells),
 					IsBordered: deref(item.IsBordered),
@@ -9319,60 +9383,62 @@ func (impl *RichBlockSlideshow) UnmarshalJSON(data []byte) error {
 					Caption:    unmarshalRawOrZero[any](item.Caption),
 				})
 			case "thinking":
-				impl.Blocks = append(impl.Blocks, &RichBlockThinking{
+				out = append(out, &RichBlockThinking{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "video":
-				impl.Blocks = append(impl.Blocks, &RichBlockVideo{
+				out = append(out, &RichBlockVideo{
 					Type:       deref(item.Type),
 					Video:      deref(item.Video),
 					HasSpoiler: deref(item.HasSpoiler),
 					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "voice_note":
-				impl.Blocks = append(impl.Blocks, &RichBlockVoiceNote{
+				out = append(out, &RichBlockVoiceNote{
 					Type:      deref(item.Type),
 					VoiceNote: deref(item.VoiceNote),
 					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			}
 		}
+		return out
 	}
+	impl.Blocks = parseBlocks(inst.Blocks)
 	return nil
 }
 
 func (impl *RichMessage) UnmarshalJSON(data []byte) error {
 	type RichBlockUnmarshalJoinedBlocks struct {
-		Type       *string                  `json:"type"`
-		Name       *string                  `json:"name"`
-		Animation  **TelegramAnimation      `json:"animation"`
-		HasSpoiler *bool                    `json:"has_spoiler"`
-		Caption    json.RawMessage          `json:"caption"`
-		Audio      **TelegramAudio          `json:"audio"`
-		Blocks     *[]RichBlock             `json:"blocks"`
-		Credit     *any                     `json:"credit"`
-		Buttons    *[]*RichMessageButton    `json:"buttons"`
-		Align      *string                  `json:"align"`
-		Summary    *any                     `json:"summary"`
-		IsOpen     *bool                    `json:"is_open"`
-		Document   **TelegramDocument       `json:"document"`
-		Text       *any                     `json:"text"`
-		Items      *[]*RichBlockListItem    `json:"items"`
-		Location   **Location               `json:"location"`
-		Zoom       *int64                   `json:"zoom"`
-		Width      *int64                   `json:"width"`
-		Height     *int64                   `json:"height"`
-		Expression *string                  `json:"expression"`
-		Photo      *TelegramPhoto           `json:"photo"`
-		Language   *string                  `json:"language"`
-		Size       *int64                   `json:"size"`
-		Cells      *[][]*RichBlockTableCell `json:"cells"`
-		IsBordered *bool                    `json:"is_bordered"`
-		IsStriped  *bool                    `json:"is_striped"`
-		IsCompact  *bool                    `json:"is_compact"`
-		Video      **TelegramVideo          `json:"video"`
-		VoiceNote  **Voice                  `json:"voice_note"`
+		Type       *string                            `json:"type"`
+		Name       *string                            `json:"name"`
+		Animation  **TelegramAnimation                `json:"animation"`
+		HasSpoiler *bool                              `json:"has_spoiler"`
+		Caption    json.RawMessage                    `json:"caption"`
+		Audio      **TelegramAudio                    `json:"audio"`
+		Blocks     *[]*RichBlockUnmarshalJoinedBlocks `json:"blocks"`
+		Credit     *any                               `json:"credit"`
+		Buttons    *[]*RichMessageButton              `json:"buttons"`
+		Align      *string                            `json:"align"`
+		Summary    *any                               `json:"summary"`
+		IsOpen     *bool                              `json:"is_open"`
+		Document   **TelegramDocument                 `json:"document"`
+		Text       *any                               `json:"text"`
+		Items      *[]*RichBlockListItem              `json:"items"`
+		Location   **Location                         `json:"location"`
+		Zoom       *int64                             `json:"zoom"`
+		Width      *int64                             `json:"width"`
+		Height     *int64                             `json:"height"`
+		Expression *string                            `json:"expression"`
+		Photo      *TelegramPhoto                     `json:"photo"`
+		Language   *string                            `json:"language"`
+		Size       *int64                             `json:"size"`
+		Cells      *[][]*RichBlockTableCell           `json:"cells"`
+		IsBordered *bool                              `json:"is_bordered"`
+		IsStriped  *bool                              `json:"is_striped"`
+		IsCompact  *bool                              `json:"is_compact"`
+		Video      **TelegramVideo                    `json:"video"`
+		VoiceNote  **Voice                            `json:"voice_note"`
 	}
 	type BaseInstance struct {
 		// Optional. True, if the rich message must be shown right-to-left
@@ -9385,90 +9451,94 @@ func (impl *RichMessage) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	impl.IsRtl = inst.IsRtl
-	if len(inst.Blocks) != 0 {
-		impl.Blocks = []RichBlock{}
-		for _, item := range inst.Blocks {
+	var parseBlocks func(items []*RichBlockUnmarshalJoinedBlocks) []RichBlock
+	parseBlocks = func(items []*RichBlockUnmarshalJoinedBlocks) []RichBlock {
+		if len(items) == 0 {
+			return nil
+		}
+		out := []RichBlock{}
+		for _, item := range items {
 			if item == nil || item.Type == nil {
 				continue
 			}
 			switch *item.Type {
 			case "anchor":
-				impl.Blocks = append(impl.Blocks, &RichBlockAnchor{
+				out = append(out, &RichBlockAnchor{
 					Type: deref(item.Type),
 					Name: deref(item.Name),
 				})
 			case "animation":
-				impl.Blocks = append(impl.Blocks, &RichBlockAnimation{
+				out = append(out, &RichBlockAnimation{
 					Type:       deref(item.Type),
 					Animation:  deref(item.Animation),
 					HasSpoiler: deref(item.HasSpoiler),
 					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "audio":
-				impl.Blocks = append(impl.Blocks, &RichBlockAudio{
+				out = append(out, &RichBlockAudio{
 					Type:    deref(item.Type),
 					Audio:   deref(item.Audio),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "blockquote":
-				impl.Blocks = append(impl.Blocks, &RichBlockBlockQuotation{
+				out = append(out, &RichBlockBlockQuotation{
 					Type:   deref(item.Type),
-					Blocks: deref(item.Blocks),
+					Blocks: parseBlocks(deref(item.Blocks)),
 					Credit: deref(item.Credit),
 				})
 			case "buttons":
-				impl.Blocks = append(impl.Blocks, &RichBlockButtons{
+				out = append(out, &RichBlockButtons{
 					Type:    deref(item.Type),
 					Buttons: deref(item.Buttons),
 					Align:   deref(item.Align),
 				})
 			case "collage":
-				impl.Blocks = append(impl.Blocks, &RichBlockCollage{
+				out = append(out, &RichBlockCollage{
 					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "details":
-				impl.Blocks = append(impl.Blocks, &RichBlockDetails{
+				out = append(out, &RichBlockDetails{
 					Type:    deref(item.Type),
 					Summary: deref(item.Summary),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					IsOpen:  deref(item.IsOpen),
 				})
 			case "divider":
-				impl.Blocks = append(impl.Blocks, &RichBlockDivider{
+				out = append(out, &RichBlockDivider{
 					Type: deref(item.Type),
 				})
 			case "document":
-				impl.Blocks = append(impl.Blocks, &RichBlockDocument{
+				out = append(out, &RichBlockDocument{
 					Type:     deref(item.Type),
 					Document: deref(item.Document),
 					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "expandable_blockquote":
-				impl.Blocks = append(impl.Blocks, &RichBlockExpandableBlockQuotation{
+				out = append(out, &RichBlockExpandableBlockQuotation{
 					Type:   deref(item.Type),
 					Text:   deref(item.Text),
 					Credit: deref(item.Credit),
 				})
 			case "footer":
-				impl.Blocks = append(impl.Blocks, &RichBlockFooter{
+				out = append(out, &RichBlockFooter{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "heading":
-				impl.Blocks = append(impl.Blocks, &RichBlockSectionHeading{
+				out = append(out, &RichBlockSectionHeading{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 					Size: deref(item.Size),
 				})
 			case "list":
-				impl.Blocks = append(impl.Blocks, &RichBlockList{
+				out = append(out, &RichBlockList{
 					Type:  deref(item.Type),
 					Items: deref(item.Items),
 				})
 			case "map":
-				impl.Blocks = append(impl.Blocks, &RichBlockMap{
+				out = append(out, &RichBlockMap{
 					Type:     deref(item.Type),
 					Location: deref(item.Location),
 					Zoom:     deref(item.Zoom),
@@ -9477,42 +9547,42 @@ func (impl *RichMessage) UnmarshalJSON(data []byte) error {
 					Caption:  unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "mathematical_expression":
-				impl.Blocks = append(impl.Blocks, &RichBlockMathematicalExpression{
+				out = append(out, &RichBlockMathematicalExpression{
 					Type:       deref(item.Type),
 					Expression: deref(item.Expression),
 				})
 			case "paragraph":
-				impl.Blocks = append(impl.Blocks, &RichBlockParagraph{
+				out = append(out, &RichBlockParagraph{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "photo":
-				impl.Blocks = append(impl.Blocks, &RichBlockPhoto{
+				out = append(out, &RichBlockPhoto{
 					Type:       deref(item.Type),
 					Photo:      deref(item.Photo),
 					HasSpoiler: deref(item.HasSpoiler),
 					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "pre":
-				impl.Blocks = append(impl.Blocks, &RichBlockPreformatted{
+				out = append(out, &RichBlockPreformatted{
 					Type:     deref(item.Type),
 					Text:     deref(item.Text),
 					Language: deref(item.Language),
 				})
 			case "pullquote":
-				impl.Blocks = append(impl.Blocks, &RichBlockPullQuotation{
+				out = append(out, &RichBlockPullQuotation{
 					Type:   deref(item.Type),
 					Text:   deref(item.Text),
 					Credit: deref(item.Credit),
 				})
 			case "slideshow":
-				impl.Blocks = append(impl.Blocks, &RichBlockSlideshow{
+				out = append(out, &RichBlockSlideshow{
 					Type:    deref(item.Type),
-					Blocks:  deref(item.Blocks),
+					Blocks:  parseBlocks(deref(item.Blocks)),
 					Caption: unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "table":
-				impl.Blocks = append(impl.Blocks, &RichBlockTable{
+				out = append(out, &RichBlockTable{
 					Type:       deref(item.Type),
 					Cells:      deref(item.Cells),
 					IsBordered: deref(item.IsBordered),
@@ -9521,26 +9591,28 @@ func (impl *RichMessage) UnmarshalJSON(data []byte) error {
 					Caption:    unmarshalRawOrZero[any](item.Caption),
 				})
 			case "thinking":
-				impl.Blocks = append(impl.Blocks, &RichBlockThinking{
+				out = append(out, &RichBlockThinking{
 					Type: deref(item.Type),
 					Text: deref(item.Text),
 				})
 			case "video":
-				impl.Blocks = append(impl.Blocks, &RichBlockVideo{
+				out = append(out, &RichBlockVideo{
 					Type:       deref(item.Type),
 					Video:      deref(item.Video),
 					HasSpoiler: deref(item.HasSpoiler),
 					Caption:    unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			case "voice_note":
-				impl.Blocks = append(impl.Blocks, &RichBlockVoiceNote{
+				out = append(out, &RichBlockVoiceNote{
 					Type:      deref(item.Type),
 					VoiceNote: deref(item.VoiceNote),
 					Caption:   unmarshalRawOrZero[*RichBlockCaption](item.Caption),
 				})
 			}
 		}
+		return out
 	}
+	impl.Blocks = parseBlocks(inst.Blocks)
 	return nil
 }
 

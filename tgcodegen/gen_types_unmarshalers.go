@@ -59,6 +59,16 @@ func (variant *structUnmarshalerVariant) ambiguousFields() map[string]bool {
 	return ambiguous
 }
 
+// isSelfReferential reports whether field's type is this variant's own
+// interface type (e.g. RichBlockBlockQuotation.Blocks is []RichBlock, and
+// RichBlock is exactly the interface this variant decodes). Such a field
+// can't be declared with its real type, since encoding/json can't pick a
+// concrete value for a bare interface - it needs to go through the same
+// discriminated decode as the enclosing variant, recursively.
+func (variant *structUnmarshalerVariant) isSelfReferential(field *goTypeStructField) bool {
+	return unwrapType(field.Type) == variant.InterfaceType
+}
+
 func (variant *structUnmarshalerVariant) buildStructDeclaration() string {
 	ambiguous := variant.ambiguousFields()
 	result := []string{
@@ -74,7 +84,14 @@ func (variant *structUnmarshalerVariant) buildStructDeclaration() string {
 				result = append(result, fmt.Sprintf("%s json.RawMessage %s", field.Name, tag))
 				continue
 			}
-			result = append(result, fmt.Sprintf("%s *%s %s", field.Name, field.Type, tag))
+			fieldType := field.Type
+			if variant.isSelfReferential(field) {
+				// Decode into the joined struct itself (the same shape used
+				// at this call site), not the bare interface - it gets
+				// resolved into concrete values recursively during parsing.
+				fieldType = strings.Replace(field.Type, variant.InterfaceType, "*"+variant.Type, 1)
+			}
+			result = append(result, fmt.Sprintf("%s *%s %s", field.Name, fieldType, tag))
 		}
 	}
 	result = stringsUnique(result)
@@ -265,6 +282,21 @@ func (variant *structUnmarshalerVariant) buildParsingCodeWithDiscriminators(disc
 	return strings.Join(result, "\n")
 }
 
+// hasSelfReferentialOption reports whether any of this variant's options
+// has a field of the variant's own interface type - i.e. whether decoding
+// it can recurse into itself (e.g. a blockquote block's "blocks" field
+// holds more RichBlock values, some of which may themselves be blockquotes).
+func (variant *structUnmarshalerVariant) hasSelfReferentialOption() bool {
+	for _, option := range variant.Options {
+		for _, field := range option.Fields {
+			if variant.isSelfReferential(field) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func (variant *structUnmarshalerVariant) buildParsingCodeSliceWithDiscriminators(discr *discriminator) string {
 	slices.SortFunc(variant.Options, func(a, b *goTypeStruct) int {
 		return cmp.Compare(len(a.Fields), len(b.Fields))
@@ -278,15 +310,38 @@ func (variant *structUnmarshalerVariant) buildParsingCodeSliceWithDiscriminators
 		)
 	}
 
+	// Recursive variants (an option holds more values of the same
+	// interface, e.g. nested rich-message blocks) are parsed by a local
+	// closure so each nesting level can call back into the same decode
+	// logic instead of hitting the bare interface type directly.
+	recursive := variant.hasSelfReferentialOption()
+	parseFn := fmt.Sprintf("parse%s", variant.Name)
+
 	inst := fmt.Sprintf("inst.%s", variant.Name)
 	target := fmt.Sprintf("impl.%s", variant.Name)
-	result := []string{
-		fmt.Sprintf("if len(%s) != 0 {", inst),
-		fmt.Sprintf("%s = []%s{}", target, variant.InterfaceType),
-		fmt.Sprintf("for _, item := range %s {", inst),
+	items := inst
+	out := target
+	result := []string{}
+	if recursive {
+		items = "items"
+		out = "out"
+		result = append(result,
+			fmt.Sprintf("var %s func(items []*%s) []%s", parseFn, variant.Type, variant.InterfaceType),
+			fmt.Sprintf("%s = func(items []*%s) []%s {", parseFn, variant.Type, variant.InterfaceType),
+			"if len(items) == 0 { return nil }",
+			fmt.Sprintf("%s := []%s{}", out, variant.InterfaceType),
+		)
+	} else {
+		result = append(result,
+			fmt.Sprintf("if len(%s) != 0 {", inst),
+			fmt.Sprintf("%s = []%s{}", target, variant.InterfaceType),
+		)
+	}
+	result = append(result,
+		fmt.Sprintf("for _, item := range %s {", items),
 		fmt.Sprintf("if item == nil || item.%s == nil { continue }", snakeCaseToCamelCase(discr.property)),
 		fmt.Sprintf("switch *item.%s {", snakeCaseToCamelCase(discr.property)),
-	}
+	)
 
 	findOption := func(name string) *goTypeStruct {
 		i := slices.IndexFunc(variant.Options, func(el *goTypeStruct) bool { return unwrapType(el.Name) == name })
@@ -297,12 +352,16 @@ func (variant *structUnmarshalerVariant) buildParsingCodeSliceWithDiscriminators
 		option := findOption(discr.mapping[value])
 		result = append(result,
 			fmt.Sprintf("case \"%s\":", value),
-			fmt.Sprintf("%s = append(%s, &%s{", target, target, option.Name),
+			fmt.Sprintf("%s = append(%s, &%s{", out, out, option.Name),
 		)
 
 		for _, optionField := range option.Fields {
+			valueExpr := variant.buildFieldValue("item", optionField)
+			if recursive && variant.isSelfReferential(optionField) {
+				valueExpr = fmt.Sprintf("%s(deref(item.%s))", parseFn, optionField.Name)
+			}
 			result = append(result,
-				fmt.Sprintf("%s: %s,", optionField.Name, variant.buildFieldValue("item", optionField)),
+				fmt.Sprintf("%s: %s,", optionField.Name, valueExpr),
 			)
 		}
 		result = append(result, "})")
@@ -311,8 +370,16 @@ func (variant *structUnmarshalerVariant) buildParsingCodeSliceWithDiscriminators
 	result = append(result,
 		"}", // switch
 		"}", // for
-		"}", // if
 	)
+	if recursive {
+		result = append(result,
+			fmt.Sprintf("return %s", out),
+			"}", // closure
+			fmt.Sprintf("%s = %s(%s)", target, parseFn, inst),
+		)
+	} else {
+		result = append(result, "}") // if
+	}
 	return strings.Join(result, "\n")
 }
 
