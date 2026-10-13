@@ -4,8 +4,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"os"
-
-	"github.com/kittenbark/tginternalvideo"
 )
 
 var (
@@ -163,26 +161,12 @@ func probeISOBMFF(path string, videoFrameDecode bool) (*mediaMeta, error) {
 // internal panic in the experimental decoder - since this entire path is
 // opt-in best-effort on top of the metadata-only behavior above, which must
 // never be put at risk by it.
+//
+// Temporarily disabled: the decoder lives in tginternalvideo, a nested
+// module not yet published as its own repo, so requiring it here breaks
+// `go get` for every consumer of this module. Re-enable once it's published.
 func tryDecodeH264Thumbnail(file *os.File, videoTrak []byte) (thumbPath string) {
-	defer func() { _ = recover() }()
-
-	avcCPayload, sampleOffset, sampleSize, ok := locateH264Sample(videoTrak)
-	if !ok {
-		return ""
-	}
-	sample := make([]byte, sampleSize)
-	if _, err := file.ReadAt(sample, sampleOffset); err != nil {
-		return ""
-	}
-	img, err := tginternalvideo.DecodeFirstFrame(avcCPayload, sample)
-	if err != nil {
-		return ""
-	}
-	path, err := writeJPEGThumbnail(img)
-	if err != nil {
-		return ""
-	}
-	return path
+	return ""
 }
 
 // isVideoTrak descends trak -> mdia -> hdlr and reports whether its

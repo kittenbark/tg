@@ -305,6 +305,7 @@ func TestProbeISOBMFFVideoFrameDecode(t *testing.T) {
 		if _, err := os.Stat(path); err != nil {
 			t.Skipf("fixture not found: %v", err)
 		}
+		t.Skip("tryDecodeH264Thumbnail is disabled pending tginternalvideo's publish as its own module - see video_metadata.go")
 
 		meta, err := probeISOBMFF(path, true)
 		if err != nil {
