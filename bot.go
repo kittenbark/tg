@@ -20,6 +20,12 @@ type Bot struct {
 	contextTimeout    time.Duration
 	contextCancelFunc context.CancelFunc
 
+	// lifecycleLock guards contextCancelFunc, stopUpdates and ready —
+	// Start writes them, Stop/StopImmediately/Ready read them from other
+	// goroutines, so plain field access races (confirmed with -race).
+	lifecycleLock sync.Mutex
+	ready         chan struct{}
+
 	pipelineLock   sync.Mutex
 	pipeline       pipe
 	plugins        map[PluginHookType][]Plugin
@@ -206,17 +212,36 @@ func (bot *Bot) Start(updates ...*Update) {
 
 	ctx, cancel := context.WithCancel(bot.context)
 	defer cancel()
+
+	bot.lifecycleLock.Lock()
 	bot.contextCancelFunc = cancel
-	bot.stopUpdates = make(chan bool, 1)
+	stopUpdates := make(chan bool, 1)
+	bot.stopUpdates = stopUpdates
+	// Reuse whatever channel Ready() is currently handing out (the one from
+	// construction, or the one a prior Start left behind — see below) rather
+	// than replacing it: a caller may have already fetched it via Ready()
+	// before this goroutine got scheduled, and swapping in a new channel
+	// here would leave that caller waiting on one that never closes.
+	ready := bot.ready
+	bot.lifecycleLock.Unlock()
+
+	// Leave a fresh, open channel behind for the next Start call, once this
+	// one is done with its own ready channel (already closed by then).
+	defer func() {
+		bot.lifecycleLock.Lock()
+		bot.ready = make(chan struct{})
+		bot.lifecycleLock.Unlock()
+	}()
 
 	bot.handleUpdates(ctx, updates)
+	close(ready)
 
 	for {
 		pollStart := time.Now()
 		select {
 		case <-ctx.Done():
 			return
-		case <-bot.stopUpdates:
+		case <-stopUpdates:
 			return
 		default:
 			bot.longPollIteration(ctx)
@@ -226,13 +251,42 @@ func (bot *Bot) Start(updates ...*Update) {
 }
 
 // Stop lets handlers finish their jobs, do not check for any more updates.
+// Safe to call before Start (a no-op) and concurrently with Start/StopImmediately.
 func (bot *Bot) Stop() {
-	bot.stopUpdates <- true
+	bot.lifecycleLock.Lock()
+	stopUpdates := bot.stopUpdates
+	bot.lifecycleLock.Unlock()
+
+	if stopUpdates == nil {
+		return
+	}
+	select {
+	case stopUpdates <- true:
+	default:
+	}
 }
 
 // StopImmediately stops polling, by canceling the context.
+// Safe to call before Start (a no-op) and concurrently with Start/Stop.
 func (bot *Bot) StopImmediately() {
-	bot.contextCancelFunc()
+	bot.lifecycleLock.Lock()
+	cancel := bot.contextCancelFunc
+	bot.lifecycleLock.Unlock()
+
+	if cancel != nil {
+		cancel()
+	}
+}
+
+// Ready returns a channel that closes once Start has processed any
+// pre-loaded updates and is about to begin polling. Safe to call before
+// Start — the channel it returns is the one that specific next Start call
+// will close. After Start returns (Stop/StopImmediately), a fresh, not yet
+// closed channel takes its place for the next Start call.
+func (bot *Bot) Ready() <-chan struct{} {
+	bot.lifecycleLock.Lock()
+	defer bot.lifecycleLock.Unlock()
+	return bot.ready
 }
 
 func (bot *Bot) longPollIteration(ctx context.Context) {
@@ -242,6 +296,9 @@ func (bot *Bot) longPollIteration(ctx context.Context) {
 	// Note: Telegram gives you 3s+ timeout if you have empty list if updates and poll for updates too often.
 	if err != nil && !errors.Is(err, context.Canceled) && !errors.Is(err, context.DeadlineExceeded) {
 		bot.pluginsHook(PluginHookOnError, &PluginHookContextOnError{updatesCtx, bot, err})
+		if IsUnauthorized(err) {
+			bot.StopImmediately()
+		}
 		return
 	}
 	if len(updates) == 0 {

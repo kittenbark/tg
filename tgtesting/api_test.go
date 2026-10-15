@@ -247,6 +247,113 @@ func TestStartAndStop(t *testing.T) {
 	}
 }
 
+func testBot(ctx context.Context) *tg.Bot {
+	return tg.New(&tg.Config{
+		Token:  ctx.Value(tg.ContextToken).(string),
+		ApiURL: ctx.Value(tg.ContextApiUrl).(string),
+	})
+}
+
+func TestStopBeforeStart(t *testing.T) {
+	ctx := NewTestingContext(t, &Config{})
+	bot := testBot(ctx)
+
+	done := make(chan struct{})
+	go func() {
+		bot.Stop()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(time.Second):
+		t.Fatalf("Stop blocked forever when called before any Start")
+	}
+}
+
+func TestReady(t *testing.T) {
+	ctx := NewTestingContext(t, &Config{
+		Stubs: []Stub{
+			{Url: "/getUpdates", Result: StubResultOK(200, []*tg.Update{})},
+		},
+	})
+
+	bot := testBot(ctx)
+	go bot.Start()
+	defer bot.StopImmediately()
+
+	select {
+	case <-bot.Ready():
+	case <-time.After(time.Second):
+		t.Fatalf("Ready never closed after Start")
+	}
+}
+
+func TestUnauthorizedAutoStop(t *testing.T) {
+	ctx := NewTestingContext(t, &Config{
+		Stubs: []Stub{
+			{Url: "/getUpdates", Result: StubResultError(http.StatusUnauthorized, "Unauthorized")},
+		},
+	})
+
+	bot := testBot(ctx)
+
+	done := make(chan struct{})
+	go func() {
+		bot.Start()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(2 * time.Second):
+		t.Fatalf("Start did not stop on its own after a 401 Unauthorized")
+	}
+}
+
+// TestStartStopRace is the regression test for the race fixed in Start/Stop/
+// StopImmediately/Ready: contextCancelFunc and stopUpdates used to be read
+// and written without synchronization (confirmed with -race). Run this test
+// with -race to catch regressions.
+func TestStartStopRace(t *testing.T) {
+	ctx := NewTestingContext(t, &Config{
+		Stubs: []Stub{
+			{Url: "/getUpdates", Result: StubResultOK(200, []*tg.Update{})},
+		},
+	})
+
+	bot := testBot(ctx)
+	startDone := make(chan struct{})
+
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		defer close(startDone)
+		for range 20 {
+			bot.Start()
+		}
+	}()
+
+	wg.Add(3)
+	hammer := func(fn func()) {
+		defer wg.Done()
+		for {
+			select {
+			case <-startDone:
+				return
+			default:
+				fn()
+			}
+		}
+	}
+	go hammer(bot.Stop)
+	go hammer(bot.StopImmediately)
+	go hammer(func() { _ = bot.Ready() })
+
+	wg.Wait()
+}
+
 func TestPlugins(t *testing.T) {
 	SetTestingEnv(t, &Config{
 		Stubs: []Stub{

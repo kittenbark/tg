@@ -169,6 +169,7 @@ func TryNew(cfg *Config) (*Bot, error) {
 		context:           ctx,
 		contextCancelFunc: func() {},
 		contextTimeout:    withDefault(cfg.TimeoutHandle, defaultHandleTimeout, 0),
+		ready:             make(chan struct{}),
 		plugins: map[PluginHookType][]Plugin{
 			PluginHookOnUpdate:       {},
 			PluginHookOnFilter:       {},

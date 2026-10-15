@@ -46,6 +46,11 @@ func IsTooManyRequests(err error) bool {
 	return errors.As(err, &errErrorTooManyRequests)
 }
 
+func IsUnauthorized(err error) bool {
+	var errError *Error
+	return errors.As(err, &errError) && errError.Code == http.StatusUnauthorized
+}
+
 func IsApiError(err error) bool {
 	var errError *Error
 	var errErrorTooManyRequests *ErrorTooManyRequests

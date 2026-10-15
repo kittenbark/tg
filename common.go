@@ -15,6 +15,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -75,6 +76,27 @@ func (group *SyncedGroup) Synced(handler HandlerFunc) HandlerFunc {
 		defer group.mutex.Unlock()
 		return handler(ctx, upd)
 	}
+}
+
+// Dynamic wraps an initial HandlerFunc so it can be hot-swapped later via the
+// returned reload closure — register handler once with Branch/Handle, then
+// call reload to atomically swap in a new HandlerFunc at any time while the
+// bot is running. Filter/Branch/Command/Handle are not safe to call again
+// after Start (see bb7be88); Dynamic exists precisely so you don't need to.
+func Dynamic(initial HandlerFunc) (handler HandlerFunc, reload func(HandlerFunc)) {
+	var current atomic.Pointer[HandlerFunc]
+	current.Store(&initial)
+	handler = func(ctx context.Context, upd *Update) error {
+		h := current.Load()
+		if h == nil || *h == nil {
+			return nil
+		}
+		return (*h)(ctx, upd)
+	}
+	reload = func(next HandlerFunc) {
+		current.Store(&next)
+	}
+	return handler, reload
 }
 
 func Either(fn ...FilterFunc) FilterFunc {
@@ -490,6 +512,25 @@ func OnManagedBotCreated(ctx context.Context, upd *Update) bool {
 // owner change of a bot managed by the current bot.
 func OnManagedBotUpdated(ctx context.Context, upd *Update) bool {
 	return upd != nil && upd.ManagedBot != nil
+}
+
+// CommonRequestManagedBotKeyboard builds a one-button reply keyboard that lets
+// a user create a new bot to be managed by this one (via request_managed_bot).
+// suggested[0] is the suggested bot name, suggested[1] the suggested username;
+// both are optional and may be omitted.
+func CommonRequestManagedBotKeyboard(text string, requestId int64, suggested ...string) *ReplyKeyboardMarkup {
+	return &ReplyKeyboardMarkup{
+		Keyboard: [][]*KeyboardButton{{{
+			Text: text,
+			RequestManagedBot: &KeyboardButtonRequestManagedBot{
+				RequestId:         requestId,
+				SuggestedName:     at(suggested, 0, ""),
+				SuggestedUsername: at(suggested, 1, ""),
+			},
+		}}},
+		ResizeKeyboard:  true,
+		OneTimeKeyboard: true,
+	}
 }
 
 func OnNewChatMember(filters ...func(user *User) bool) FilterFunc {
