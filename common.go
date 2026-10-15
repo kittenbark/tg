@@ -479,6 +479,19 @@ func OnChatJoinRequest(ctx context.Context, upd *Update) bool {
 	return upd.ChatJoinRequest != nil
 }
 
+// OnManagedBotCreated matches the message sent when a user finishes creating
+// a bot that will be managed by the current bot (via a request_managed_bot
+// keyboard button). Fetch the new bot's token with GetManagedBotToken.
+func OnManagedBotCreated(ctx context.Context, upd *Update) bool {
+	return OnMessage(ctx, upd) && upd.Message.ManagedBotCreated != nil
+}
+
+// OnManagedBotUpdated matches updates about the creation, token rotation, or
+// owner change of a bot managed by the current bot.
+func OnManagedBotUpdated(ctx context.Context, upd *Update) bool {
+	return upd != nil && upd.ManagedBot != nil
+}
+
 func OnNewChatMember(filters ...func(user *User) bool) FilterFunc {
 	return func(ctx context.Context, upd *Update) bool {
 		if upd == nil || upd.Message == nil || len(upd.Message.NewChatMembers) == 0 {
