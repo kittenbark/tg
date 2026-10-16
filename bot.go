@@ -183,7 +183,7 @@ func (bot *Bot) OnError(fn OnErrorFunc) *Bot {
 }
 
 func (bot *Bot) Help(commands ...string) *Bot {
-	return bot.HelpScoped(&BotCommandScopeDefault{}, commands...)
+	return bot.HelpScoped(&BotCommandScopeDefault{Type: "default"}, commands...)
 }
 
 func (bot *Bot) HelpScoped(scope BotCommandScope, commands ...string) *Bot {

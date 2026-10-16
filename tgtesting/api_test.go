@@ -2,6 +2,7 @@ package tgtesting
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/kittenbark/tg"
@@ -687,5 +688,38 @@ func MakeTestError[Request any](request func(ctx context.Context) (*Request, err
 		})
 		_, err := request(ctx)
 		require.Error(t, err)
+	}
+}
+
+// TestHelpSendsDefaultScopeType is the regression test for Help sending
+// BotCommandScopeDefault with an empty Type field (serialized as
+// {"type":""}) instead of {"type":"default"} — some servers reject the
+// empty value outright with "can't parse BotCommandScope: Unsupported type
+// specified", even though the official API treats an omitted scope the
+// same as BotCommandScopeDefault.
+func TestHelpSendsDefaultScopeType(t *testing.T) {
+	var body struct {
+		Scope struct {
+			Type string `json:"type"`
+		} `json:"scope"`
+	}
+	ctx := NewTestingContext(t, &Config{
+		Stubs: []Stub{
+			{
+				Url: "/setMyCommands",
+				Result: func(req *http.Request) (int, *Response) {
+					if err := json.NewDecoder(req.Body).Decode(&body); err != nil {
+						t.Fatalf("decode setMyCommands body: %v", err)
+					}
+					return http.StatusOK, &Response{Ok: true, Result: true}
+				},
+			},
+		},
+	})
+
+	testBot(ctx).Help("/start", "test")
+
+	if body.Scope.Type != "default" {
+		t.Fatalf(`expected Help's scope to be {"type":"default"}, got %q`, body.Scope.Type)
 	}
 }
