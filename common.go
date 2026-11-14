@@ -501,6 +501,18 @@ func OnChatJoinRequest(ctx context.Context, upd *Update) bool {
 	return upd.ChatJoinRequest != nil
 }
 
+func OnChatId(id int64) FilterFunc {
+	return func(ctx context.Context, upd *Update) bool {
+		return getChatId(upd) == id
+	}
+}
+
+func OnSenderId(id int64) FilterFunc {
+	return func(ctx context.Context, upd *Update) bool {
+		return getSenderId(upd) == id
+	}
+}
+
 // OnManagedBotCreated matches the message sent when a user finishes creating
 // a bot that will be managed by the current bot (via a request_managed_bot
 // keyboard button). Fetch the new bot's token with GetManagedBotToken.
@@ -606,115 +618,155 @@ func isMessagePrivate(msg *Message) bool {
 }
 
 func getChatId(upd *Update) int64 {
-	defer func() { _ = recover() }()
-
+	var msg *Message
+	var chat *Chat
+	var user *User
 	switch {
 	case upd == nil:
 		return 0
 	case upd.Message != nil:
-		return upd.Message.Chat.Id
+		msg = upd.Message
 	case upd.EditedMessage != nil:
-		return upd.EditedMessage.Chat.Id
-
+		msg = upd.EditedMessage
 	case upd.ChannelPost != nil:
-		return upd.ChannelPost.Chat.Id
+		msg = upd.ChannelPost
 	case upd.EditedChannelPost != nil:
-		return upd.EditedChannelPost.Chat.Id
-
-	case upd.InlineQuery != nil:
-		return upd.InlineQuery.From.Id
-	case upd.ChosenInlineResult != nil:
-		return upd.ChosenInlineResult.From.Id
-	case upd.CallbackQuery != nil:
-		return upd.CallbackQuery.From.Id
-	case upd.ShippingQuery != nil:
-		return upd.ShippingQuery.From.Id
-	case upd.PreCheckoutQuery != nil:
-		return upd.PreCheckoutQuery.From.Id
-
-	case upd.ChatJoinRequest != nil:
-		return upd.ChatJoinRequest.Chat.Id
-
-	case upd.MyChatMember != nil:
-		return upd.MyChatMember.Chat.Id
-	case upd.ChatMember != nil:
-		return upd.ChatMember.Chat.Id
-
-	case upd.ChatBoost != nil:
-		return upd.ChatBoost.Chat.Id
-	case upd.RemovedChatBoost != nil:
-		return upd.RemovedChatBoost.Chat.Id
-
-	case upd.MessageReaction != nil:
-		return upd.MessageReaction.Chat.Id
-	case upd.MessageReactionCount != nil:
-		return upd.MessageReactionCount.Chat.Id
-
-	case upd.PurchasedPaidMedia != nil:
-		return upd.PurchasedPaidMedia.From.Id
+		msg = upd.EditedChannelPost
 	case upd.BusinessMessage != nil:
-		return upd.BusinessMessage.Chat.Id
+		msg = upd.BusinessMessage
 	case upd.EditedBusinessMessage != nil:
-		return upd.EditedBusinessMessage.Chat.Id
+		msg = upd.EditedBusinessMessage
+	case upd.GuestMessage != nil:
+		msg = upd.GuestMessage
+	case upd.BusinessConnection != nil:
+		return upd.BusinessConnection.UserChatId
 	case upd.DeletedBusinessMessages != nil:
-		return upd.DeletedBusinessMessages.Chat.Id
+		chat = upd.DeletedBusinessMessages.Chat
+	case upd.InlineQuery != nil:
+		user = upd.InlineQuery.From
+	case upd.ChosenInlineResult != nil:
+		user = upd.ChosenInlineResult.From
+	case upd.CallbackQuery != nil:
+		if upd.CallbackQuery.Message != nil && upd.CallbackQuery.Message.Chat != nil {
+			chat = upd.CallbackQuery.Message.Chat
+		} else {
+			user = upd.CallbackQuery.From
+		}
+	case upd.ShippingQuery != nil:
+		user = upd.ShippingQuery.From
+	case upd.PreCheckoutQuery != nil:
+		user = upd.PreCheckoutQuery.From
+	case upd.PurchasedPaidMedia != nil:
+		user = upd.PurchasedPaidMedia.From
+	case upd.ChatJoinRequest != nil:
+		chat = upd.ChatJoinRequest.Chat
+	case upd.MyChatMember != nil:
+		chat = upd.MyChatMember.Chat
+	case upd.ChatMember != nil:
+		chat = upd.ChatMember.Chat
+	case upd.ChatBoost != nil:
+		chat = upd.ChatBoost.Chat
+	case upd.RemovedChatBoost != nil:
+		chat = upd.RemovedChatBoost.Chat
+	case upd.MessageReaction != nil:
+		chat = upd.MessageReaction.Chat
+	case upd.MessageReactionCount != nil:
+		chat = upd.MessageReactionCount.Chat
+	case upd.StoppedMessageGeneration != nil:
+		chat = upd.StoppedMessageGeneration.Chat
+	}
+	if msg != nil {
+		chat = msg.Chat
+	}
+	if chat != nil {
+		return chat.Id
+	}
+	if user != nil {
+		return user.Id
 	}
 	return 0
 }
 
 func getSenderId(upd *Update) int64 {
-	defer func() { _ = recover() }()
-
+	var msg *Message
+	var user *User
+	var chat *Chat
+	var source ChatBoostSource
 	switch {
 	case upd == nil:
 		return 0
 	case upd.Message != nil:
-		return upd.Message.From.Id
+		msg = upd.Message
 	case upd.EditedMessage != nil:
-		return upd.EditedMessage.From.Id
-
+		msg = upd.EditedMessage
 	case upd.ChannelPost != nil:
-		return upd.ChannelPost.From.Id
+		msg = upd.ChannelPost
 	case upd.EditedChannelPost != nil:
-		return upd.EditedChannelPost.From.Id
-
-	case upd.InlineQuery != nil:
-		return upd.InlineQuery.From.Id
-	case upd.ChosenInlineResult != nil:
-		return upd.ChosenInlineResult.From.Id
-	case upd.CallbackQuery != nil:
-		return upd.CallbackQuery.From.Id
-	case upd.ShippingQuery != nil:
-		return upd.ShippingQuery.From.Id
-	case upd.PreCheckoutQuery != nil:
-		return upd.PreCheckoutQuery.From.Id
-
-	case upd.ChatJoinRequest != nil:
-		return upd.ChatJoinRequest.From.Id
-
-	case upd.MyChatMember != nil:
-		return upd.MyChatMember.From.Id
-	case upd.ChatMember != nil:
-		return upd.ChatMember.From.Id
-
-	case upd.ChatBoost != nil:
-		return upd.ChatBoost.Chat.Id
-	case upd.RemovedChatBoost != nil:
-		return upd.RemovedChatBoost.Chat.Id
-
-	case upd.MessageReaction != nil:
-		return upd.MessageReaction.User.Id
-	case upd.MessageReactionCount != nil:
-		return upd.MessageReactionCount.Chat.Id
-
-	case upd.PurchasedPaidMedia != nil:
-		return upd.PurchasedPaidMedia.From.Id
+		msg = upd.EditedChannelPost
 	case upd.BusinessMessage != nil:
-		return upd.BusinessMessage.From.Id
+		msg = upd.BusinessMessage
 	case upd.EditedBusinessMessage != nil:
-		return upd.EditedBusinessMessage.From.Id
-	case upd.DeletedBusinessMessages != nil:
-		return upd.DeletedBusinessMessages.Chat.Id
+		msg = upd.EditedBusinessMessage
+	case upd.GuestMessage != nil:
+		msg = upd.GuestMessage
+	case upd.BusinessConnection != nil:
+		user = upd.BusinessConnection.User
+	case upd.InlineQuery != nil:
+		user = upd.InlineQuery.From
+	case upd.ChosenInlineResult != nil:
+		user = upd.ChosenInlineResult.From
+	case upd.CallbackQuery != nil:
+		user = upd.CallbackQuery.From
+	case upd.ShippingQuery != nil:
+		user = upd.ShippingQuery.From
+	case upd.PreCheckoutQuery != nil:
+		user = upd.PreCheckoutQuery.From
+	case upd.PurchasedPaidMedia != nil:
+		user = upd.PurchasedPaidMedia.From
+	case upd.ChatJoinRequest != nil:
+		user = upd.ChatJoinRequest.From
+	case upd.MyChatMember != nil:
+		user = upd.MyChatMember.From
+	case upd.ChatMember != nil:
+		user = upd.ChatMember.From
+	case upd.ChatBoost != nil:
+		if upd.ChatBoost.Boost != nil {
+			source = upd.ChatBoost.Boost.Source
+		}
+	case upd.RemovedChatBoost != nil:
+		source = upd.RemovedChatBoost.Source
+	case upd.MessageReaction != nil:
+		user, chat = upd.MessageReaction.User, upd.MessageReaction.ActorChat
+	case upd.PollAnswer != nil:
+		user, chat = upd.PollAnswer.User, upd.PollAnswer.VoterChat
+	case upd.ManagedBot != nil:
+		user = upd.ManagedBot.User
+	case upd.Subscription != nil:
+		user = upd.Subscription.User
+	}
+	if msg != nil {
+		// Preserve From (including Telegram's compatibility bots) when present.
+		user, chat = msg.From, msg.SenderChat
+	}
+	switch source := source.(type) {
+	case *ChatBoostSourcePremium:
+		if source != nil {
+			user = source.User
+		}
+	case *ChatBoostSourceGiftCode:
+		if source != nil {
+			user = source.User
+		}
+	case *ChatBoostSourceGiveaway:
+		if source != nil {
+			user = source.User
+		}
+	}
+	if user != nil {
+		return user.Id
+	}
+	if chat != nil {
+		return chat.Id
 	}
 	return 0
 }
